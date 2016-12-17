@@ -1,0 +1,34 @@
+#{addresses
+  assets
+  availabilities
+  carts
+  coupons
+  discounts
+  emails
+  geographies
+  itemdefinitions
+  itemselections
+  items
+  lookups
+  navigations
+  orders
+  payment-methods
+  payment-tokens
+  prices
+  profiles
+  promotions
+  purchases
+  rates
+  recommendations
+  registrations
+  ;; schema-reference-doc
+  searches
+  shipment-details
+  shipments
+  slots
+  stocks
+  subscriptions
+  taxes
+  totals
+  ;; unreleased-plans
+  wishlists}
