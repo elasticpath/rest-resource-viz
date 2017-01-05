@@ -1,0 +1,4620 @@
+<?xml version="1.0" encoding="UTF-8"?><definitions>
+  <family>
+    <name>prices</name>
+    <description>
+			
+Prices describe the amount of money required to purchase an item or items. The prices resource server links prices to: [items][items], cart line items and [item definitions][itemdefinitions]
+
+[items]: #items
+[itemdefinitions]: #itemdefinitions
+			
+		</description>
+    <resource>
+      <name>price-for-item</name>
+      <description>The item price resource.</description>
+      <uri>{base.family}/{items.item}</uri>
+      <entity>item-price</entity>
+    </resource>
+    <resource>
+      <name>price-for-cart-line-item</name>
+      <description>The cart line item price resource.</description>
+      <uri>{base.family}/{carts.line-item}</uri>
+      <entity>cart-line-item-price</entity>
+    </resource>
+    <resource>
+      <name>price-for-itemdefinition</name>
+      <description>The item definition price resource.</description>
+      <uri>{base.family}/{itemdefinitions.item-definition}</uri>
+      <entity>price-range</entity>
+    </resource>
+    <resource>
+      <name>price-for-shipment-line-item</name>
+      <description>The price of the shipment line item.</description>
+      <uri>{base.family}/{shipments.shipment-line-item}</uri>
+      <entity>shipment-line-item-price</entity>
+    </resource>
+    <relationship>
+      <name>price-for-item</name>
+      <description>
+				Read the unit price of an [item][items]. The unit price of an item is the price for one unit (quantity = 1) </description>
+      <rel>price</rel>
+      <rev>item</rev>
+      <from>items.item</from>
+      <to>price-for-item</to>
+    </relationship>
+    <relationship>
+      <name>price-for-cart-line-item</name>
+      <description>Read the unit price of a cart line item. The unit price of a cart line item is the price for one unit when a given quantity is purchased (the line item quantity).</description>
+      <rel>price</rel>
+      <rev>lineitem</rev>
+      <from>carts.line-item</from>
+      <to>price-for-cart-line-item</to>
+    </relationship>
+    <relationship>
+      <name>lowest-price-for-item-definition</name>
+      <description>
+				Read the price of the item option with the lowest price. This link will only appear if the item has options.</description>
+      <rel>fromprice</rel>
+      <rev>definition</rev>
+      <from>itemdefinitions.item-definition</from>
+      <to>price-for-itemdefinition</to>
+    </relationship>
+    <relationship>
+      <name>price-for-shipment-line-item</name>
+      <description>Retrieves the price of a shipment line item.</description>
+      <rel>price</rel>
+      <from>shipments.shipment-line-item</from>
+      <to>price-for-shipment-line-item</to>
+    </relationship>
+    <entity>
+      <name>item-price</name>
+      <description>The unit price of an item.</description>
+      <property>
+        <name>list-price</name>
+        <description>The unit price of an item before catalog discounts are applied.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>purchase-price</name>
+        <description>The unit price of an item after catalog discounts are applied. </description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>cart-line-item-price</name>
+      <description>The unit price of an item in the shopper’s cart.</description>
+      <property>
+        <name>list-price</name>
+        <description>The unit price of an item in the shopper’s cart before shopping cart discounts are applied.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>purchase-price</name>
+        <description>
+					
+The unit price of an item in the shopper’s cart after shopping cart discounts are applied. This represents the price the shopper will
+actually pay for each unit. If no discounts have been applied, the list and purchase price will be the same.
+					
+				</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>line-item-id</name>
+        <description>The internal line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>cart-id</name>
+        <description>The internal cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>price-range</name>
+      <description>The price range describes a price for an item or cart line item.</description>
+      <property>
+        <name>from-price</name>
+        <description>The price of the item's least expensive option.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>shipment-line-item-price</name>
+      <description>The price of a shipment line item.</description>
+      <property>
+        <name>list-price</name>
+        <description>The price of a shipment line item before discounts are applied.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>purchase-price</name>
+        <description>The price of a shipment line item after discounts are applied. If no discounts have been applied, the list and purchase price will be the same.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>shipment-line-item-id</name>
+        <description>The internal lineitem identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>shipment-id</name>
+        <description>The internal shipment identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-id</name>
+        <description>The internal purchase identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>shipmentdetails</name>
+    <resource>
+      <name>destination-info-selector</name>
+      <description>Selector to choose the destination for the order.</description>
+      <uri>{destination-info}/selector</uri>
+      <entity>controls.selector</entity>
+    </resource>
+    <resource>
+      <name>destination-info-selector-choice</name>
+      <description>An option for the destination shipping address.</description>
+      <uri>{destination-info-selector}/{addresses.address}</uri>
+    </resource>
+    <relationship>
+      <name>selector-for-destination-info</name>
+      <description>Use a Selector to select a destination.</description>
+      <rel>selector</rel>
+      <rev>destinationinfo</rev>
+      <from>destination-info</from>
+      <to>destination-info-selector</to>
+    </relationship>
+    <relationship>
+      <name>choice-for-destination-info-selector</name>
+      <description>Retrieve a choice.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>destination-info-selector</from>
+      <to>destination-info-selector-choice</to>
+    </relationship>
+    <relationship>
+      <name>description-for-destination-info-selector-choice</name>
+      <description>Retrieve a choice's description.</description>
+      <rel>description</rel>
+      <from>destination-info-selector-choice</from>
+      <to>addresses.address</to>
+    </relationship>
+    <relationship>
+      <name>action-for-destination-info-selector-choice</name>
+      <description>Select a choice.</description>
+      <rel>selectaction</rel>
+      <from>destination-info-selector-choice</from>
+      <to>destination-info-selector-choice</to>
+    </relationship>
+  </family>
+  <family>
+    <name>shipmentdetails</name>
+    <description>
+			
+The shipmentdetails resource defines how and where the physical goods you're purchasing are shipped. The *where* you're shipping
+is the shipping address, while the *how* are the shipping options (i.e. Canada Post, FedEx, etc) available for your store.
+			
+		</description>
+    <uri-part>
+      <name>shipment-details-id</name>
+      <description>A value representing the shipment detail identification.</description>
+    </uri-part>
+    <uri-part>
+      <name>shipping-option-id</name>
+      <description>A value representing the shipping option identification.</description>
+    </uri-part>
+    <resource>
+      <name>destination-info</name>
+      <description>The destinationinfo for the order.</description>
+      <uri>{base.family}/{base.scope}/{shipment-details-id}/destinationinfo</uri>
+      <entity>controls.info</entity>
+    </resource>
+    <resource>
+      <name>shipping-option</name>
+      <description>The shipping option that is currently selected for the order.</description>
+      <uri>{base.family}/{base.scope}/{shipment-details-id}/shippingoptions/{shipping-option-id}</uri>
+      <entity>shipping-option</entity>
+    </resource>
+    <resource>
+      <name>shipping-option-info</name>
+      <description>The shippingoptioninfo for the order.</description>
+      <uri>{base.family}/{base.scope}/{shipment-details-id}/shippingoptioninfo</uri>
+      <entity>controls.info</entity>
+    </resource>
+    <relationship>
+      <name>destination-info-for-order</name>
+      <description>Retrieves the order's destination info.</description>
+      <rel>destinationinfo</rel>
+      <rev>delivery</rev>
+      <from>orders.order</from>
+      <to>destination-info</to>
+    </relationship>
+    <relationship>
+      <name>shipping-address-for-order</name>
+      <description>Retrieve the shipping address that is currently selected for the order.</description>
+      <rel>destination</rel>
+      <from>destination-info</from>
+      <to>addresses.address</to>
+    </relationship>
+    <entity>
+      <name>shipping-option</name>
+      <description>Physical Shipping Option Representation.</description>
+      <property>
+        <name>name</name>
+        <description>Name of the shipping option.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the carrier, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>carrier</name>
+        <description>Name of the carrier.</description>
+        <string/>
+      </property>
+      <property>
+        <name>cost</name>
+        <description>The shipping costs for shipping the item(s) to the selected shipping address.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>shipping-option-id</name>
+        <description>shipping option identification.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.shipmentdetails.shipping-option</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>shipmentdetails</name>
+    <description>
+			
+Uses a Selector to choose the shipping option for the order. The shipping option is how the order will be
+shipped, i.e. (FedEx, Canada Post, etc). The shipping options available for your shipment depend on which shipping regions
+and shipping service levels are configured for your store. Check with your store's administrator for more information on
+these options.
+				
+		</description>
+    <resource>
+      <name>shipping-option-info-selector</name>
+      <description>Selector to choose shipping option.</description>
+      <uri>{shipping-option-info}/selector</uri>
+      <entity>controls.selector</entity>
+    </resource>
+    <resource>
+      <name>shipping-option-info-selector-choice</name>
+      <description>Selector choice for the shipping option selector.</description>
+      <uri>{shipping-option-info-selector}/{shipping-option}</uri>
+    </resource>
+    <relationship>
+      <name>selector-for-shipping-option</name>
+      <description>Use a Selector to select a shipping option (i.e. FedEx, Canada Post, etc.)</description>
+      <rel>selector</rel>
+      <rev>shippingoptioninfo</rev>
+      <from>shipping-option-info</from>
+      <to>shipping-option-info-selector</to>
+    </relationship>
+    <relationship>
+      <name>choice-for-shipping-option-selector</name>
+      <description>Retrieve a choice.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>shipping-option-info-selector</from>
+      <to>shipping-option-info-selector-choice</to>
+    </relationship>
+    <relationship>
+      <name>description-for-shipping-option-selector-choice</name>
+      <description>Retrieve a choice's description.</description>
+      <rel>description</rel>
+      <from>shipping-option-info-selector-choice</from>
+      <to>shipping-option</to>
+    </relationship>
+    <relationship>
+      <name>action-for-shipping-option-selector-choice</name>
+      <description>Select a choice.</description>
+      <rel>selectaction</rel>
+      <from>shipping-option-info-selector-choice</from>
+      <to>shipping-option-info-selector-choice</to>
+    </relationship>
+  </family>
+  <family>
+    <name>itemdefinitions</name>
+    <uri-part>
+      <name>component-id</name>
+      <description>The component ID.</description>
+    </uri-part>
+    <relationship>
+      <name>components-for-item-definition</name>
+      <description>Read the item definition component from the list of available components.</description>
+      <rel>components</rel>
+      <from>item-definition</from>
+      <to>item-definition-components</to>
+    </relationship>
+    <resource>
+      <name>item-definition-components</name>
+      <description>The list of item definition components.</description>
+      <uri>{item-definition}/components</uri>
+      <list-of>item-definition-component</list-of>
+    </resource>
+    <resource>
+      <name>item-definition-component</name>
+      <description>The item definition component.</description>
+      <uri>{item-definition-components}/{component-id}</uri>
+      <entity>item-definition-component</entity>
+    </resource>
+    <relationship>
+      <name>standalone-item-for-item-definition-component</name>
+      <description>Read the component's stand alone item. Some components can be
+			purchased separately.</description>
+      <rel>standaloneitem</rel>
+      <from>item-definition-component</from>
+      <to>items.item</to>
+    </relationship>
+    <relationship>
+      <name>options-for-item-definition-component</name>
+      <description>Read the options for an item definition component.</description>
+      <rel>options</rel>
+      <from>item-definition-component</from>
+      <to>item-definition-component-options</to>
+    </relationship>
+    <resource>
+      <name>item-definition-component-options</name>
+      <description>An item definition component's options.</description>
+      <uri>{item-definition-component}/options</uri>
+      <list-of>item-definition-component-option</list-of>
+    </resource>
+    <resource>
+      <name>item-definition-component-option</name>
+      <description>An item definition component option.</description>
+      <uri>{item-definition-component-options}/{option-id}</uri>
+      <entity>item-definition-option</entity>
+    </resource>
+    <relationship>
+      <name>value-for-item-definition-component-option</name>
+      <description>Read the item definition component option value.</description>
+      <rel>value</rel>
+      <rev>option</rev>
+      <from>item-definition-component-option</from>
+      <to>item-definition-component-option-value</to>
+    </relationship>
+    <resource>
+      <name>item-definition-component-option-value</name>
+      <description>The item definition component's option value.</description>
+      <uri>{item-definition-component-option}/values/{option-value-id}</uri>
+      <entity>item-definition-option-value</entity>
+    </resource>
+    <resource>
+      <name>item-definition-nested-components</name>
+      <description>The nested item definition components.</description>
+      <uri>{item-definition-component}/components</uri>
+      <list-of>item-definition-nested-component</list-of>
+    </resource>
+    <relationship>
+      <name>nested-components-for-item-definition-component</name>
+      <description>Read a list of nested item definition components.</description>
+      <rel>definition</rel>
+      <from>item-definition-component</from>
+      <to>item-definition-nested-components</to>
+    </relationship>
+    <resource>
+      <name>item-definition-nested-component</name>
+      <description>The nested item definition component.</description>
+      <uri>{item-definition-nested-components}/{component-id}</uri>
+      <entity>item-definition-component</entity>
+    </resource>
+    <relationship>
+      <name>options-for-nested-item-definition-component</name>
+      <description>Read the options for a nested item definition component.</description>
+      <rel>options</rel>
+      <from>item-definition-nested-component</from>
+      <to>item-definition-nested-component-options</to>
+    </relationship>
+    <resource>
+      <name>item-definition-nested-component-options</name>
+      <description>A nested item definition component's options.</description>
+      <uri>{item-definition-nested-component}/options</uri>
+      <list-of>item-definition-nested-component-option</list-of>
+    </resource>
+    <resource>
+      <name>item-definition-nested-component-option</name>
+      <description>A nested item definition component option.</description>
+      <uri>{item-definition-nested-component-options}/{option-id}</uri>
+      <entity>item-definition-option</entity>
+    </resource>
+    <relationship>
+      <name>value-for-nested-item-definition-component-option</name>
+      <description>Read the nested item definition component option value.</description>
+      <rel>value</rel>
+      <rev>option</rev>
+      <from>item-definition-nested-component-option</from>
+      <to>item-definition-nested-component-option-value</to>
+    </relationship>
+    <resource>
+      <name>item-definition-nested-component-option-value</name>
+      <description>The nested item definition component option value.</description>
+      <uri>{item-definition-nested-component-option}/values/{option-value-id}</uri>
+      <entity>item-definition-option-value</entity>
+    </resource>
+    <entity>
+      <name>item-definition-component</name>
+      <description>The item definition component.</description>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the item definition component, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>details</name>
+        <description>The details of the item definition component.</description>
+        <array>
+          <is-a>base.details</is-a>
+        </array>
+      </property>
+      <property>
+        <name>quantity</name>
+        <description>The quantity of components.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>component-id</name>
+        <description>The internal component identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>standalone-item-id</name>
+        <description>The internal stand alone item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.itemdefinitions.component</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>itemdefinitions</name>
+    <description>
+			
+An item definition describes the item. The item's name, media [assets][assets] (pictures of the item), options, components, from price, and details describing the item's characteristics are all part of the item definitions.
+Not every item definition contains assets, options, components, etc. What is available on the item definition depends on
+the item and how your storefront has implemented Cortex API. Some resources may be customized for your implementation, so more, or even less details may exist.
+
+[assets]: #assets
+			
+		</description>
+    <uri-part>
+      <name>option-id</name>
+      <description>The option ID.</description>
+    </uri-part>
+    <uri-part>
+      <name>option-value-id</name>
+      <description>The option value ID.</description>
+    </uri-part>
+    <resource>
+      <name>item-definition</name>
+      <description>
+				An item's definition, which includes its name, media assets (pictures of the item), options, components, from price, and details.</description>
+      <uri>{base.family}/{base.scope}/{items.item-id}</uri>
+      <entity>item-definition</entity>
+    </resource>
+    <relationship>
+      <name>item-definition-for-item</name>
+      <description>Read the item definition from the item.</description>
+      <rel>definition</rel>
+      <rev>item</rev>
+      <from>items.item</from>
+      <to>item-definition</to>
+    </relationship>
+    <resource>
+      <name>item-definition-options</name>
+      <description>The list of item definition options.</description>
+      <uri>{item-definition}/options</uri>
+      <list-of>item-definition-option</list-of>
+    </resource>
+    <relationship>
+      <name>options-for-item-definition</name>
+      <description>Read the options for an item definition.</description>
+      <rel>options</rel>
+      <from>item-definition</from>
+      <to>item-definition-options</to>
+    </relationship>
+    <resource>
+      <name>item-definition-option</name>
+      <description>The item definition option.</description>
+      <uri>{item-definition-options}/{option-id}</uri>
+      <entity>item-definition-option</entity>
+    </resource>
+    <relationship>
+      <name>value-for-item-definition-option</name>
+      <description>Read the item definition option value.</description>
+      <rel>value</rel>
+      <rev>option</rev>
+      <from>item-definition-option</from>
+      <to>item-definition-option-value</to>
+    </relationship>
+    <resource>
+      <name>item-definition-option-value</name>
+      <description>The item definition option value.</description>
+      <uri>{item-definition-option}/values/{option-value-id}</uri>
+      <entity>item-definition-option-value</entity>
+    </resource>
+    <entity>
+      <name>item-definition</name>
+      <description>An item definition is a description of an item.</description>
+      <property>
+        <name>item-id</name>
+        <description>item identification.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the item definition, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>details</name>
+        <description>The details of the item definition.</description>
+        <array>
+          <is-a>base.details</is-a>
+        </array>
+      </property>
+      <entity-type>elasticpath.itemdefinitions.item-definition</entity-type>
+    </entity>
+    <entity>
+      <name>item-definition-option</name>
+      <description>The item definition option</description>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the item definition option, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name of the item definition option.</description>
+        <string/>
+      </property>
+      <property>
+        <name>option-id</name>
+        <description>The internal option identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>option-value-id</name>
+        <description>The internal option value identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>component-id</name>
+        <description>The internal component identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.itemdefinitions.option</entity-type>
+    </entity>
+    <entity>
+      <name>item-definition-option-value</name>
+      <description>The description of the item definition option that is currently selected.</description>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the item definition option value, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name of the item definition option value.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.itemdefinitions.value</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>purchases</name>
+    <description>Submit the purchase form to complete the purchase.</description>
+    <resource>
+      <name>create-purchase-form</name>
+      <description>Provides the form with which to purchase an order.</description>
+      <uri>{create-purchase-action}/form</uri>
+      <entity>purchase</entity>
+    </resource>
+    <resource>
+      <name>create-purchase-action</name>
+      <description>The submission resource to create a purchase.</description>
+      <uri>{base.family}/{orders.order}</uri>
+      <entity>purchase</entity>
+    </resource>
+    <relationship>
+      <name>create-purchase-form-from-order</name>
+      <description>Retrieve the form.</description>
+      <rel>purchaseform</rel>
+      <from>orders.order</from>
+      <to>create-purchase-form</to>
+    </relationship>
+    <relationship>
+      <name>create-purchase-action-from-create-purchase-form</name>
+      <description>Submit the purchase form to complete the purchase.</description>
+      <rel>submitorderaction</rel>
+      <from>create-purchase-form</from>
+      <to>create-purchase-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>purchases</name>
+    <description>
+			
+Purchase line items are collections of items the customer purchased. Each line item can contain one or more of the same item,
+but will not have two different items. For example, one line item can have 7 Rock-Star t-shirts or one Rock-Star t-shirt,
+but it won't have one Rock-Star t-shirt and a Song track. The Song track and t-shirt would be in separate line items.
+			
+		</description>
+    <uri-part>
+      <name>line-item-id</name>
+      <description>The line item identifier.</description>
+    </uri-part>
+    <resource>
+      <name>purchase-line-items</name>
+      <description>
+				
+Retrieves a list of all the line items in a purchase. Each line item contains an item that was bought during the purchase.
+Line items can contain one or more of the same item, but will not have two different items. For example, one line item can
+have 7 Rock-Star t-shirts or one Rock-Star t-shirt, but it won't have one Rock-Star t-shirt and a Song track. The Song
+track and t-shirt would be in separate line items.
+				
+			</description>
+      <uri>{purchase}/lineitems</uri>
+      <list-of>purchase-line-item</list-of>
+    </resource>
+    <resource>
+      <name>purchase-line-item</name>
+      <description>A purchased line item.</description>
+      <uri>{purchase-line-items}/{line-item-id}</uri>
+      <entity>purchase-line-item</entity>
+    </resource>
+    <resource>
+      <name>purchase-line-item-components</name>
+      <description>List of component line items of a purchased line item.</description>
+      <uri>{purchase-line-item}/components</uri>
+      <list-of>purchase-line-item-component</list-of>
+    </resource>
+    <resource>
+      <name>purchase-line-item-component</name>
+      <description>A component of a purchased line item.</description>
+      <uri>{purchase-line-item-components}/{itemdefinitions.component-id}</uri>
+      <entity>purchase-line-item</entity>
+    </resource>
+    <resource>
+      <name>purchase-line-item-component-options</name>
+      <description>List of options of a component of a purchased line item.</description>
+      <uri>{purchase-line-item-component}/options</uri>
+      <list-of>purchase-line-item-component-options</list-of>
+    </resource>
+    <resource>
+      <name>purchase-line-item-component-option</name>
+      <description>Option of a component of a purchased line item.</description>
+      <uri>{purchase-line-item-component-options}/{itemdefinitions.option-id}</uri>
+      <entity>purchase-line-item-option</entity>
+    </resource>
+    <resource>
+      <name>purchase-line-item-component-option-value</name>
+      <description>Option value of component of a purchased line item.</description>
+      <uri>{purchase-line-item-component-option}/values/{itemdefinitions.option-value-id}</uri>
+      <entity>purchase-line-item-option-value</entity>
+    </resource>
+    <resource>
+      <name>purchase-line-item-options</name>
+      <description>The list of options of the purchased line item.</description>
+      <uri>{purchase-line-item}/options</uri>
+      <list-of>purchase-line-item-option</list-of>
+    </resource>
+    <resource>
+      <name>purchase-line-item-option</name>
+      <description>The option of the purchased line item.</description>
+      <uri>{purchase-line-item-options}/{itemdefinitions.option-id}</uri>
+      <entity>purchase-line-item-option</entity>
+    </resource>
+    <resource>
+      <name>purchase-line-item-option-value</name>
+      <description>The option value for the purchased line item.</description>
+      <uri>{purchase-line-item-option}/values/{itemdefinitions.option-value-id}</uri>
+      <entity>purchase-line-item-option-value</entity>
+    </resource>
+    <relationship>
+      <name>line-items-for-purchase</name>
+      <description>
+				Retrieve a purchase's line items, which includes details on the item that was purchased such as item name, quantity purchased, and cost.</description>
+      <rel>lineitems</rel>
+      <rev>purchase</rev>
+      <from>purchase</from>
+      <to>purchase-line-items</to>
+    </relationship>
+    <relationship>
+      <name>options-for-purchase-line-item</name>
+      <description>The options for the item purchased. </description>
+      <rel>options</rel>
+      <rev>lineitem</rev>
+      <from>purchase-line-item</from>
+      <to>purchase-line-item-options</to>
+    </relationship>
+    <relationship>
+      <name>value-for-purchase-line-item-option</name>
+      <description>The option value for the item purchased. </description>
+      <rel>value</rel>
+      <rev>option</rev>
+      <from>purchase-line-item-option</from>
+      <to>purchase-line-item-option-value</to>
+    </relationship>
+    <relationship>
+      <name>components-for-purchase-line-items</name>
+      <description>Components for the purchased line item.</description>
+      <rel>components</rel>
+      <from>purchase-line-item</from>
+      <to>purchase-line-item-components</to>
+    </relationship>
+    <relationship>
+      <name>options-for-purchase-line-item-component</name>
+      <description>The options for the item's component. </description>
+      <rel>options</rel>
+      <rev>lineitem</rev>
+      <from>purchase-line-item-component</from>
+      <to>purchase-line-item-component-options</to>
+    </relationship>
+    <relationship>
+      <name>value-for-purchase-line-item-component-option</name>
+      <description>The option value for the item's component. </description>
+      <rel>value</rel>
+      <rev>option</rev>
+      <from>purchase-line-item-component-option</from>
+      <to>purchase-line-item-component-option-value</to>
+    </relationship>
+    <entity>
+      <name>purchase-line-item-configuration</name>
+      <description>The configuration of a key/value</description>
+      <dynamic/>
+    </entity>
+    <entity>
+      <name>purchase-line-item</name>
+      <description>A collection of items the customer purchased</description>
+      <property>
+        <name>line-item-id</name>
+        <description>The line item ID.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-id</name>
+        <description>The purchase ID.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name of the item that was purchased.</description>
+        <string/>
+      </property>
+      <property>
+        <name>quantity</name>
+        <description>The number of items that were purchased.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>configuration</name>
+        <description>The Fields associated with the purchase line item (Dictionary of String/Strings) </description>
+        <is-a>purchase-line-item-configuration</is-a>
+      </property>
+      <property>
+        <name>line-extension-tax</name>
+        <description>The tax paid for the purchased item(s).</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>line-extension-amount</name>
+        <description>The purchase price of the item(s), excluding taxes.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>line-extension-total</name>
+        <description>The total amount paid for the item(s), including taxes.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <entity-type>elasticpath.purchases.line-item</entity-type>
+    </entity>
+    <entity>
+      <name>purchase-line-item-option</name>
+      <description>The purchase line item option entity.</description>
+      <property>
+        <name>name</name>
+        <description>The name of the item option.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the item option, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>selected-value-id</name>
+        <description>The id of the selected value.</description>
+        <string/>
+      </property>
+      <property>
+        <name>option-id</name>
+        <description>The id of the option.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.purchases.option</entity-type>
+    </entity>
+    <entity>
+      <name>purchase-line-item-option-value</name>
+      <description>The line item option value entity.</description>
+      <property>
+        <name>name</name>
+        <description>The name of the item option.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the option name, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.purchases.value</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>purchases</name>
+    <description>
+			
+The Paymentmeans resource is responsible for recording a purchase's billing details, such as a customer's billing address and
+[paymentmethod][paymentmethods].
+
+[paymentmethods]: #paymentmethods
+			
+		</description>
+    <uri-part>
+      <name>paymentmeans-id</name>
+      <description>The paymentmeans ID.</description>
+    </uri-part>
+    <uri-part>
+      <name>payment-id</name>
+      <description>The paymentmeans ID.</description>
+    </uri-part>
+    <resource>
+      <name>purchase-paymentmeans</name>
+      <description>List of all the paymentmeans used for the purchase.</description>
+      <uri>{purchase}/paymentmeans</uri>
+      <list-of>purchase-paymentmean</list-of>
+    </resource>
+    <resource>
+      <name>purchase-paymentmean</name>
+      <description>Paymentmeans is responsible for recording a purchase's billing details such as a customer's billing address and paymentmethod.</description>
+      <uri>{purchase-paymentmeans}/{paymentmeans-id}</uri>
+      <entity>payment-means-credit-card</entity>
+    </resource>
+    <relationship>
+      <name>paymentmeans-for-purchase</name>
+      <description>List payment means for a purchase.</description>
+      <rel>paymentmeans</rel>
+      <rev>purchase</rev>
+      <from>purchase-paymentmeans</from>
+      <to>purchase</to>
+    </relationship>
+    <entity>
+      <name>payment-means</name>
+      <description>Describes a payment means.</description>
+      <property>
+        <name>payment-means-id</name>
+        <description>The payment means identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>payment-means-payment-token</name>
+      <description>The payment token used for the purchase.</description>
+      <is-a>payment-means</is-a>
+      <property>
+        <name>display-name</name>
+        <description>A description of the payment token.</description>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>expiration-date</name>
+      <description>Describes the expiration date of a credit card.</description>
+      <property>
+        <name>month</name>
+        <description>The month of the expiration date.</description>
+        <string>
+          <min-length>2</min-length>
+          <max-length>2</max-length>
+        </string>
+      </property>
+      <property>
+        <name>year</name>
+        <description>The year of the expiration date.</description>
+        <string>
+          <min-length>4</min-length>
+          <max-length>4</max-length>
+        </string>
+      </property>
+    </entity>
+    <entity>
+      <name>payment-means-credit-card</name>
+      <description>The credit card payment means for the purchase</description>
+      <is-a>payment-means</is-a>
+      <property>
+        <name>card-type</name>
+        <description>The card type used for the purchase.</description>
+        <string/>
+      </property>
+      <property>
+        <name>telephone-type</name>
+        <description>The type of telephone number.</description>
+        <string/>
+      </property>
+      <property>
+        <name>telephone-number</name>
+        <description>The telephone number.</description>
+        <string/>
+      </property>
+      <property>
+        <name>primary-account-number-id</name>
+        <description>The primary account number identifier.</description>
+        <string/>
+      </property>
+      <property>
+        <name>holder-name</name>
+        <description>The card holder name used for the purchase.</description>
+        <string/>
+      </property>
+      <property>
+        <name>expiry-date</name>
+        <description>The expiry date of card used for the purchase.</description>
+        <is-a>expiration-date</is-a>
+      </property>
+      <property>
+        <name>billing-address</name>
+        <description>The billing address used for the purchase.</description>
+        <is-a>addresses.address</is-a>
+      </property>
+      <entity-type>elasticpath.purchases.purchase.paymentmeans</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>purchases</name>
+    <description>
+####Entry Point: /purchases/{scope}
+
+A purchase is a receipt of an executed order. A Purchase lists the order's total cost, purchase date, purchase status
+(COMPLETE or FAILED), tax paid, paymentmeans, which lists the billing and shipping details as well as
+customer's [paymentmethods][paymentmethods], and line items, which are lists of the [items][items] the customer
+purchased.
+
+Each time customers make successful purchases, Cortex API records them in its database. Using the purchases resource,
+client developers can retrieve the customer's purchase history, which allows customers to inspect their previous purchases,
+check for correctness, and track the purchase's status. Cortex API records each successful purchase and the last failed
+purchase. Cortex API does not track each failed purchase, it only records the last failed purchase. Once the purchase
+completes, the failed purchase is removed from the record and a successful purchase is recorded.
+
+[paymentmethods]: #paymentmethods
+[items]: #items
+			
+		</description>
+    <uri-part>
+      <name>purchase-id</name>
+      <description>The purchase ID</description>
+    </uri-part>
+    <resource>
+      <name>purchases</name>
+      <description>The list of all purchases of a customer.</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>purchase</list-of>
+    </resource>
+    <resource>
+      <name>purchase</name>
+      <description>A customer's purchase.</description>
+      <uri>{purchases}/{purchase-id}</uri>
+      <entity>purchase</entity>
+    </resource>
+    <resource>
+      <name>purchase-billingaddress</name>
+      <description>A purchase's billing address.</description>
+      <uri>{purchase}/billingaddress</uri>
+      <entity>addresses.address</entity>
+    </resource>
+    <relationship>
+      <name>purchases-for-profile</name>
+      <description>Retrieve a list of purchases for the logged in customer.</description>
+      <rel>purchases</rel>
+      <from>profiles.profile</from>
+      <to>purchases</to>
+    </relationship>
+    <relationship>
+      <name>billing-address-for-purchase</name>
+      <description>The billing address associated with this purchase.</description>
+      <rel>billingaddress</rel>
+      <from>purchase</from>
+      <to>purchase-billingaddress</to>
+    </relationship>
+    <entity>
+      <name>purchase</name>
+      <description>An order to be purchased.</description>
+      <property>
+        <name>order-id</name>
+        <description>The internal order identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-id</name>
+        <description>The internal cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-number</name>
+        <description>
+					
+Purchase number associated with the purchase. This is the reference customers use
+if they need to communicate with the store's customer service representative.
+					
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>status</name>
+        <description>
+					
+Indicates the status of the purchase. The following are possible status values:
+
+* IN_PROGRESS - The purchase is being processed.
+* COMPLETED - The purchase is processed.
+* CANCELLED - The purchase is cancelled.
+				
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>monetary-total</name>
+        <description>The total cost paid for the purchase, including taxes.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>taxes</name>
+        <description>The taxes for the purchase</description>
+        <array>
+          <is-a>base.named-cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>tax-total</name>
+        <description>The total amount of tax paid for the purchase.</description>
+        <is-a>base.cost</is-a>
+      </property>
+      <property>
+        <name>purchase-date</name>
+        <description>The date on which the purchase was made.</description>
+        <is-a>base.date</is-a>
+      </property>
+      <entity-type>elasticpath.purchases.purchase</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>addresses</name>
+    <resource>
+      <name>address-form</name>
+      <description>The list of addresses for the customer</description>
+      <uri>{addresses}/form</uri>
+      <entity>address</entity>
+    </resource>
+    <resource>
+      <name>create-address-action</name>
+      <description>The submission resource to create an address.</description>
+      <uri>{addresses}/action</uri>
+      <entity>address</entity>
+    </resource>
+    <relationship>
+      <name>add-address-form-from-addresses</name>
+      <description>Form to create an address.</description>
+      <rel>addressform</rel>
+      <from>addresses</from>
+      <to>address-form</to>
+    </relationship>
+    <relationship>
+      <name>add-address-form-action</name>
+      <description>Action link to send address form to.</description>
+      <rel>createaddressaction</rel>
+      <from>address-form</from>
+      <to>create-address-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>addresses</name>
+    <description>
+&lt;a id="addresses"&gt;
+### addresses
+&lt;/a&gt;
+
+The Addresses resource is responsible for the customer's shipping and billing address. This resource allows you to
+retrieve a logged in customer's addresses, edit existing addresses, and create new addresses.
+
+#### Shipping Address vs. Billing Addresses
+
+A shipping address is where you ship the physical goods that you purchased in the store. A billing address is the address
+associated with the [paymentmethods][paymentmethods] used for a purchase. For example, the billing address would be the
+address on the credit card that is being used for a purchase. Customers choose which billing and shipping address to use
+for a purchase through the [orders][orders] resources.
+
+Currently you cannot create an address and label it as a shipping only address or label it as a billing
+only address. Cortex does not make a distinction between the shipping and billing addresses. Read Billing Address
+billing addresses retrieves a list of all the customer's addresses; similarly, Read Shipping Address
+retrieves a list of all the customer's addresses. Future versions of the API may allow the possibility to label what the
+address is for, but out of the box this API version does not support this functionality.
+
+[paymentmethods]: #paymentmethods
+[orders]: #orders
+</description>
+    <uri-part>
+      <name>address-id</name>
+      <description>The address ID.</description>
+    </uri-part>
+    <resource>
+      <name>addresses</name>
+      <description>The list of addresses for the customer</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>address</list-of>
+    </resource>
+    <resource>
+      <name>address</name>
+      <description>The address for the customer</description>
+      <uri>{addresses}/{address-id}</uri>
+      <entity>address</entity>
+    </resource>
+    <resource>
+      <name>billing-addresses</name>
+      <description>The billing addresses for the customer</description>
+      <uri>{addresses}/billing</uri>
+      <list-of>address</list-of>
+    </resource>
+    <resource>
+      <name>default-billing-address</name>
+      <description>The default billing address for the customer</description>
+      <uri>{billing-addresses}/default</uri>
+      <alias>address</alias>
+    </resource>
+    <resource>
+      <name>shipping-addresses</name>
+      <description>The shipping addresses for the customer</description>
+      <uri>{addresses}/shipping</uri>
+      <list-of>address</list-of>
+    </resource>
+    <resource>
+      <name>default-shipping-address</name>
+      <description>The default shipping address for the customer</description>
+      <uri>{shipping-addresses}/default</uri>
+      <alias>address</alias>
+    </resource>
+    <relationship>
+      <name>addresses-for-profile</name>
+      <description>Read the list of the profile's addresses.</description>
+      <rel>addresses</rel>
+      <from>profiles.profile</from>
+      <to>addresses</to>
+    </relationship>
+    <relationship>
+      <name>billing-addresses-from-addresses</name>
+      <description>Read billing addresses from the list of addresses.</description>
+      <rel>billingaddresses</rel>
+      <from>addresses</from>
+      <to>billing-addresses</to>
+    </relationship>
+    <relationship>
+      <name>default-billing-address-from-billing-addresses</name>
+      <description>Read the default billing address from the list of billing addresses.</description>
+      <rel>default</rel>
+      <from>billing-addresses</from>
+      <to>default-billing-address</to>
+    </relationship>
+    <relationship>
+      <name>profile-from-billing-addresses</name>
+      <description>Read the profile linked to the billing addresses.</description>
+      <rel>profile</rel>
+      <from>billing-addresses</from>
+      <to>profiles.profile</to>
+    </relationship>
+    <relationship>
+      <name>shipping-addresses-from-addresses</name>
+      <description>Read shipping addresses from the list of addresses.</description>
+      <rel>shippingaddresses</rel>
+      <from>addresses</from>
+      <to>shipping-addresses</to>
+    </relationship>
+    <relationship>
+      <name>default-shipping-address-from-shipping-addresses</name>
+      <description>Read the default shipping address from the list of shipping addresses.</description>
+      <rel>default</rel>
+      <from>shipping-addresses</from>
+      <to>default-shipping-address</to>
+    </relationship>
+    <relationship>
+      <name>profile-from-shipping-addresses</name>
+      <description>Read the profile linked to the shipping addresses.</description>
+      <rel>profile</rel>
+      <from>shipping-addresses</from>
+      <to>profiles.profile</to>
+    </relationship>
+    <entity>
+      <name>address</name>
+      <description>The address for the customer.</description>
+      <property>
+        <name>address-id</name>
+        <description>The internal address identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The customer name.</description>
+        <is-a>base.name</is-a>
+      </property>
+      <property>
+        <name>address</name>
+        <description>
+					The customer address. Address field names are based on the v.card specification. For more information on this specification, see [v.card](http://tools.ietf.org/html/rfc2426).</description>
+        <is-a>address-detail</is-a>
+      </property>
+      <entity-type>elasticpath.addresses.address</entity-type>
+    </entity>
+    <entity>
+      <name>address-detail</name>
+      <description>Describes a customers address</description>
+      <property>
+        <name>address-id</name>
+        <description>The internal address identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>street-address</name>
+        <description>The street address.</description>
+        <string/>
+      </property>
+      <property>
+        <name>extended-address</name>
+        <description>Extra field for address information. This field is optional.</description>
+        <string/>
+      </property>
+      <property>
+        <name>locality</name>
+        <description>The city name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>region</name>
+        <description>Valid region codes for this field can be retrieved using the [Geographies][geographies] Resource.
+
+[geographies]: #geographies
+</description>
+        <string/>
+      </property>
+      <property>
+        <name>postal-code</name>
+        <description>Postal code or zip code.</description>
+        <string/>
+      </property>
+      <property>
+        <name>country-name</name>
+        <description>Valid country codes for this field can be retrieved using the [Geographies][geographies] Resource.
+
+[geographies]: #geographies
+</description>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>orders</name>
+    <description>
+			
+Use a selector to select the billing address to use for the purchase. Follow the workflow to read the billing address info
+and then create a choice to select the billing address to use for the purchase.
+				
+		</description>
+    <resource>
+      <name>billingaddress-info-selector</name>
+      <description>Selector to choose a billing address for an order.</description>
+      <uri>{billingaddress-info}/selector</uri>
+      <entity>controls.selector</entity>
+    </resource>
+    <resource>
+      <name>billingaddress-info-selector-choices</name>
+      <description>The choices for the billing address selector.</description>
+      <uri>{billingaddress-info-selector}/{addresses.billing-addresses}</uri>
+    </resource>
+    <resource>
+      <name>billingaddress-info-selector-choice</name>
+      <description>A choice for the billing address selector.</description>
+      <uri>{billingaddress-info-selector}/{addresses.address}</uri>
+    </resource>
+    <relationship>
+      <name>selector-for-billingaddress-info</name>
+      <description>Retrieve the selector.</description>
+      <rel>selector</rel>
+      <rev>billingaddressinfo</rev>
+      <from>billingaddress-info</from>
+      <to>billingaddress-info-selector</to>
+    </relationship>
+    <relationship>
+      <name>choices-for-billingaddress-info-selector</name>
+      <description>Retrieve the choices for the billing address selector.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>billingaddress-info-selector</from>
+      <to>billingaddress-info-selector-choices</to>
+    </relationship>
+    <relationship>
+      <name>choice-for-billingaddress-info-selector-choice</name>
+      <description>Retrieve a choice.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>billingaddress-info-selector-choices</from>
+      <to>billingaddress-info-selector-choice</to>
+    </relationship>
+    <relationship>
+      <name>description-for-billingaddress-info-selector-choice</name>
+      <description>Retrieve a choice's description.</description>
+      <rel>description</rel>
+      <from>billingaddress-info-selector-choice</from>
+      <to>addresses.address</to>
+    </relationship>
+    <relationship>
+      <name>action-for-billingaddress-info-selector-choice</name>
+      <description>Select a choice.</description>
+      <rel>selectaction</rel>
+      <from>billingaddress-info-selector-choice</from>
+      <to>billingaddress-info-selector-choice</to>
+    </relationship>
+  </family>
+  <family>
+    <name>orders</name>
+    <description>
+			
+Billing Address Info:
+
+The Billing address info resource provides the customer with a selector to select the billing address to use for
+the [purchase][purchase] and an addressform to create a billing address to use for the purchase. The billing
+address is the address that is related to the payment means, which in some cases is the address your credit card uses.
+
+[purchase]: #purchases
+			
+		</description>
+    <resource>
+      <name>billingaddress-info</name>
+      <description>The billing address info associated with an order.</description>
+      <uri>{order}/billingaddressinfo</uri>
+      <entity>controls.info</entity>
+    </resource>
+  </family>
+  <family>
+    <name>orders</name>
+    <description>
+Deliveries:
+
+The deliveries resource groups the shipment details, which are the how and where your goods are being shipped, for your
+orders. Out of the box, you can't split orders into different shipments, so when you get the list of delivery elements
+for an order only one element appears in the list. The order's shipment details are specified through the
+[shipmentdetails][shipmentdetails] resource.
+
+[shipmentdetails]: #shipmentdetails
+			
+		</description>
+    <uri-part>
+      <name>delivery-id</name>
+      <description>The delivery ID</description>
+    </uri-part>
+    <resource>
+      <name>deliveries</name>
+      <description>The deliveries list for an order.</description>
+      <uri>{order}/deliveries</uri>
+      <list-of>delivery</list-of>
+    </resource>
+    <resource>
+      <name>delivery</name>
+      <description>Individual delivery information for an order.</description>
+      <uri>{deliveries}/{delivery-id}</uri>
+      <entity>delivery</entity>
+    </resource>
+    <relationship>
+      <name>deliveries-for-order</name>
+      <description>Retreive a list of [deliveries](#order-deliveries) for an order.</description>
+      <rel>deliveries</rel>
+      <rev>order</rev>
+      <from>order</from>
+      <to>deliveries</to>
+    </relationship>
+    <entity>
+      <name>delivery</name>
+      <description>The delivery information for an order.</description>
+      <property>
+        <name>delivery-id</name>
+        <description>The internal delivery identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>delivery-type</name>
+        <description>The delivery type for an order.</description>
+        <string/>
+      </property>
+      <property>
+        <name>order-id</name>
+        <description>The internal order identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>orders</name>
+    <description>
+			
+An order is a list of intentions Cortex API will undertake to complete a purchase. For example, an order lists the
+billing and shipping address to use for the purchase, shipping options (Canada Post, FedEx, etc), paymentmethods to use
+for the purchase, the cart containing the items to purchase, and the taxes to pay for the purchase. Once the order is
+POSTed to a [purchase][purchases], Cortex API executes the purchase based on the intentions in the order.
+
+Just like the [cart][carts], an order is always available, persisted between sessions, and is updated automatically. For example, if a
+customer removes an item from their cart, the order is updated to remove the item. Once the order is POSTed to a purchase, the order is cleared and a new order is created for the customer.
+
+The order contains *NeedInfo* links if the billing address, shipping address, shipping option or the payment methods haven't been selected.
+
+[purchases]: #purchases
+[carts]: #carts
+			
+		</description>
+    <uri-part>
+      <name>order-id</name>
+      <description>The order ID</description>
+    </uri-part>
+    <resource>
+      <name>order</name>
+      <description>An order resource that identifies items to be purchased.</description>
+      <uri>{base.family}/{base.scope}/{order-id}</uri>
+      <entity>order</entity>
+    </resource>
+    <resource>
+      <name>email-info</name>
+      <description>the customer's email that is being used for the order.</description>
+      <uri>{order}/emailinfo</uri>
+      <entity>controls.info</entity>
+    </resource>
+    <relationship>
+      <name>email-info-for-order</name>
+      <description>Read order email needinfo from order.</description>
+      <rel>emailinfo</rel>
+      <from>order</from>
+      <to>email-info</to>
+    </relationship>
+    <entity>
+      <name>order</name>
+      <description>An order to be purchased</description>
+      <property>
+        <name>order-id</name>
+        <description>The internal order identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>cart-id</name>
+        <description>The internal cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>stocks</name>
+    <description>Stocks of item quantities.</description>
+    <entity>
+      <name>stock</name>
+      <description>A stock representation</description>
+      <property>
+        <name>item-id</name>
+        <description>The item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>quantity-remaining</name>
+        <description>Quantity of stock remaining.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.stocks.stock</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>discounts</name>
+    <description>
+			
+The Discounts resource provides the discount amount for a [cart][carts] or the discount amount for a [purchase][purchases].
+
+[carts]: #carts
+			
+		</description>
+    <resource>
+      <name>discount-for-cart</name>
+      <description>A discount resource that identifies discount amount applied to a cart, excluding line item discounts.</description>
+      <uri>{base.family}/{carts.cart}</uri>
+      <entity>discount</entity>
+    </resource>
+    <relationship>
+      <name>discount-applied-to-cart</name>
+      <description>
+				
+Retrieve the discount amount applied to a cart [total][totals], excluding line item discounts.
+
+[totals]: #totals
+				
+			</description>
+      <rel>discount</rel>
+      <rev>cart</rev>
+      <from>carts.cart</from>
+      <to>discount-for-cart</to>
+    </relationship>
+    <resource>
+      <name>discount-for-purchase</name>
+      <description>A discount resource that identifies discount amount applied to a purchase.</description>
+      <uri>{base.family}/{purchases.purchase}</uri>
+      <entity>discount</entity>
+    </resource>
+    <relationship>
+      <name>discount-applied-to-purchase</name>
+      <description>
+				
+Retrieve the discount amount applied to a [purchase][purchases].
+
+[purchases]: #purchases
+				
+			</description>
+      <rel>discount</rel>
+      <rev>purchase</rev>
+      <from>purchases.purchase</from>
+      <to>discount-for-purchase</to>
+    </relationship>
+    <entity>
+      <name>discount</name>
+      <description>A discount of a cart.</description>
+      <property>
+        <name>discount</name>
+        <description>
+					
+The amount of the discount. Similar to prices, discount is an array because the total may be a combination
+of amounts in multiple currencies, for example $20 CAD + 20000 points.
+					
+				</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <property>
+        <name>cart-id</name>
+        <description>The internal cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-id</name>
+        <description>The internal purchase identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.discounts.discount</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>emails</name>
+    <description>
+			
+Add an email to a logged in customer.
+
+Out of the box, customers can have only one email, which is their user name. If you create a new email for a registered customer, this changes the customer's user name.
+			
+		</description>
+    <resource>
+      <name>add-email-form</name>
+      <description>The form to add an email address to a customer account.</description>
+      <uri>{emails}/form</uri>
+      <entity>email</entity>
+    </resource>
+    <resource>
+      <name>add-email-action</name>
+      <description>The submission resource to add an email to the customer.</description>
+      <uri>{emails}/action</uri>
+      <entity>email</entity>
+    </resource>
+    <relationship>
+      <name>add-email-form-from-emails</name>
+      <description>A form to add an email address to the current user.</description>
+      <rel>emailform</rel>
+      <from>emails</from>
+      <to>add-email-form</to>
+    </relationship>
+    <relationship>
+      <name>action-for-add-email-form</name>
+      <description>Submit a form to add an email address to the current user.</description>
+      <rel>createemailaction</rel>
+      <from>add-email-form</from>
+      <to>add-email-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>emails</name>
+    <description>The emails resource stores a customer's emails.</description>
+    <uri-part>
+      <name>email-id</name>
+      <description>A value representing the customer's email ID.</description>
+    </uri-part>
+    <resource>
+      <name>emails</name>
+      <description>The email addresses associated with a customer.</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>email</list-of>
+    </resource>
+    <resource>
+      <name>email</name>
+      <description>The email address associated with a customer.</description>
+      <uri>{emails}/{email-id}</uri>
+      <entity>email</entity>
+    </resource>
+    <relationship>
+      <name>emails-for-profile</name>
+      <description>Read the list of the profile's email addresses.</description>
+      <rel>emails</rel>
+      <from>profiles.profile</from>
+      <to>emails</to>
+    </relationship>
+    <entity>
+      <name>email</name>
+      <description>The email associated with a customer account.</description>
+      <property>
+        <name>email-id</name>
+        <description>The internal email identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>email</name>
+        <description>The email address.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.emails.email</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>recommendations</name>
+    <description>
+			
+Recommendations suggest additional items that may interest shoppers. For example, if a shopper is viewing an iPod,
+you may want to display related items such as iPod accessories. If the shopper is viewing items in a Digital Camera
+[navigation node][navigations] then you can use recommendations to highlight a set of featured digital cameras in that node.
+
+Recommendations are lists of items, accessible through [item][items] for item recommendations,  [navigation nodes][navigations]
+for navigation recommendations, and the recommendations entry point for store recommendations.
+The recommendation's rel name reflects the type of recommendation.  For example, when accessing an item's recommendations
+ a rel name could be "crosssells", which indicates the rel links to a list of "cross-sell" items.
+			
+		</description>
+    <uri-part>
+      <name>group-id</name>
+      <description>The recommendations group ID.</description>
+    </uri-part>
+    <resource>
+      <name>item-recommendation-groups</name>
+      <description>Groups of itemsrecommended for an item.</description>
+      <uri>/{base.family}/{items.item}</uri>
+      <list-of>item-recommendation-group</list-of>
+    </resource>
+    <resource>
+      <name>item-recommendation-group</name>
+      <description>Other items recommended for an item.</description>
+      <uri>/{item-recommendation-groups}/{group-id}</uri>
+      <entity>collections.paginated-links</entity>
+    </resource>
+    <relationship>
+      <name>recommendations-for-item</name>
+      <description>Read other items recommended for an item.</description>
+      <rel>recommendations</rel>
+      <from>items.item</from>
+      <to>item-recommendation-groups</to>
+    </relationship>
+    <relationship>
+      <name>recommendations-for-navigation</name>
+      <description>Read other items recommended for a navigation node.</description>
+      <rel>recommendations</rel>
+      <from>navigations.navigation</from>
+      <to>item-recommendation-groups</to>
+    </relationship>
+    <entity>
+      <name>recommendations</name>
+      <description>A list of recommendation groups.</description>
+      <property>
+        <name>name</name>
+        <description>The Cortex system's name for this recommendations group.</description>
+        <string/>
+      </property>
+      <property>
+        <name>recommendations-id</name>
+        <description>The internal recommendations identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.recommendations</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>navigations</name>
+    <description>
+			
+####Entry Point: /navigations/{scope}
+
+Navigation nodes organize your store's catalogs by providing containers to group related items into. Each navigation node
+can contain details (attributes), any number of [items][items], and other child nodes. Your company's marketers create these navigation nodes, also known as categories, using the Commerce Manager. You may need
+to coordinate with your marketers for how the navigation nodes should be used in your client application.
+
+[items]: #items
+</description>
+    <uri-part>
+      <name>node-id</name>
+      <description>The navigation ID.</description>
+    </uri-part>
+    <resource>
+      <name>navigations</name>
+      <description>All the top level navigation nodes for a store.</description>
+      <uri>{base.family}/{base.scope}</uri>
+    </resource>
+    <resource>
+      <name>navigation</name>
+      <description>A single navigation node.</description>
+      <uri>{navigations}/{node-id}</uri>
+      <entity>navigation</entity>
+    </resource>
+    <relationship>
+      <name>navigations-from-root</name>
+      <description>Navigations can be found from the root resource.</description>
+      <rel>navigations</rel>
+      <from>base.root</from>
+      <to>navigations</to>
+    </relationship>
+    <relationship>
+      <name>navigations-to-navigation</name>
+      <description>The top navigations resource to the first-level navigation list.</description>
+      <rel>element</rel>
+      <rev>top</rev>
+      <from>navigations</from>
+      <to>navigation</to>
+    </relationship>
+    <relationship>
+      <name>parent-node-to-child</name>
+      <description>Navigate from a parent to a child navigation.</description>
+      <rel>child</rel>
+      <rev>parent</rev>
+      <from>navigation</from>
+      <to>navigation</to>
+    </relationship>
+    <entity>
+      <name>navigation</name>
+      <description>A single navigation node.</description>
+      <property>
+        <name>name</name>
+        <description>The Cortex system's name for the node.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized name of the node, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>node-id</name>
+        <description>The internal node identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>details</name>
+        <description>
+					
+An array of the navigation node's attributes. Attributes describe the details of the navigation node, like the node's name,
+description, associated subcategories, etc. Attributes are different each store. To get a list of navigation attributes, you'll need to coordinate with your store marketer who creates these navigation nodes and attributes.
+					
+				</description>
+        <array>
+          <is-a>base.details</is-a>
+        </array>
+      </property>
+      <entity-type>elasticpath.navigations.node</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>coupons</name>
+    <resource>
+      <name>apply-coupon-to-order-form</name>
+      <description>The coupon form to apply a coupon to an order.</description>
+      <uri>/{order-coupon-action}/form</uri>
+      <entity>coupon</entity>
+    </resource>
+    <resource>
+      <name>order-coupon-action</name>
+      <description>The submission resource to apply a coupon to an order.</description>
+      <uri>/{base.family}/{orders.order}</uri>
+      <entity>coupon</entity>
+    </resource>
+    <relationship>
+      <name>apply-coupon-form-from-couponinfo</name>
+      <description>Form to apply a coupon to the order.</description>
+      <rel>couponform</rel>
+      <from>couponinfo</from>
+      <to>apply-coupon-to-order-form</to>
+    </relationship>
+    <relationship>
+      <name>apply-coupon-to-order-action</name>
+      <description>Apply a coupon to the order.</description>
+      <rel>applycouponaction</rel>
+      <from>apply-coupon-to-order-form</from>
+      <to>order-coupon-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>coupons</name>
+    <description>
+			
+A coupon is a code, consisting of letters or numbers that a shopper can apply to an order. When a coupon is
+applied to an order, it can trigger a promotion which inturn discounts or adds additional incentives to the order.
+			
+		</description>
+    <uri-part>
+      <name>coupon-id</name>
+      <description>The coupon ID.</description>
+    </uri-part>
+    <resource>
+      <name>couponinfo</name>
+      <description>The coupon info associated with an order.</description>
+      <uri>/{order-coupon-action}/info</uri>
+      <entity>controls.info</entity>
+    </resource>
+    <relationship>
+      <name>coupon-from-couponinfo</name>
+      <description>Read coupon from couponinfo.</description>
+      <rel>coupon</rel>
+      <from>couponinfo</from>
+      <to>order-coupon</to>
+    </relationship>
+    <resource>
+      <name>order-coupon</name>
+      <description>The coupon applied to an order.</description>
+      <uri>/{order-coupon-action}/{coupon-id}</uri>
+      <entity>coupon</entity>
+    </resource>
+    <relationship>
+      <name>coupons-applied-to-order</name>
+      <description>Read coupons applied to the order.</description>
+      <rel>couponinfo</rel>
+      <rev>order</rev>
+      <from>orders.order</from>
+      <to>couponinfo</to>
+    </relationship>
+    <resource>
+      <name>purchase-coupon-list</name>
+      <description>The coupons applied to a purchase.</description>
+      <uri>/{base.family}/{purchases.purchase}</uri>
+      <list-of>purchase-coupon</list-of>
+    </resource>
+    <resource>
+      <name>purchase-coupon</name>
+      <description>A coupon applied to a purchase.</description>
+      <uri>/{purchase-coupon-list}/{coupon-id}</uri>
+      <entity>coupon</entity>
+    </resource>
+    <relationship>
+      <name>coupons-applied-to-purchase</name>
+      <description>Read coupons applied to the purchase.</description>
+      <rel>coupons</rel>
+      <from>purchases.purchase</from>
+      <to>purchase-coupon-list</to>
+    </relationship>
+    <entity>
+      <name>coupon</name>
+      <description>A coupon representation</description>
+      <property>
+        <name>coupon-id</name>
+        <description>The coupon identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>parent-id</name>
+        <description>The parent id of the coupon.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>parent-type</name>
+        <description>The parent type of the coupon.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>code</name>
+        <description>The coupon code.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.coupons.coupon</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>slots</name>
+    <uri-part>
+      <name>slot-id</name>
+      <description>The slot ID</description>
+    </uri-part>
+    <resource>
+      <name>slots</name>
+      <description>A slots list.</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>slot</list-of>
+    </resource>
+    <resource>
+      <name>slot</name>
+      <description>A slot resource that displays dynamic content.</description>
+      <uri>{slots}/{slot-id}</uri>
+      <entity>slot</entity>
+    </resource>
+    <relationship>
+      <name>slots-from-root</name>
+      <description>Discover slots from the root of the API.</description>
+      <rel>slots</rel>
+      <from>base.root</from>
+      <to>slots</to>
+    </relationship>
+    <relationship>
+      <name>item-onevent-for-slot</name>
+      <description>Link an event from a slot to an item.</description>
+      <rel>onevent</rel>
+      <from>slot</from>
+      <to>items.item</to>
+    </relationship>
+    <relationship>
+      <name>navigation-onevent-for-slot</name>
+      <description>Link an event from a slot to a navigation node.</description>
+      <rel>onevent</rel>
+      <from>slot</from>
+      <to>navigations.navigation</to>
+    </relationship>
+    <entity>
+      <name>slot</name>
+      <description>The slot.</description>
+      <property>
+        <name>name</name>
+        <description>Slot's name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>relative-location</name>
+        <description>The relative location of the slot's media asset.</description>
+        <string/>
+      </property>
+      <property>
+        <name>content-location</name>
+        <description>
+					
+Links to the slot's media content, which could be an image in either .jpg, .gif, or .png format. The image's location may
+very as some stores have a separate server for media files.
+
+Cortex  only supports .jpg, .gif, or .png files for slots. However, your Cortex API implementation
+may be customized to support other media file types.
+					
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>slot-target-id</name>
+        <description>The slot target id.</description>
+        <internal/>
+        <integer/>
+      </property>
+      <property>
+        <name>slot-id</name>
+        <description>The slot identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>slot-type</name>
+        <description>The slot content-wrapper type.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.slots.slot</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>paymenttokens</name>
+    <description>The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.</description>
+    <resource>
+      <name>order-payment-token-form</name>
+      <description>Provides the form with which to create a new payment token.</description>
+      <uri>{order-payment-token}/form</uri>
+      <entity>payment-token</entity>
+    </resource>
+    <relationship>
+      <name>form-for-order-payment-token</name>
+      <description>Form to create a new payment token for an order.</description>
+      <rel>paymenttokenform</rel>
+      <from>paymentmethods.paymentmethod-info</from>
+      <to>order-payment-token-form</to>
+    </relationship>
+    <relationship>
+      <name>action-for-payment-token-for-order</name>
+      <description>Action to create payment token for an order.</description>
+      <rel>createpaymenttokenaction</rel>
+      <from>order-payment-token-form</from>
+      <to>order-payment-token</to>
+    </relationship>
+  </family>
+  <family>
+    <name>paymenttokens</name>
+    <description>The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.</description>
+    <resource>
+      <name>create-payment-token</name>
+      <description>Endpoint to submit a new payment token.</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <entity>payment-token</entity>
+    </resource>
+    <resource>
+      <name>profile-payment-token-form</name>
+      <description>Provides the form with which to create a new payment token.</description>
+      <uri>{create-payment-token}/form</uri>
+      <entity>payment-token</entity>
+    </resource>
+    <relationship>
+      <name>form-for-profile-payment-token</name>
+      <description>Form to crate a new payment token for a profile.</description>
+      <rel>paymenttokenform</rel>
+      <from>paymentmethods.paymentmethods</from>
+      <to>profile-payment-token-form</to>
+    </relationship>
+    <relationship>
+      <name>create-payment-token-form-action</name>
+      <description>Action link to send payment token form to.</description>
+      <rel>createpaymenttokenaction</rel>
+      <from>profile-payment-token-form</from>
+      <to>create-payment-token</to>
+    </relationship>
+  </family>
+  <family>
+    <name>paymenttokens</name>
+    <description>The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.</description>
+    <resource>
+      <name>order-payment-token</name>
+      <description>Provides the selected payment method on the order.</description>
+      <uri>{base.family}/{orders.order}</uri>
+      <entity>payment-token</entity>
+    </resource>
+    <entity>
+      <name>payment-token</name>
+      <description>The payment token entity.</description>
+      <is-a>paymentmethods.payment-method</is-a>
+      <property>
+        <name>display-name</name>
+        <description>A description of the payment token to be used for display purposes.</description>
+        <string/>
+      </property>
+      <property>
+        <name>token</name>
+        <description>The payment token created by a payment tokenization service.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.paymenttokens.payment-token</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>carts</name>
+    <description>
+			
+A cart's line items is a collection of [items][items] that have been added to a cart. A line item can have one or more of the same [items][items] in it.
+For example, one line item can have seven Rocker T-Shirt or a single Rocker T-Shirt, but it won't have one Rocker T-Shirt and a song track. The song
+track and T-shirt would be in separate line items.
+			
+		</description>
+    <uri-part>
+      <name>line-item-id</name>
+      <description>
+				
+The line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a cart.
+
+[items]: #items
+				
+			</description>
+    </uri-part>
+    <resource>
+      <name>default-cart-line-items</name>
+      <description>Line items for the default cart.</description>
+      <uri>{default-cart}/lineitems</uri>
+      <alias>line-items</alias>
+    </resource>
+    <resource>
+      <name>line-items</name>
+      <description>The line items list in a cart.</description>
+      <uri>{cart}/lineitems</uri>
+      <list-of>line-item</list-of>
+    </resource>
+    <resource>
+      <name>line-item</name>
+      <description>An individual line item in a cart.</description>
+      <uri>{line-items}/{line-item-id}</uri>
+      <entity>line-item</entity>
+    </resource>
+    <relationship>
+      <name>line-items-for-cart</name>
+      <description>A collection of items that have been added to a cart.</description>
+      <rel>lineitems</rel>
+      <from>cart</from>
+      <to>line-items</to>
+    </relationship>
+    <relationship>
+      <name>root-to-line-items-for-default-cart</name>
+      <description>A collection of items that have been added to the default cart.</description>
+      <rel>lineitems</rel>
+      <from>base.root</from>
+      <to>default-cart-line-items</to>
+    </relationship>
+    <relationship>
+      <name>cart-for-line-item</name>
+      <description>Retrieve the cart that has the given line item. This workflow is
+			useful when you need to determine which cart the line item belongs to.</description>
+      <rel>cart</rel>
+      <from>line-item</from>
+      <to>cart</to>
+    </relationship>
+    <relationship>
+      <name>item-for-line-item</name>
+      <description>What's the item this line item points to?</description>
+      <rel>item</rel>
+      <from>line-item</from>
+      <to>items.item</to>
+    </relationship>
+    <entity>
+      <name>line-item-configuration</name>
+      <description>The configuration of a line item.</description>
+      <dynamic/>
+    </entity>
+    <entity>
+      <name>line-item</name>
+      <description>A line item in a cart.</description>
+      <property>
+        <name>quantity</name>
+        <description>The total number of items in the line item.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>line-item-id</name>
+        <description>The internal line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>cart-id</name>
+        <description>The internal cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>configuration</name>
+        <description>The details of the line item configuration.</description>
+        <is-a>line-item-configuration</is-a>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>carts</name>
+    <description>Items are added to the user's default cart by using a form.</description>
+    <resource>
+      <name>add-to-default-cart-form</name>
+      <description>Provides the form with which to add an item to the default cart.</description>
+      <uri>{base.family}/{items.item}/form</uri>
+      <entity>line-item</entity>
+    </resource>
+    <resource>
+      <name>add-line-item-to-default-cart-action</name>
+      <description>The submission resource to add an item to the default cart.</description>
+      <uri>{default-cart-line-items}/{items.item}</uri>
+      <alias>add-line-item-to-cart-action</alias>
+    </resource>
+    <resource>
+      <name>add-line-item-to-cart-action</name>
+      <description>The submission resource to add an item to a cart.</description>
+      <uri>{line-items}/{items.item}</uri>
+      <entity>line-item</entity>
+    </resource>
+    <relationship>
+      <name>add-to-default-cart-form-for-item</name>
+      <description>The form to add an item to the default cart.</description>
+      <rel>addtodefaultcartform</rel>
+      <from>items.item</from>
+      <to>add-to-default-cart-form</to>
+    </relationship>
+    <relationship>
+      <name>add-to-default-cart-action-for-form</name>
+      <description>The action to invoke when submitting an add-to-default-cart form.</description>
+      <rel>addtodefaultcartaction</rel>
+      <from>add-to-default-cart-form</from>
+      <to>add-line-item-to-default-cart-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>carts</name>
+    <description>Cart memberships resource</description>
+    <resource>
+      <name>read-cart-memberships</name>
+      <description>Carts memberships for a given item</description>
+      <uri>{base.family}/memberships/{items.item}</uri>
+    </resource>
+    <relationship>
+      <name>cart-memberships-from-item</name>
+      <description>Cart memberships from item</description>
+      <rel>cartmemberships</rel>
+      <from>items.item</from>
+      <to>read-cart-memberships</to>
+    </relationship>
+  </family>
+  <family>
+    <name>carts</name>
+    <description>
+####Entry Point: /carts/{scope}/default
+
+A cart is basically a basket that customers put items into that they want to purchase. While Cortex API's shopping
+cart has this as its core functionality, there is much more to this shopping cart than just that.
+
+Key concepts developers should know about carts:
+
+-  You can't delete a cart, you can only empty a cart of its contents.
+
+-  The do not need to instantiate the cart, a cart is always available.
+
+-  The do not need to create an order for the cart, an order is always available.
+
+-  Cortex automatically persists carts between customer sessions so a customer can log on through a mobile phone and
+then log on through another device to complete the purchase
+
+
+[items]: #items
+[orders]: #orders
+[totals]: #totals
+			
+		</description>
+    <uri-part>
+      <name>cart-id</name>
+      <description>The cart identifier.</description>
+    </uri-part>
+    <resource>
+      <name>default-cart</name>
+      <description>Alias to the default cart for the current shopper.</description>
+      <uri>{base.family}/{base.scope}/default</uri>
+      <alias>cart</alias>
+    </resource>
+    <resource>
+      <name>cart</name>
+      <description>
+				
+A cart resource, can have line items, [orders][orders], and [totals][totals].
+
+[orders]: #orders
+[totals]: #totals
+				
+			</description>
+      <uri>{base.family}/{base.scope}/{cart-id}</uri>
+      <entity>cart</entity>
+    </resource>
+    <relationship>
+      <name>root-to-default-cart</name>
+      <description>
+			
+Retrieve the shopper's default cart. When using *default* in the cart's URI, default evaluates to the logged in shopper's cart I.D.
+See the main Cortex documentation for more information on *default*.
+			
+		</description>
+      <rel>defaultcart</rel>
+      <from>base.root</from>
+      <to>default-cart</to>
+    </relationship>
+    <entity>
+      <name>cart</name>
+      <description>The shopping cart.</description>
+      <property>
+        <name>cart-id</name>
+        <description>The cart identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>total-quantity</name>
+        <description>
+					
+Lists the total number of [items][items] in the cart.
+
+[items]: #items
+					
+				</description>
+        <integer/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <resource>
+      <name>add-item-to-wishlist-form</name>
+      <description>Form for adding an item to the default wishlist</description>
+      <uri>{base.family}/{items.item}/form</uri>
+      <form>
+        <entity>add-item-to-wishlist-form</entity>
+        <action-rel>addtodefaultwishlistaction</action-rel>
+        <result>wishlist-line-item</result>
+      </form>
+    </resource>
+    <entity>
+      <name>add-item-to-wishlist-form</name>
+      <description>Form for adding an item to a wishlist</description>
+    </entity>
+    <advisor>
+      <name>add-item-to-wishlist-form</name>
+      <description>Add to wishlist pre-conditions check</description>
+      <blocks>add-item-to-wishlist-form</blocks>
+    </advisor>
+    <relationship>
+      <name>item-to-wishlist-form</name>
+      <description>Link from items.item to a form used to add that item to a wishlist</description>
+      <rel>addtowishlistform</rel>
+      <from>items.item</from>
+      <to>add-item-to-wishlist-form</to>
+    </relationship>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <uri-part>
+      <name>line-item-id</name>
+      <description>
+				
+The line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a wishlist.
+
+[items]: #items
+				
+			</description>
+    </uri-part>
+    <resource>
+      <name>wishlist-line-items</name>
+      <description>The line items list in a wishlist.</description>
+      <uri>{wishlist}/lineitems</uri>
+      <list-of>wishlist-line-item</list-of>
+    </resource>
+    <resource>
+      <name>wishlist-line-item</name>
+      <description>An individual line item in a wishlist.</description>
+      <uri>{wishlist-line-items}/{line-item-id}</uri>
+      <entity>wishlist-line-item</entity>
+    </resource>
+    <relationship>
+      <name>wishlist-line-items-for-wishlist</name>
+      <description>A collection of items that have been added to a wishlist.</description>
+      <rel>lineitems</rel>
+      <rev>wishlist</rev>
+      <from>wishlist</from>
+      <to>wishlist-line-items</to>
+    </relationship>
+    <relationship>
+      <name>wishlist-line-items-for-wishlist-line-item</name>
+      <description>A collection of items that have been added to a wishlist.</description>
+      <rel>list</rel>
+      <from>wishlist-line-item</from>
+      <to>wishlist-line-items</to>
+    </relationship>
+    <relationship>
+      <name>wishlist-for-wishlist-line-item</name>
+      <description>Retrieve the wishlist that has the given line item. This workflow is
+			useful when you need to determine which wishlist the line item belongs to.</description>
+      <rel>wishlist</rel>
+      <from>wishlist-line-item</from>
+      <to>wishlist</to>
+    </relationship>
+    <relationship>
+      <name>item-for-wishlist-line-item</name>
+      <description>What's the item this line item points to?</description>
+      <rel>item</rel>
+      <from>wishlist-line-item</from>
+      <to>items.item</to>
+    </relationship>
+    <entity>
+      <name>wishlist-line-item</name>
+      <description>A line item in a wishlist.</description>
+      <property>
+        <name>line-item-id</name>
+        <description>The internal line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>item-id</name>
+        <description>The internal item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>wishlist-id</name>
+        <description>The internal wishlist identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>wishlists.wishlist-line-item</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <resource>
+      <name>move-to-wishlist-form</name>
+      <description>Form for moving a cart line item to a wishlist</description>
+      <uri>{wishlists}/{carts.line-item}/form</uri>
+      <form>
+        <entity>move-to-wishlist-form</entity>
+        <action-rel>movetowishlistaction</action-rel>
+        <result>wishlist-line-item</result>
+      </form>
+    </resource>
+    <entity>
+      <name>move-to-wishlist-form</name>
+      <description>Form for adding an item to a wishlist</description>
+    </entity>
+    <advisor>
+      <name>move-to-wishlist-form</name>
+      <description>Move to wishlist pre-conditions check</description>
+      <blocks>move-to-wishlist-form</blocks>
+    </advisor>
+    <relationship>
+      <name>wishlist-move-to-wishlist-form</name>
+      <description>Link for a form used to move cart line item a wishlist</description>
+      <rel>movetowishlistform</rel>
+      <from>carts.line-item</from>
+      <to>move-to-wishlist-form</to>
+    </relationship>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <resource>
+      <name>move-to-cart-form</name>
+      <description>Form for moving a cart line item to a wishlist</description>
+      <uri>{wishlist-line-item}/carts/form</uri>
+      <form>
+        <entity>move-to-cart-form</entity>
+        <action-rel>movetocartaction</action-rel>
+        <result>carts.line-item</result>
+      </form>
+    </resource>
+    <entity>
+      <name>move-to-cart-form</name>
+      <description>Form for used to move wishlist item to a cart</description>
+      <property>
+        <name>quantity</name>
+        <description>Quantity</description>
+        <integer/>
+      </property>
+    </entity>
+    <advisor>
+      <name>move-to-cart-form</name>
+      <description>Move to cart pre-conditions check</description>
+      <blocks>move-to-cart-form</blocks>
+    </advisor>
+    <relationship>
+      <name>wishlist-move-to-cart-form</name>
+      <description>Link for a form used to move wishlist item to a cart</description>
+      <rel>movetocartform</rel>
+      <from>wishlist-line-item</from>
+      <to>move-to-cart-form</to>
+    </relationship>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <resource>
+      <name>read-wishlist-memberships</name>
+      <description>Retrieve the list of wishlists that an item has been added to</description>
+      <uri>{base.family}/memberships/{items.item}</uri>
+      <list-of>wishlist</list-of>
+    </resource>
+    <relationship>
+      <name>wishlist-membership-from-item</name>
+      <description>Wishlist memberships for a given item</description>
+      <rel>wishlistmemberships</rel>
+      <from>items.item</from>
+      <to>read-wishlist-memberships</to>
+    </relationship>
+  </family>
+  <family>
+    <name>wishlists</name>
+    <description>
+####Entry Point: /wishlists/{scope}/default
+
+A wishlist is list that customers build up containing items that they are interested in, or desire to purchase.
+This applies even to items which are out of stock, which allows a customer to track the item and to be notified when the item
+becomes available.
+A wishlist is similar to a cart in that items can be added or removed.
+Items can also be moved between the wishlist and the cart.
+Only one wishlist is available per shopper. This default wishlist is automatically available
+and cannot be deleted.
+
+
+[items]: #items
+[orders]: #orders
+[totals]: #totals
+		
+		</description>
+    <uri-part>
+      <name>wishlist-id</name>
+      <description>The wishlist identifier.</description>
+    </uri-part>
+    <resource>
+      <name>default-wishlist</name>
+      <description>Alias of the shopper's default wishlist.</description>
+      <uri>{wishlists}/default</uri>
+      <alias>wishlist</alias>
+    </resource>
+    <resource>
+      <name>wishlist</name>
+      <description>
+				
+					A wishlist resource, can have line items.
+				
+				</description>
+      <uri>{wishlists}/{wishlist-id}</uri>
+      <entity>wishlist</entity>
+    </resource>
+    <relationship>
+      <name>default-wishlist-from-root</name>
+      <description>Link from root resource to default wishlist.</description>
+      <rel>defaultwishlist</rel>
+      <from>base.root</from>
+      <to>default-wishlist</to>
+    </relationship>
+    <resource>
+      <name>wishlists</name>
+      <description>Wishlist list resource</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>wishlist</list-of>
+    </resource>
+    <relationship>
+      <name>profile-to-wishlists</name>
+      <description>Retrieve a list of links to a shopper's wishlists</description>
+      <rel>wishlists</rel>
+      <rev>profile</rev>
+      <from>profiles.profile</from>
+      <to>wishlists</to>
+    </relationship>
+    <entity>
+      <name>wishlist</name>
+      <description>The wishlist.</description>
+      <property>
+        <name>wishlist-id</name>
+        <description>The wishlist identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>wishlists.wishlist</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>collections</name>
+    <plan>
+      <name>list-element-template</name>
+      <description>Read an element in a list.</description>
+      <step>
+        <description>Read the list.</description>
+        <start>{start-resource}</start>
+        <follow-link>{list-name}</follow-link>
+        <link-back>{start-name}</link-back>
+        <result>{list-resource}</result>
+      </step>
+      <step>
+        <description>Read an element in the list.</description>
+        <start>{list-resource}</start>
+        <follow-link>element</follow-link>
+        <link-back>list</link-back>
+        <result>{element-resource}</result>
+      </step>
+    </plan>
+    <entity>
+      <name>links</name>
+      <description>A collection of links</description>
+      <property>
+        <name>element-list-type</name>
+        <description>The element list type.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>element-list-id</name>
+        <description>The element list id.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The element list name.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.collections.links</entity-type>
+    </entity>
+    <entity>
+      <name>paginated-links</name>
+      <description>A paginated collection of links</description>
+      <property>
+        <name>pagination</name>
+        <description>Defines the pagination aspects of the links.</description>
+        <is-a>pagination</is-a>
+      </property>
+      <entity-type>elasticpath.collections.paginated-links</entity-type>
+    </entity>
+    <entity>
+      <name>pagination</name>
+      <description>Pagination settings.</description>
+      <property>
+        <name>current</name>
+        <description>The current page number</description>
+        <integer/>
+      </property>
+      <property>
+        <name>page-size</name>
+        <description>The maximum number of elements per page</description>
+        <integer/>
+      </property>
+      <property>
+        <name>pages</name>
+        <description>The total number of pages.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>results-on-page</name>
+        <description>The number of elements on this page</description>
+        <integer/>
+      </property>
+      <property>
+        <name>results</name>
+        <description>The total number of elements.</description>
+        <integer/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>shipments</name>
+    <description>Represents shipment line items.</description>
+    <resource>
+      <name>shipment-line-items</name>
+      <description>A list of line items associated with a given shipment.</description>
+      <uri>{shipment}/lineitems</uri>
+      <list-of>shipment-line-item</list-of>
+    </resource>
+    <uri-part>
+      <name>shipment-line-item-id</name>
+      <description>The shipment line item ID.</description>
+    </uri-part>
+    <resource>
+      <name>shipment-line-item</name>
+      <description>A line item associated with a given shipment.</description>
+      <uri>{shipment-line-items}/{shipment-line-item-id}</uri>
+      <entity>shipment-line-item</entity>
+    </resource>
+    <resource>
+      <name>shipment-line-item-options</name>
+      <description>A list of options associated with a given shipment line item.</description>
+      <uri>{shipment-line-item}/options</uri>
+      <list-of>shipment-line-item-option</list-of>
+    </resource>
+    <uri-part>
+      <name>shipment-line-item-option-id</name>
+      <description>The shipment line item option ID.</description>
+    </uri-part>
+    <resource>
+      <name>shipment-line-item-option</name>
+      <description>A line item option associated with a given shipment line item.</description>
+      <uri>{shipment-line-item-options}/{shipment-line-item-option-id}</uri>
+      <entity>shipment-line-item-option</entity>
+    </resource>
+    <uri-part>
+      <name>shipment-line-item-option-value-id</name>
+      <description>The shipment line item option value ID.</description>
+    </uri-part>
+    <resource>
+      <name>shipment-line-item-option-value</name>
+      <description>The option value associated with a given shipment line item.</description>
+      <uri>{shipment-line-item-option}/values/{shipment-line-item-option-value-id}</uri>
+      <entity>shipment-line-item-option-value</entity>
+    </resource>
+    <relationship>
+      <name>line-items-for-shipment</name>
+      <description>Retrieve the shipment line items associated with a shipment.</description>
+      <rel>lineitems</rel>
+      <from>shipment</from>
+      <to>shipment-line-items</to>
+    </relationship>
+    <relationship>
+      <name>options-for-shipment-line-item</name>
+      <description>Retrieve the options associated with a shipment line item.</description>
+      <rel>options</rel>
+      <from>shipment-line-item</from>
+      <to>shipment-line-item-options</to>
+    </relationship>
+    <relationship>
+      <name>value-for-shipment-line-item-option</name>
+      <description>Retrieve the option value associated with a shipment line item.</description>
+      <rel>value</rel>
+      <from>shipment-line-item-option</from>
+      <to>shipment-line-item-option-value</to>
+    </relationship>
+    <entity>
+      <name>shipment-line-item</name>
+      <description>The shipment line item entity.</description>
+      <property>
+        <name>purchase-id</name>
+        <description>The purchase identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>line-item-id</name>
+        <description>The line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>parent-line-item-id</name>
+        <description>The parent line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>parent-uri</name>
+        <description>The parent resource uri.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>quantity</name>
+        <description>The quantity.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>shipment-id</name>
+        <description>The shipment identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.shipments.line-item</entity-type>
+    </entity>
+    <entity>
+      <name>shipment-line-item-option</name>
+      <description>The shipment line item option entity.</description>
+      <property>
+        <name>purchase-id</name>
+        <description>The purchase identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>line-item-id</name>
+        <description>The line item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>line-item-option-id</name>
+        <description>The line item option identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>line-item-option-value-id</name>
+        <description>The line item option value identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The display name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>line-item-uri</name>
+        <description>The line item uri.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>shipment-id</name>
+        <description>The shipment identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.shipments.option</entity-type>
+    </entity>
+    <entity>
+      <name>shipment-line-item-option-value</name>
+      <description>The shipment line item option value entity.</description>
+      <property>
+        <name>name</name>
+        <description>The name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The display name.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.shipments.value</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>shipments</name>
+    <resource>
+      <name>purchase-shipment-shipping-address</name>
+      <description>The address a shipment was sent to.</description>
+      <uri>{shipment}/shippingaddress</uri>
+      <entity>addresses.address</entity>
+    </resource>
+    <relationship>
+      <name>destination-address-for-purchase</name>
+      <description>Follow a link from a shipment to the shipping address.</description>
+      <rel>destination</rel>
+      <from>shipment</from>
+      <to>purchase-shipment-shipping-address</to>
+    </relationship>
+  </family>
+  <family>
+    <name>shipments</name>
+    <resource>
+      <name>purchase-shipment-shipping-option</name>
+      <description>A shipment associated with a given purchase.</description>
+      <uri>{shipment}/shippingoption</uri>
+      <entity>shipmentdetails.shipping-option</entity>
+    </resource>
+    <relationship>
+      <name>shipping-option-for-purchase</name>
+      <description>Follow a link from a shipment to the shipping option.</description>
+      <rel>shippingoption</rel>
+      <from>shipment</from>
+      <to>purchase-shipment-shipping-option</to>
+    </relationship>
+  </family>
+  <family>
+    <name>shipments</name>
+    <description>A shipment lists the shipments created by a purchase.</description>
+    <uri-part>
+      <name>shipment-id</name>
+      <description>The shipment ID.</description>
+    </uri-part>
+    <resource>
+      <name>shipments</name>
+      <description>A list of shipments associated with a given purchase.</description>
+      <uri>{base.family}/{purchases.purchase}</uri>
+      <list-of>shipment</list-of>
+    </resource>
+    <resource>
+      <name>shipment</name>
+      <description>A shipment associated with a given purchase.</description>
+      <uri>{shipments}/{shipment-id}</uri>
+      <entity>shipment</entity>
+    </resource>
+    <relationship>
+      <name>shipments-for-purchase</name>
+      <description>Retrieve the shipments associated with a purchase.</description>
+      <rel>shipments</rel>
+      <from>purchases.purchase</from>
+      <to>shipments</to>
+    </relationship>
+    <entity>
+      <name>shipment</name>
+      <description> A shipment of items associated with a purchase.</description>
+      <property>
+        <name>shipment-id</name>
+        <description>The internal shipment identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>purchase-id</name>
+        <description>The internal purchase identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>status</name>
+        <description>Indicates the status of the shipment.</description>
+        <is-a>status</is-a>
+      </property>
+      <entity-type>elasticpath.shipments.shipment</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>shipments</name>
+    <entity>
+      <name>status</name>
+      <description>The status code of the shipment</description>
+      <property>
+        <name>code</name>
+        <description>The status code.</description>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>totals</name>
+    <description>
+			
+The totals resource calculates the total costs for:
+
+* **[cart][carts]**
+* **[line-item][carts]**
+* **[order][orders]**
+* **[shipment][shipments]**
+* **[shipment-line-item][shipments]**
+
+[carts]: #carts
+[orders]: #orders
+[shipments]: #shipments
+			
+		</description>
+    <resource>
+      <name>cart-total</name>
+      <description>The cart total resource.</description>
+      <uri>{base.family}/{carts.cart}</uri>
+      <entity>total</entity>
+    </resource>
+    <resource>
+      <name>cart-line-item-total</name>
+      <description>The cart line item total resource.</description>
+      <uri>{base.family}/{carts.line-item}</uri>
+      <entity>total</entity>
+    </resource>
+    <resource>
+      <name>order-total</name>
+      <description>The order total resource.</description>
+      <uri>{base.family}/{orders.order}</uri>
+      <entity>total</entity>
+    </resource>
+    <resource>
+      <name>shipment-line-item-total</name>
+      <description>The shipment line item total resource.</description>
+      <uri>{base.family}/{shipments.shipment-line-item}</uri>
+      <entity>total</entity>
+    </resource>
+    <resource>
+      <name>shipment-total</name>
+      <description>The shipment total resource.</description>
+      <uri>{base.family}/{shipments.shipment}</uri>
+      <entity>total</entity>
+    </resource>
+    <relationship>
+      <name>total-for-cart</name>
+      <description>Retrieve the total cost of all cart line items before cart total discounts are applied.</description>
+      <rel>total</rel>
+      <from>carts.cart</from>
+      <to>cart-total</to>
+    </relationship>
+    <relationship>
+      <name>total-for-cart-line-item</name>
+      <description>Retrieve the total cost of a single cart line item before cart line item discounts are applied.</description>
+      <rel>total</rel>
+      <from>carts.line-item</from>
+      <to>cart-line-item-total</to>
+    </relationship>
+    <relationship>
+      <name>total-for-order</name>
+      <description>Retrieve the total cost of the shopper's order including taxes and shipping costs.</description>
+      <rel>total</rel>
+      <from>orders.order</from>
+      <to>order-total</to>
+    </relationship>
+    <relationship>
+      <name>total-for-shipment</name>
+      <description>Retrieve the total cost for a shipment.</description>
+      <rel>total</rel>
+      <from>shipments.shipment</from>
+      <to>shipment-total</to>
+    </relationship>
+    <relationship>
+      <name>total-for-shipment-line-item</name>
+      <description>Retrieve the total cost for a shipment line item.</description>
+      <rel>total</rel>
+      <from>shipments.shipment-line-item</from>
+      <to>shipment-line-item-total</to>
+    </relationship>
+    <entity>
+      <name>total</name>
+      <description>A total cost.</description>
+      <property>
+        <name>cost</name>
+        <description>The total costs. This is an array because the total cost have multiple currencies. For example, $20 USD + 20,000 loyalty points.</description>
+        <array>
+          <is-a>base.cost</is-a>
+        </array>
+      </property>
+      <entity-type>elasticpath.totals.total</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>geographies</name>
+    <description>
+			
+####Entry Point: /geographies/{scope}/countries
+
+The geographies resource provides access to location related data, including lists of countries, and lists of regions by country.
+			
+		</description>
+    <uri-part>
+      <name>country-id</name>
+      <description>The country id.</description>
+    </uri-part>
+    <uri-part>
+      <name>region-id</name>
+      <description>The region id.</description>
+    </uri-part>
+    <resource>
+      <name>countries</name>
+      <description>Provides all the countries available to a scope.</description>
+      <uri>{base.family}/{base.scope}/countries</uri>
+      <list-of>country</list-of>
+    </resource>
+    <resource>
+      <name>country</name>
+      <description>A specific country.</description>
+      <uri>{countries}/{country-id}</uri>
+      <entity>country</entity>
+    </resource>
+    <resource>
+      <name>regions</name>
+      <description>All the regions available for this country.</description>
+      <uri>{country}/regions</uri>
+      <list-of>region</list-of>
+    </resource>
+    <resource>
+      <name>region</name>
+      <description>All the regions available for this country.</description>
+      <uri>{regions}/{region-id}</uri>
+      <entity>region</entity>
+    </resource>
+    <relationship>
+      <name>root-to-countries</name>
+      <description>Countries can be discovered at the root.</description>
+      <rel>countries</rel>
+      <from>base.root</from>
+      <to>countries</to>
+    </relationship>
+    <relationship>
+      <name>regions-for-country</name>
+      <description>A list of regions for a country.</description>
+      <rel>regions</rel>
+      <from>country</from>
+      <to>regions</to>
+    </relationship>
+    <entity>
+      <name>country</name>
+      <description>Describes a country.</description>
+      <property>
+        <name>name</name>
+        <description>The name or code of the country.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized country name, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.geographies.country</entity-type>
+    </entity>
+    <entity>
+      <name>region</name>
+      <description>Describes a region.</description>
+      <property>
+        <name>name</name>
+        <description>The name or code of the region.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized region name, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.geographies.region</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>profiles</name>
+    <description>
+####Entry Point: /profiles/{scope}/default
+
+The profiles resource provides access to the currently logged in customer and his/her details. Using the resource you can retrieve and update
+a customer's first name, last name, username, [addresses][address]. You can also retrieve the customer's [purchases][purchases] and [paymentmethods][paymentmethods] through this resource.
+
+[address]: #address
+[purchases]: #purchases
+[paymentmethods]: #paymentmethods
+			
+		</description>
+    <uri-part>
+      <name>profile-id</name>
+      <description>The profile ID.</description>
+    </uri-part>
+    <resource>
+      <name>default-profile</name>
+      <description>The default profile for the customer.</description>
+      <uri>{base.family}/{base.scope}/default</uri>
+      <alias>profile</alias>
+    </resource>
+    <resource>
+      <name>profile</name>
+      <description>The profile for the customer.</description>
+      <uri>{base.family}/{base.scope}/{profile-id}</uri>
+      <entity>profile</entity>
+    </resource>
+    <relationship>
+      <name>default-profile-from-root</name>
+      <description>Link from root resource to default profile.</description>
+      <rel>defaultprofile</rel>
+      <from>base.root</from>
+      <to>default-profile</to>
+    </relationship>
+    <entity>
+      <name>profile</name>
+      <description>The profile of the logged in customer.</description>
+      <property>
+        <name>given-name</name>
+        <description>Customer's first name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>family-name</name>
+        <description>Customer's last name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>profile-id</name>
+        <description>The internal profile identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>profiles.profile</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>items</name>
+    <description>
+			
+An item is a purchasable good like a T-shirt, a movie, a song, a subscription, etc. The Items resource's responsibility
+is to simply identify an item. This should not be confused with [itemdefinitions][itemdefinitions], which are
+descriptions of the item.
+
+Items can be discovered by using the following resources:
+
+- [searches][searches]
+
+- [navigations][navigations]
+
+- [slots][slots]
+
+- [lookups][lookups]
+
+[itemdefinitions]: #itemdefinitions
+[searches]: #searches
+[navigations]: #navigations
+[slots]: #slots
+			
+		</description>
+    <uri-part>
+      <name>item-id</name>
+      <description>The item identifier. This ID is a unique value across the scope.</description>
+    </uri-part>
+    <resource>
+      <name>items</name>
+      <description>List of all the items.</description>
+      <uri>/{base.family}/{base.scope}</uri>
+      <list-of>item</list-of>
+    </resource>
+    <resource>
+      <name>item</name>
+      <description>An item is a purchasable good like a T-shirt, a movie, a song, a subscription, etc.</description>
+      <uri>/{items}/{item-id}</uri>
+      <entity>item</entity>
+    </resource>
+    <relationship>
+      <name>items-from-root</name>
+      <description>Link from root resource to items.</description>
+      <rel>items</rel>
+      <from>base.root</from>
+      <to>items</to>
+    </relationship>
+    <entity>
+      <name>item</name>
+      <description>Defines the item type.</description>
+      <property>
+        <name>item-id</name>
+        <description>The item identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>itemselections</name>
+    <description>The Items selections resource provides a selector to allow customers to select item options.</description>
+    <uri-part>
+      <name>option-id</name>
+      <description>The option ID.</description>
+    </uri-part>
+    <uri-part>
+      <name>option-value-id</name>
+      <description>The option value ID.</description>
+    </uri-part>
+    <resource>
+      <name>itemselections-option-selector</name>
+      <description>Selector to select an item definition option.</description>
+      <uri>{base.family}/{base.scope}/{items.item-id}/options/{option-id}/selector</uri>
+      <entity>controls.selector</entity>
+    </resource>
+    <resource>
+      <name>itemselections-option-value-selector</name>
+      <description>An item selection option value choice.</description>
+      <uri>{base.family}/{base.scope}/{items.item-id}/options/{option-id}/values/{option-value-id}/selector</uri>
+    </resource>
+    <relationship>
+      <name>selector-for-item-definition-option</name>
+      <description>Selector for an item option value.</description>
+      <rel>selector</rel>
+      <rev>option</rev>
+      <from>itemdefinitions.item-definition-option</from>
+      <to>itemselections-option-selector</to>
+    </relationship>
+    <relationship>
+      <name>value-choice-for-itemselections-option-selector</name>
+      <description>Retrieve a choice.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>itemselections-option-selector</from>
+      <to>itemselections-option-value-selector</to>
+    </relationship>
+    <relationship>
+      <name>description-for-itemselections-option-value-selector-choice</name>
+      <description>Retrieve a choice's description.</description>
+      <rel>description</rel>
+      <from>itemselections-option-value-selector</from>
+      <to>itemdefinitions.item-definition-option-value</to>
+    </relationship>
+    <relationship>
+      <name>action-for-itemselections-option-selector-choice</name>
+      <description>Select a choice.</description>
+      <rel>selectaction</rel>
+      <from>itemselections-option-value-selector</from>
+      <to>itemselections-option-value-selector</to>
+    </relationship>
+  </family>
+  <family>
+    <name>subscriptions</name>
+    <description>The Subscriptions resource lists the active subscriptions for a customer.</description>
+    <uri-part>
+      <name>subscription-id</name>
+      <description>The subscription ID.</description>
+    </uri-part>
+    <resource>
+      <name>subscriptions</name>
+      <description>List of active subscriptions for the customer.</description>
+      <uri>/{base.family}/{base.scope}</uri>
+      <list-of>subscription</list-of>
+    </resource>
+    <resource>
+      <name>subscription</name>
+      <description>A subscription for the customer.</description>
+      <uri>{subscriptions}/{subscription-id}</uri>
+      <entity>subscription</entity>
+    </resource>
+    <relationship>
+      <name>subscriptions-for-customer</name>
+      <description>Read a customer's active subscriptions.</description>
+      <rel>subscriptions</rel>
+      <from>profiles.profile</from>
+      <to>subscriptions</to>
+    </relationship>
+    <entity>
+      <name>subscription</name>
+      <description>The subscription for a customer.</description>
+      <property>
+        <name>display-name</name>
+        <description>The name of the subscription.</description>
+        <string/>
+      </property>
+      <property>
+        <name>next-billing-date</name>
+        <description>The upcoming date when payment is required.</description>
+        <is-a>base.date</is-a>
+      </property>
+      <property>
+        <name>quantity</name>
+        <description>The number of units the customer is subscribed to.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>status</name>
+        <description>
+					
+Indicates the status of the subscription. The following are possible status values:
+
+* ACTIVE - The subscription's services are active.
+* INACTIVE - The subscription's services are inactive.
+					
+				</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.subscriptions.subscription</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>base</name>
+    <description>A set of definitions that are used in all definitions.</description>
+    <uri-part>
+      <name>family</name>
+      <description>Defines the name of a definitions family, like 'items' or 'prices'.</description>
+    </uri-part>
+    <uri-part>
+      <name>scope</name>
+      <description>Defines the scope of a resource.</description>
+    </uri-part>
+    <uri-part>
+      <name>resource-id</name>
+      <description>Defines a resource ID.</description>
+    </uri-part>
+    <resource>
+      <name>root</name>
+      <description>The root resource.</description>
+      <uri>/</uri>
+    </resource>
+    <plan>
+      <name>read-root</name>
+      <description>Read the root resource to discover the API.</description>
+      <step>
+        <description>Read the root resource.</description>
+        <start>root</start>
+        <read-self/>
+      </step>
+    </plan>
+    <entity>
+      <name>date</name>
+      <description>Describes a date.</description>
+      <property>
+        <name>value</name>
+        <description>The millisecond value of the date in [Epoch time](http://en.wikipedia.org/wiki/Epoch_\(reference_date\)#Computing).
+				</description>
+        <long/>
+      </property>
+      <property>
+        <name>display-value</name>
+        <description>The formatted date value to display on the client application.</description>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>details</name>
+      <description>Describes the details.</description>
+      <property>
+        <name>display-name</name>
+        <description>The formatted string to display on the client.</description>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The name used by the Cortex system.
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-value</name>
+        <description>The formatted string to display on the client.</description>
+        <string/>
+      </property>
+      <property>
+        <name>value</name>
+        <description>The raw value.</description>
+        <any/>
+      </property>
+    </entity>
+    <entity>
+      <name>cost</name>
+      <description>Describes a cost.</description>
+      <property>
+        <name>currency</name>
+        <description>The currency the cost is in.</description>
+        <string>
+          <min-length>2</min-length>
+          <max-length>3</max-length>
+        </string>
+      </property>
+      <property>
+        <name>amount</name>
+        <description>
+	The decimal value of the cost.
+	</description>
+        <decimal>
+          <precision>3</precision>
+          <fixed>3</fixed>
+        </decimal>
+      </property>
+      <property>
+        <name>display</name>
+        <description>Formatted currency string that can be displayed on the client application.</description>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>named-cost</name>
+      <description>Describes a tax.</description>
+      <is-a>cost</is-a>
+      <property>
+        <name>title</name>
+        <description>The name of the tax.</description>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>name</name>
+      <description>Describes a person's name.</description>
+      <property>
+        <name>given-name</name>
+        <description>The person's given name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>family-name</name>
+        <description>The person's family name.</description>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>availabilities</name>
+    <description>
+			
+Display the [item][items] and line item's availability. The availability identifies the item's
+purchasability. For example, in Elastic Path Commerce Engine the following states are available:
+
+*  ALWAYS
+*  NOT\_AVAILABLE
+*  AVAILABLE\_FOR\_BACK\_ORDER
+*  AVAILABLE\_FOR\_PRE\_ORDER
+
+[items]: #items
+			
+		</description>
+    <resource>
+      <name>availability-for-item</name>
+      <description>The item's availability. The availability identifies the item's purchasability.</description>
+      <uri>{base.family}/{items.item}</uri>
+      <entity>availability</entity>
+    </resource>
+    <resource>
+      <name>availability-for-cart-line-item</name>
+      <description>
+				The line item's availability. The availability identifies the purchasability of the item(s) in the line item.</description>
+      <uri>{base.family}/{carts.line-item}</uri>
+      <entity>availability</entity>
+    </resource>
+    <relationship>
+      <name>read-cart-line-item-availability</name>
+      <description>
+				Read a line item's availability. The availability rule identifies the purchasable state of the item(s) in the line item.
+			</description>
+      <rel>availability</rel>
+      <rev>lineitem</rev>
+      <from>carts.line-item</from>
+      <to>availability-for-cart-line-item</to>
+    </relationship>
+    <relationship>
+      <name>read-item-availability</name>
+      <description>Read an item's availability. The availability rule identifies the item's purchasability.</description>
+      <rel>availability</rel>
+      <rev>item</rev>
+      <from>items.item</from>
+      <to>availability-for-item</to>
+    </relationship>
+    <entity>
+      <name>availability</name>
+      <description>The availability information for an item.</description>
+      <property>
+        <name>state</name>
+        <description>
+					
+The state of availability for an item or line item. In Elastic Path Commerce Engine, the states are:
+
+*  ALWAYS
+*  NOT\_AVAILABLE
+*  AVAILABLE\_FOR\_BACK\_ORDER
+*  AVAILABLE\_FOR\_PRE\_ORDER
+					
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>release-date</name>
+        <description>
+					
+						Optional property. This is the date the item becomes available for purchase.
+						In Elastic Path Commerce Engine, release-date is only visible when the item is available for pre-order.
+					
+				</description>
+        <is-a>base.date</is-a>
+      </property>
+      <entity-type>elasticpath.availabilities.availability</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>lookups</name>
+    <resource>
+      <name>batch-items-form</name>
+      <description>Provides the form with which to search for items by code.</description>
+      <uri>{batch-items-action}/form</uri>
+      <entity>codes</entity>
+    </resource>
+    <resource>
+      <name>batch-items-action</name>
+      <description>The submission resource for lookup a batch of items by a list of codes.</description>
+      <uri>{lookups}/batches/items</uri>
+      <entity>codes</entity>
+    </resource>
+    <relationship>
+      <name>batch-items-form-from-lookups</name>
+      <description>A link from the lookups resource to the batch items form.</description>
+      <rel>batchitemslookupform</rel>
+      <from>lookups</from>
+      <to>batch-items-form</to>
+    </relationship>
+    <relationship>
+      <name>batch-items-action-from-form</name>
+      <description>Submit action for a batched item lookup form.</description>
+      <rel>batchlookupaction</rel>
+      <from>batch-items-form</from>
+      <to>batch-items-action</to>
+    </relationship>
+    <relationship>
+      <name>result-for-batch-items</name>
+      <description>The result from a batch lookup form action.</description>
+      <rel>batchlookupaction</rel>
+      <from>batch-items-action</from>
+      <to>batch-items</to>
+    </relationship>
+    <entity>
+      <name>codes</name>
+      <description>A list of codes.</description>
+      <property>
+        <name>codes</name>
+        <description>A list of codes.</description>
+        <array>
+          <string/>
+        </array>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>lookups</name>
+    <resource>
+      <name>lookup-item-form</name>
+      <description>Provides the form with which to search for items by code.</description>
+      <uri>{lookup-item-action}/form</uri>
+      <entity>code</entity>
+    </resource>
+    <resource>
+      <name>lookup-item-action</name>
+      <description>The submission resource for searching for an item by code.</description>
+      <uri>{lookups}/items</uri>
+      <entity>code</entity>
+    </resource>
+    <relationship>
+      <name>lookup-item-form-from-lookups</name>
+      <description>A link from the lookups resource to this form.</description>
+      <rel>itemlookupform</rel>
+      <from>lookups</from>
+      <to>lookup-item-form</to>
+    </relationship>
+    <relationship>
+      <name>lookup-item-action-from-form</name>
+      <description>Submit action for an item lookup form.</description>
+      <rel>itemlookupaction</rel>
+      <from>lookup-item-form</from>
+      <to>lookup-item-action</to>
+    </relationship>
+  </family>
+  <family>
+    <name>lookups</name>
+    <description>A lookup is a means of looking up an item.</description>
+    <resource>
+      <name>lookups</name>
+      <description>All the top level lookups for a store.</description>
+      <uri>{base.family}/{base.scope}</uri>
+    </resource>
+    <resource>
+      <name>code-for-item</name>
+      <description>The item code resource.</description>
+      <uri>{base.family}/{items.item}</uri>
+      <entity>code</entity>
+    </resource>
+    <uri-part>
+      <name>batch-id</name>
+      <description>The batch id.</description>
+    </uri-part>
+    <resource>
+      <name>batch-items</name>
+      <description>Provides a batched list of items.</description>
+      <uri>{batch-items-action}/{batch-id}</uri>
+      <list-of>items.item</list-of>
+    </resource>
+    <relationship>
+      <name>root-to-lookups</name>
+      <description>Link from root to lookups.</description>
+      <rel>lookups</rel>
+      <from>base.root</from>
+      <to>lookups</to>
+    </relationship>
+    <relationship>
+      <name>code-for-item</name>
+      <description>Read the code of an [item][items].</description>
+      <rel>item</rel>
+      <rev>code</rev>
+      <from>items.item</from>
+      <to>code-for-item</to>
+    </relationship>
+    <entity>
+      <name>code</name>
+      <description>The item sku code</description>
+      <property>
+        <name>code</name>
+        <description>The sku code.</description>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>registrations</name>
+    <resource>
+      <name>new-account-registration-form</name>
+      <description>Provides the form with which to register a new account.</description>
+      <uri>{base.family}/{base.scope}/newaccount/form</uri>
+      <form>
+        <entity>registration</entity>
+        <action-rel>registeraction</action-rel>
+        <result>profiles.profile</result>
+      </form>
+    </resource>
+    <entity>
+      <name>registration</name>
+      <description>Register a new account.</description>
+      <property>
+        <name>given-name</name>
+        <description>The first name associated with new account.</description>
+        <string/>
+      </property>
+      <property>
+        <name>family-name</name>
+        <description>The last name associated with new account.</description>
+        <string/>
+      </property>
+      <property>
+        <name>username</name>
+        <description>
+					
+The username associated with new account. Usernames should be the customer's email address. By default, Cortex API is
+expecting a customer's email address for their username. Your implementation of Cortex API may differ, so check with
+your system administrator for your username rules.
+					
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>password</name>
+        <description>The password associated with new account.</description>
+        <string/>
+      </property>
+      <entity-type>registrations.new-account-registration</entity-type>
+    </entity>
+    <relationship>
+      <name>registration-from-root</name>
+      <description>Provides the form with which to register a new account.</description>
+      <rel>newaccountform</rel>
+      <from>base.root</from>
+      <to>new-account-registration-form</to>
+    </relationship>
+  </family>
+  <family>
+    <name>promotions</name>
+    <description>
+			
+Promotions are incentives offered to shoppers to promote the purchase of [items][items] in a store. A store’s marketer creates promotions
+and defines a set of conditions that must be met before the promotion is applied to a given shopper. Promotions may trigger discounts or
+may trigger other incentives such as free [items][items]. When a promotion triggers a discount, the discounts are automatically applied to
+the item price, cart line item price, shipping option cost, line items total, cart total, and the order [total][totals].
+
+Promotions are linked to a number of different resources:
+
+* [Promotions][promotions] - The promotions resource provides a list of all the promotions available for the store.
+* [Items][items] - Promotions are linked to items when a promotion exists for that item and the shopper is eligible to receive the promotion.
+* [Carts][carts] - Promotions are linked to carts when the contents of the shopper’s cart meet the conditions of the promotion.
+* Cart line items - Promotions are linked to cart line items when the line item meets the conditions of the promotion.
+* Shipping options - Promotions are linked to shipping options on an order shipment when the option meets the conditions of the promotion.
+* [Purchases][purchases] - Promotions are linked to purchases when the purchase had promotions applied to it.
+* [Coupons][coupons] - Promotion are linked to a coupon when the coupon triggered the promotions to apply.
+
+[orderdeliveries]: #order-deliveries
+[coupons]: #coupons
+			
+		</description>
+    <uri-part>
+      <name>promotion-id</name>
+      <description>The promotion ID.</description>
+    </uri-part>
+    <resource>
+      <name>promotion</name>
+      <description>A promotion.</description>
+      <uri>{base.family}/{base.scope}/{promotion-id}</uri>
+      <entity>promotion</entity>
+    </resource>
+    <resource>
+      <name>applied-promotions-for-cart-line-item</name>
+      <description>A list of promotions applied to a cart line item.</description>
+      <uri>{base.family}/{carts.line-item}/applied</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <relationship>
+      <name>applied-promotions-for-cart-line-item</name>
+      <description>Retrieve the promotions applied to a cart line item.</description>
+      <rel>appliedpromotions</rel>
+      <from>carts.line-item</from>
+      <to>applied-promotions-for-cart-line-item</to>
+    </relationship>
+    <resource>
+      <name>possible-promotions-for-cart</name>
+      <description>A list of promotions possible for a cart.</description>
+      <uri>{base.family}/{carts.cart}/possible</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <resource>
+      <name>applied-promotions-for-cart</name>
+      <description>A list of promotions applied to a cart.</description>
+      <uri>{base.family}/{carts.cart}/applied</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <relationship>
+      <name>applied-promotions-for-cart</name>
+      <description>Retrieve promotions applied to a cart</description>
+      <rel>appliedpromotions</rel>
+      <from>carts.cart</from>
+      <to>applied-promotions-for-cart</to>
+    </relationship>
+    <relationship>
+      <name>possible-promotions-for-cart</name>
+      <description>Retrieve possible promotions for a cart.</description>
+      <rel>possiblepromotions</rel>
+      <from>carts.cart</from>
+      <to>possible-promotions-for-cart</to>
+    </relationship>
+    <resource>
+      <name>purchase-promotion</name>
+      <description>A list of promotions applied for a purchase.</description>
+      <uri>{base.family}/{purchases.purchase}/{promotion-id}</uri>
+      <entity>promotion</entity>
+    </resource>
+    <resource>
+      <name>applied-promotions-for-purchase</name>
+      <description>A list of promotions applied for a purchase.</description>
+      <uri>{base.family}/{purchases.purchase}/applied</uri>
+      <list-of>purchase-promotion</list-of>
+    </resource>
+    <relationship>
+      <name>applied-promotions-for-purchase</name>
+      <description>Retrieve promotions applied to a purchase.</description>
+      <rel>appliedpromotions</rel>
+      <from>purchases.purchase</from>
+      <to>applied-promotions-for-purchase</to>
+    </relationship>
+    <resource>
+      <name>applied-promotions-for-item</name>
+      <description>A list of promotions applied to an item.</description>
+      <uri>{base.family}/{items.item}/applied</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <resource>
+      <name>possible-promotions-for-item</name>
+      <description>A list of promotions possible for an item.</description>
+      <uri>{base.family}/{items.item}/possible</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <relationship>
+      <name>applied-promotions-for-item</name>
+      <description>Retrieve promotions applied to an item.</description>
+      <rel>appliedpromotions</rel>
+      <from>items.item</from>
+      <to>applied-promotions-for-item</to>
+    </relationship>
+    <relationship>
+      <name>possible-promotions-for-item</name>
+      <description>Retrieve possible promotions for an item.</description>
+      <rel>possiblepromotions</rel>
+      <from>items.item</from>
+      <to>possible-promotions-for-item</to>
+    </relationship>
+    <resource>
+      <name>applied-promotions-for-shipping-option</name>
+      <description>A list of promotions applied to a shipping option.</description>
+      <uri>{base.family}/{shipmentdetails.shipping-option}/applied</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <relationship>
+      <name>applied-promotions-for-shipping-option</name>
+      <description>Retrieve promotions applied to a shipping option.</description>
+      <rel>appliedpromotions</rel>
+      <from>shipmentdetails.shipping-option</from>
+      <to>applied-promotions-for-shipping-option</to>
+    </relationship>
+    <resource>
+      <name>applied-promotions-for-order-coupon</name>
+      <description>A list of promotions applied to a coupon.</description>
+      <uri>{base.family}/{coupons.order-coupon}/applied</uri>
+      <list-of>promotion</list-of>
+    </resource>
+    <relationship>
+      <name>promotion-for-order-coupon</name>
+      <description>Retrieve a promotion trigged by a coupon on an order.</description>
+      <rel>appliedpromotions</rel>
+      <from>coupons.order-coupon</from>
+      <to>applied-promotions-for-order-coupon</to>
+    </relationship>
+    <resource>
+      <name>purchase-coupon-promotion</name>
+      <description>A list of promotions applied to a coupon.</description>
+      <uri>{base.family}/{coupons.purchase-coupon}/{promotion-id}</uri>
+      <entity>promotion</entity>
+    </resource>
+    <resource>
+      <name>applied-promotions-for-purchase-coupon</name>
+      <description>A list of promotions applied to a coupon.</description>
+      <uri>{base.family}/{coupons.purchase-coupon}/applied</uri>
+      <list-of>purchase-coupon-promotion</list-of>
+    </resource>
+    <relationship>
+      <name>promotion-for-purchase-coupon</name>
+      <description>Retrieve a promotion trigged by a coupon on a purchase.</description>
+      <rel>appliedpromotions</rel>
+      <from>coupons.purchase-coupon</from>
+      <to>applied-promotions-for-purchase-coupon</to>
+    </relationship>
+    <relationship>
+      <name>fake-link-to-root</name>
+      <description>Fake link to keep validator happy</description>
+      <rel>purchasecoupons</rel>
+      <from>base.root</from>
+      <to>purchase-coupon-promotion</to>
+    </relationship>
+    <entity>
+      <name>promotion</name>
+      <description>A promotion representation</description>
+      <property>
+        <name>promotion-id</name>
+        <description>The internal promotion identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+      <property>
+        <name>name</name>
+        <description>The promotion identifier.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The promotion's localized name, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-description</name>
+        <description>The promotion's localized marketing description, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-conditions</name>
+        <description>The promotion's localized terms and conditions, intended for display in the client application.</description>
+        <string/>
+      </property>
+      <entity-type>promotions.promotion</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>assets</name>
+    <description>
+			
+Assets are the media (.png, .jpg, etc) linked to an item. The JSON object's content-location field specifies where the images are located. In most cases, the
+content-location will be on a separate media server.
+
+[items]: #items
+			
+		</description>
+    <relationship>
+      <name>assets-for-item</name>
+      <description>Retrieves an item's asset.</description>
+      <rel>assets</rel>
+      <rev>definition</rev>
+      <from>itemdefinitions.item-definition</from>
+      <to>assets</to>
+    </relationship>
+    <uri-part>
+      <name>asset-id</name>
+      <description>A value representing asset ID.</description>
+    </uri-part>
+    <resource>
+      <name>assets</name>
+      <description>A list of an item's assets.</description>
+      <uri>{base.family}/{itemdefinitions.item-definition}</uri>
+      <list-of>asset</list-of>
+    </resource>
+    <resource>
+      <name>asset</name>
+      <description>A single asset resource for an item.</description>
+      <uri>{base.family}/{base.scope}/{asset-id}</uri>
+      <entity>asset</entity>
+    </resource>
+    <entity>
+      <name>asset</name>
+      <description>The asset.</description>
+      <property>
+        <name>name</name>
+        <description>The asset name Cortex system uses.</description>
+        <string/>
+      </property>
+      <property>
+        <name>display-name</name>
+        <description>The localized asset name, in to display in the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>content-location</name>
+        <description>
+					
+Represents the image's absolute path. Images can be in either .jpg, .gif, or .png formats. The asset's location may vary
+as your may have a separate server for your media files.
+Out of the box, Cortex API only supports .jpg, .gif, and .png files. However, your Cortex API implementation may be customized
+to support other media file types. Check with your provider for more information.
+					
+				</description>
+        <string/>
+      </property>
+      <property>
+        <name>relative-location</name>
+        <description>
+					
+The asset's relative path to the asset. For example, if your media server is at `mediaserver.onlinestore.com` and your image
+is stored in `mediaserver.onlinestore.com/images/cameras/cameraImage.png`, the `relative-location` will display
+`images/cameras/cameraImage.png`.
+					
+				</description>
+        <string/>
+      </property>
+      <entity-type>elasticpath.assets.asset</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>searches</name>
+    <resource>
+      <name>keyword-search-form</name>
+      <description>
+				
+Search form to fill searching information.
+
+~! # Keyword Size Limit #
+Keywords can be up to 500 characters long. Any longer and Cortex API returns status 400 and a error message.
+!~
+				
+			</description>
+      <uri>{searches}/keywords/form</uri>
+      <entity>search-keywords</entity>
+    </resource>
+    <resource>
+      <name>keyword-search-action</name>
+      <description>The submission resource to obtain search result.</description>
+      <uri>{searches}/keywords/items</uri>
+      <entity>search-keywords</entity>
+    </resource>
+    <resource>
+      <name>keyword-search-result</name>
+      <description>The result of keyword search query.</description>
+      <uri>{keyword-search-action}/{search-id}</uri>
+      <entity>collections.paginated-links</entity>
+    </resource>
+    <resource>
+      <name>keyword-search-result-paged</name>
+      <description>The paged result of keyword search query.</description>
+      <uri>{keyword-search-result}/pages/{page-id}</uri>
+      <entity>collections.paginated-links</entity>
+    </resource>
+    <relationship>
+      <name>next-page-keyword-search-results</name>
+      <description>Pages of search results.</description>
+      <rel>next</rel>
+      <rev>previous</rev>
+      <from>keyword-search-result</from>
+      <to>keyword-search-result-paged</to>
+    </relationship>
+    <relationship>
+      <name>search-to-keyword-search-form</name>
+      <description>Provide a navigation to keyword search.</description>
+      <rel>keywordsearchform</rel>
+      <from>searches</from>
+      <to>keyword-search-form</to>
+    </relationship>
+    <relationship>
+      <name>action-for-keyword-search-form</name>
+      <description>Submit a keyword search action to this link.</description>
+      <rel>submit</rel>
+      <from>keyword-search-form</from>
+      <to>keyword-search-action</to>
+    </relationship>
+    <relationship>
+      <name>result-for-keyword-search</name>
+      <description>The result from a keyword search. This should go into the 'result' section of a form definition.</description>
+      <rel>itemkeywordsearchaction</rel>
+      <from>keyword-search-action</from>
+      <to>keyword-search-result</to>
+    </relationship>
+    <entity>
+      <name>search-keywords</name>
+      <description>Search keywords.</description>
+      <property>
+        <name>keywords</name>
+        <description>Search keywords.</description>
+        <string>
+          <min-length>1</min-length>
+          <max-length>500</max-length>
+        </string>
+      </property>
+      <property>
+        <name>page-size</name>
+        <description>
+					
+Defines the number of search results to list per page. This field is optional. If the field is not specified,
+Cortex API's default page-size value is used, which can differ depending on your implementation.
+					
+				</description>
+        <integer/>
+      </property>
+      <entity-type>elasticpath.searches.keyword-search</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>searches</name>
+    <uri-part>
+      <name>search-id</name>
+      <description>The search object's identifier</description>
+    </uri-part>
+    <uri-part>
+      <name>page-id</name>
+      <description>The paged search result's page identifier</description>
+    </uri-part>
+    <resource>
+      <name>searches</name>
+      <description>Starting search resource.</description>
+      <uri>{base.family}/{base.scope}</uri>
+    </resource>
+    <resource>
+      <name>navigation-items</name>
+      <description>Paginated list of links that link to a navigation node's items.</description>
+      <uri>{searches}/{navigations.navigation}</uri>
+      <entity>collections.paginated-links</entity>
+    </resource>
+    <resource>
+      <name>navigation-items-paged</name>
+      <description>Paginated list of links that link to a navigation node's items.</description>
+      <uri>{navigation-items}/pages/{page-id}</uri>
+      <entity>collections.paginated-links</entity>
+    </resource>
+    <relationship>
+      <name>next-page-navigation-items</name>
+      <description>Pages of navigation items.</description>
+      <rel>next</rel>
+      <rev>previous</rev>
+      <from>navigation-items</from>
+      <to>navigation-items-paged</to>
+    </relationship>
+    <relationship>
+      <name>root-to-searches</name>
+      <description>Link from root resource to searches.</description>
+      <rel>searches</rel>
+      <from>base.root</from>
+      <to>searches</to>
+    </relationship>
+    <relationship>
+      <name>navigation-to-items</name>
+      <description>Retrieve a paginated list of items associated with the navigation node.</description>
+      <rel>items</rel>
+      <from>navigations.navigation</from>
+      <to>navigation-items</to>
+    </relationship>
+  </family>
+  <family>
+    <name>rates</name>
+    <resource>
+      <name>rate-for-item</name>
+      <description>Rates represent the cost and billing frequency of an item for sale.</description>
+      <uri>{base.family}/{items.item}</uri>
+      <entity>rates</entity>
+    </resource>
+    <resource>
+      <name>rate-for-cart-line-item</name>
+      <description>Rates represent the cost and billing frequency of a cart's line item.</description>
+      <uri>{base.family}/{carts.line-item}</uri>
+      <entity>rates</entity>
+    </resource>
+    <relationship>
+      <name>rate-for-item</name>
+      <description>Read the rate of an item.</description>
+      <rel>rate</rel>
+      <rev>item</rev>
+      <from>items.item</from>
+      <to>rate-for-item</to>
+    </relationship>
+    <relationship>
+      <name>rate-for-cart-line-item</name>
+      <description>
+				Read the rate of a cart's line item, which is the total rate of the item in the line item.</description>
+      <rel>rate</rel>
+      <rev>item</rev>
+      <from>carts.line-item</from>
+      <to>rate-for-cart-line-item</to>
+    </relationship>
+    <entity>
+      <name>rate</name>
+      <description>Describes an item's billing rate.</description>
+      <property>
+        <name>display</name>
+        <description>
+					Formatted billing rate string that can be displayed on the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>cost</name>
+        <description>The rate's cost information.</description>
+        <is-a>base.cost</is-a>
+      </property>
+      <property>
+        <name>recurrence</name>
+        <description>The rate's billing frequency information.</description>
+        <is-a>recurrence</is-a>
+      </property>
+    </entity>
+    <entity>
+      <name>rates</name>
+      <description>Array of billing rates</description>
+      <property>
+        <name>rates</name>
+        <description>Array of billing rates</description>
+        <array>
+          <is-a>rates.rate</is-a>
+        </array>
+      </property>
+    </entity>
+    <entity>
+      <name>recurrence</name>
+      <description>Describes a rate's billing frequency information</description>
+      <property>
+        <name>display</name>
+        <description>
+					Formatted billing frequency string that can be displayed on the client application.</description>
+        <string/>
+      </property>
+      <property>
+        <name>interval</name>
+        <description>The interval that billing will occur.</description>
+        <string/>
+      </property>
+    </entity>
+  </family>
+  <family>
+    <name>taxes</name>
+    <description>
+			
+Taxes describe the amount of tax owing for orders, shipments and shipment lineitems.
+
+[orders]: #orders
+			
+		</description>
+    <resource>
+      <name>order-tax</name>
+      <description>A tax resource that identifies the tax owing for an order.</description>
+      <uri>{base.family}/{orders.order}</uri>
+      <entity>taxes</entity>
+    </resource>
+    <resource>
+      <name>shipment-tax</name>
+      <description>A tax resource that identifies the tax paid for a shipment.</description>
+      <uri>{base.family}/{shipments.shipment}</uri>
+      <entity>taxes</entity>
+    </resource>
+    <resource>
+      <name>shipment-line-item-tax</name>
+      <description>The shipment line item tax.</description>
+      <uri>{base.family}/{shipments.shipment-line-item}</uri>
+      <entity>taxes</entity>
+    </resource>
+    <relationship>
+      <name>taxes-for-order</name>
+      <description>Retrieves the total tax for an order, which includes the order's tax amount, currency, and type of tax (VAT, HST, etc.).</description>
+      <rel>tax</rel>
+      <from>orders.order</from>
+      <to>order-tax</to>
+    </relationship>
+    <relationship>
+      <name>taxes-for-shipment</name>
+      <description>
+				Retrieves the total tax for a shipment, which includes the shipments' tax amount, currency, and type of tax (VAT, HST, etc.).</description>
+      <rel>tax</rel>
+      <from>shipments.shipment</from>
+      <to>shipment-tax</to>
+    </relationship>
+    <relationship>
+      <name>taxes-for-shipment-line-item</name>
+      <description>Retrieve the tax amount for a shipment line item.</description>
+      <rel>tax</rel>
+      <from>shipments.shipment-line-item</from>
+      <to>shipment-line-item-tax</to>
+    </relationship>
+    <entity>
+      <name>taxes</name>
+      <description>Taxes owing for an order.</description>
+      <property>
+        <name>total</name>
+        <description>The total tax.</description>
+        <is-a>base.cost</is-a>
+      </property>
+      <property>
+        <name>cost</name>
+        <description>The cost of the tax(es).</description>
+        <array>
+          <is-a>base.named-cost</is-a>
+        </array>
+      </property>
+      <entity-type>elasticpath.taxes.taxes</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>paymentmethods</name>
+    <description>
+			
+Use a selector to select paymentmethod to use for the purchase. Follow the workflow to read the paymentmethodsinfo
+and then create a choice to select the paymentmethod to use for the purchase.
+			
+		</description>
+    <resource>
+      <name>paymentmethods-selector</name>
+      <description>Selector to choose a payment method for an order.</description>
+      <uri>{base.family}/selector/{orders.order}</uri>
+      <entity>controls.selector</entity>
+    </resource>
+    <resource>
+      <name>paymentmethods-selector-choice</name>
+      <description>A payment methods selector choice.</description>
+      <uri>{paymentmethod}/selector/{orders.order}</uri>
+    </resource>
+    <relationship>
+      <name>selector-for-paymentmethod-info</name>
+      <description>Retrieve the selector for paymentmethod info.</description>
+      <rel>selector</rel>
+      <rev>paymentmethodinfo</rev>
+      <from>paymentmethod-info</from>
+      <to>paymentmethods-selector</to>
+    </relationship>
+    <relationship>
+      <name>choice-for-paymentmethods-selector</name>
+      <description>Retrieve a choice.</description>
+      <rel>choice</rel>
+      <rev>selector</rev>
+      <from>paymentmethods-selector</from>
+      <to>paymentmethods-selector-choice</to>
+    </relationship>
+    <relationship>
+      <name>description-for-paymentmethods-selector-choice</name>
+      <description>Retrieve a choice's description.</description>
+      <rel>description</rel>
+      <rev>selector</rev>
+      <from>paymentmethods-selector</from>
+      <to>paymentmethods-selector-choice</to>
+    </relationship>
+    <relationship>
+      <name>select-paymentmethods-choice</name>
+      <description>Select a choice.</description>
+      <rel>selectaction</rel>
+      <from>paymentmethods-selector-choice</from>
+      <to>paymentmethods-selector-choice</to>
+    </relationship>
+  </family>
+  <family>
+    <name>paymentmethods</name>
+    <description>
+			
+The Payment Methods resource is responsible for the customer's paymentmethods. This resource lists all the paymentmethods
+defined for the customer either credit cards or payment tokens. Selecting a payment method for a purchase is set
+during the purchase's order phase.
+			
+		</description>
+    <uri-part>
+      <name>paymentmethod-id</name>
+      <description>The payment method ID</description>
+    </uri-part>
+    <resource>
+      <name>paymentmethods</name>
+      <description>An order resource that identifies items to be purchased.</description>
+      <uri>{base.family}/{base.scope}</uri>
+      <list-of>paymentmethod</list-of>
+    </resource>
+    <resource>
+      <name>default-paymentmethod</name>
+      <description>The default payment method.</description>
+      <uri>{paymentmethods}/default</uri>
+      <alias>paymentmethod</alias>
+    </resource>
+    <resource>
+      <name>paymentmethod</name>
+      <description>The payment method.</description>
+      <uri>{paymentmethods}/{paymentmethod-id}</uri>
+      <entity>credit-card</entity>
+    </resource>
+    <resource>
+      <name>paymentmethod-info</name>
+      <description>The payment method info for an order.</description>
+      <uri>{base.family}/info/{orders.order}</uri>
+      <entity>controls.info</entity>
+    </resource>
+    <resource>
+      <name>paymentmethod-for-order</name>
+      <description>The payment method for an order.</description>
+      <uri>{base.family}/{orders.order}</uri>
+      <entity>credit-card</entity>
+    </resource>
+    <relationship>
+      <name>paymentmethods-for-profile</name>
+      <description>The customer's payment methods.</description>
+      <rel>paymentmethods</rel>
+      <rev>profile</rev>
+      <from>profiles.profile</from>
+      <to>paymentmethods</to>
+    </relationship>
+    <relationship>
+      <name>default-paymentmethod</name>
+      <description>The customer's default payment method.</description>
+      <rel>default</rel>
+      <rev>list</rev>
+      <from>paymentmethods</from>
+      <to>default-paymentmethod</to>
+    </relationship>
+    <relationship>
+      <name>paymentmethod-info-for-order</name>
+      <description>Read the payment method currently selected for the order.</description>
+      <rel>paymentmethodinfo</rel>
+      <rev>order</rev>
+      <from>orders.order</from>
+      <to>paymentmethod-info</to>
+    </relationship>
+    <relationship>
+      <name>paymentmethod-for-order</name>
+      <description>Read a payment method.</description>
+      <rel>paymentmethod</rel>
+      <from>paymentmethod-info</from>
+      <to>paymentmethod-for-order</to>
+    </relationship>
+    <entity>
+      <name>payment-method</name>
+      <description>Describes a payment method.</description>
+      <property>
+        <name>payment-method-id</name>
+        <description>The payment method identifier.</description>
+        <internal/>
+        <string/>
+      </property>
+    </entity>
+    <entity>
+      <name>credit-card</name>
+      <description>The credit card used for the payment method.</description>
+      <is-a>payment-method</is-a>
+      <property>
+        <name>card-type</name>
+        <description>The credit card type.</description>
+        <string/>
+      </property>
+      <property>
+        <name>cardholder-name</name>
+        <description>The credit card holder name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>card-number</name>
+        <description>The card number.</description>
+        <string/>
+      </property>
+      <property>
+        <name>start-month</name>
+        <description>The start month.</description>
+        <string/>
+      </property>
+      <property>
+        <name>start-year</name>
+        <description>The start year.</description>
+        <string/>
+      </property>
+      <property>
+        <name>issue-number</name>
+        <description>The issue number.</description>
+        <integer/>
+      </property>
+      <property>
+        <name>expiry-month</name>
+        <description>The month of the expiration date.</description>
+        <string>
+          <min-length>2</min-length>
+          <max-length>2</max-length>
+        </string>
+      </property>
+      <property>
+        <name>expiry-year</name>
+        <description>The year of the expiration date.</description>
+        <string>
+          <min-length>4</min-length>
+          <max-length>4</max-length>
+        </string>
+      </property>
+      <entity-type>elasticpath.paymentmethods.credit-card</entity-type>
+    </entity>
+  </family>
+  <family>
+    <name>controls</name>
+    <plan>
+      <name>form-control-template</name>
+      <description>The template for a form control</description>
+      <step>
+        <description>Retrieve the form.</description>
+        <start>{start-resource}</start>
+        <follow-link>{read-form-link}</follow-link>
+        <result>{form-resource}</result>
+      </step>
+      <step>
+        <description>Submit the form</description>
+        <start>{form-resource}</start>
+        <submit>{form-resource}</submit>
+        <to>{submit-resource}</to>
+        <via-link>{submit-action-link}</via-link>
+        <result>{submit-result}</result>
+      </step>
+    </plan>
+    <entity>
+      <name>info</name>
+      <description>Information.</description>
+      <property>
+        <name>name</name>
+        <description>The info object's name.</description>
+        <string/>
+      </property>
+      <property>
+        <name>info-id</name>
+        <description>The id of the represented info.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.controls.info</entity-type>
+    </entity>
+    <entity>
+      <name>selector</name>
+      <description>Describes a selector selecting a choice.</description>
+      <property>
+        <name>name</name>
+        <description>The selector object's name</description>
+        <string/>
+      </property>
+      <property>
+        <name>selection-rule</name>
+        <description>
+					
+Indicates the number of selections that must be made in the selector. If this rule isn't satisfied, a NeedInfo link will likely occur.
+For example, if a payment method is not specified for an order, a needinfo link will appear and stop the order from being purchased.
+					
+				</description>
+        <integer/>
+      </property>
+      <property>
+        <name>selector-id</name>
+        <description>The id of the represented selector.</description>
+        <internal/>
+        <string/>
+      </property>
+      <entity-type>elasticpath.controls.selector</entity-type>
+    </entity>
+  </family>
+</definitions>

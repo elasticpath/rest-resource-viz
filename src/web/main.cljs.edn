@@ -1,0 +1,2 @@
+{:require [rest-resource-viz.core]
+ :boot-reload {:on-jsload rest-resource-viz.core/on-jsload}}
