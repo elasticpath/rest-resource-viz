@@ -64,7 +64,8 @@
                          [org.clojure/data.zip "0.1.2"]
                          [org.clojure/test.check "0.9.0"]
                          [cheshire "5.6.3"]
-                         [org.clojure/java.classpath "0.2.3"]]}})
+                         [org.clojure/java.classpath "0.2.3"]
+                         [proto-repl "0.3.1"]]}})
 
 (deftask resource-data
   "The task generates the data from the resource parsing.
@@ -104,6 +105,8 @@
         (repl :server true
               :port 5088)
         (wait)))
+
+(deftask dev [] (dev-extractor))
 
 ;;;;;;;;;
 ;; WEB ;;
