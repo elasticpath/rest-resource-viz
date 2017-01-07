@@ -4,9 +4,9 @@
 (task-options!
  pom {:project     project
       :version     version
-      :description "Visualizations for rest resources in Cortex"
-      :url         "http://example/FIXME"
-      :scm         {:url "https://github.com/yourname/rest-resources-viz"}
+      :description "Transformations and visualizations for Cortex Rest resources"
+      :url         "https://github.elasticpath.net/arichiardi/rest-resources-viz"
+      :scm         {}
       :license     {}})
 
 (require '[clojure.edn :as edn]
