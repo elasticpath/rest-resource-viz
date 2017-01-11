@@ -64,14 +64,13 @@
                          [org.clojure/data.zip "0.1.2"]
                          [org.clojure/test.check "0.9.0"]
                          [cheshire "5.6.3"]
-                         [org.clojure/java.classpath "0.2.3"]
-                         [proto-repl "0.3.1"]]}})
+                         [org.clojure/java.classpath "0.2.3"]]}})
 
 (deftask resource-data
   "The task generates the data from the resource parsing.
 
   It does NOT add it to the fileset, but calls
-  rest-resource-viz.generator/-main and dumps the data in src/cljs (hard
+  rest-resources-viz.generator/-main and dumps the data in src/cljs (hard
   coded). It should not be part of the build pipeline."
   []
   (let [env (:env conf-extractor)
@@ -166,8 +165,7 @@
               :compiler-options {:external-config
                                  {:devtools/config {:features-to-install [:formatters :hints]
                                                     :fn-symbol "λ"
-                                                    :print-config-overrides true}}})
-        (notify :audible true)))
+                                                    :print-config-overrides true}}})))
 
 #_(deftask build-web []
     (cljs :optimizations :advanced))

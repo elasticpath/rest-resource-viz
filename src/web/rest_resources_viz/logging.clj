@@ -1,6 +1,6 @@
 (ns ^{:doc "Logging macros."
       :author "Andrea Richiardi"}
-    rest-resource-viz.logging)
+    rest-resources-viz.logging)
 
 (defmacro log [& args]
   `(.log js/console ~@args))

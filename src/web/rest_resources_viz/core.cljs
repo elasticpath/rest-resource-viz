@@ -1,11 +1,12 @@
-(ns ^:figwheel-load rest-resource-viz.core
+(ns ^:figwheel-load rest-resources-viz.core
   (:require [clojure.string :as str]
             [adzerk.env :as env]
             [dommy.core :as dommy]
             [oops.core :as o]
             [cljsjs.d3]
-            [rest-resource-viz.util :as u])
-  (:require-macros [rest-resource-viz.logging :as l]))
+            [reagent.core :as r]
+            [rest-resources-viz.util :as u])
+  (:require-macros [rest-resources-viz.logging :as l]))
 
 (enable-console-print!)
 

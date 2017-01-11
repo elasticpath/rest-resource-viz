@@ -1,6 +1,6 @@
 (ns ^{:doc "A classic, utility namespace."
       :author "Andrea Richiardi"}
-    rest-resource-viz.util
+    rest-resources-viz.util
   (:import [goog.net XhrIo]))
 
 (defn fetch-file!
