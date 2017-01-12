@@ -12,6 +12,7 @@
             [clojure.walk :as walk]
             [clojure.java.classpath :as cp]
             [cheshire.core :as json]
+            [com.rpl.specter :as sp]
             [rest-resources-viz.spec :as res-spec]))
 
 (defn children
@@ -28,6 +29,7 @@
   {(:tag node) (first (children node))})
 
 (defn node->clj
+  "Covert xml nodes to Clojure data structures"
   [node]
   (if (leaf? node)
     (leaf->map node)
@@ -50,12 +52,74 @@
       (dx/emit node w)
       (dx/indent node w))))
 
-(defn add-resource-indexing
-  "Index the :resource key by their :family and :name
+(defn keywordize
+  "Convert \"family.resource\" into :family/resource
 
-  Adds a :resource-index map."
-  [m]
-  )
+  If no \".\" is found, the string is converted to keyword as is"
+  [s]
+  (when s
+    (let [ss (remove empty? (str/split s #"\." 2))]
+      (when (seq ss)
+        (apply keyword (remove empty? (str/split s #"\." 2)))))))
+
+(comment
+  (nil? (keywordize ""))
+  (nil? (keywordize "."))
+  (= :line-item (keywordize "line-item"))
+  (= :line-item (keywordize ".line-item"))
+  (= :carts/line-item (keywordize "carts.line-item")))
+
+(defn add-resource-id
+  [family]
+  (s/assert :family/entity (:family family))
+  (./pprint family)
+  (sp/transform [:family
+                 :resource
+                 sp/ALL
+                 (sp/collect-one [(sp/submap [:family :name])])
+                 ]
+                (fn [m _] (println _) (assoc _ :id (keywordize (str (some-> m :family name) "." (:name m)))))
+                family))
+
+(defn add-family-id
+  [family]
+  (sp/transform [:family
+                 (sp/collect-one [(sp/submap [:family :name])])
+                 :id]
+                (fn [m _] (keyword (:name m)))
+                family))
+
+(defn normalize-relationship
+  [family]
+  (sp/transform [:family
+                 :relationship
+                 sp/ALL]
+                #(into %
+                       [(when-let [s (:from %)] [:from (keywordize s)])
+                        (when-let [s (:to %)] [:to (keywordize s)])])
+                family))
+
+#_(defn normalize-family
+    [family]
+    (merge
+     (sp/setval [sp/MAP-VALS string?] sp/NONE (:family family))
+     (sp/transform [(sp/collect-one [:family (sp/submap [:name :description])])
+                    :family
+                    sp/MAP-VALS
+                    vector?]
+                   (fn [family m] (println "---" m) family)
+                   family)))
+
+(defn propagate-family-id
+  [family]
+  (sp/transform [(sp/collect-one [:family (sp/submap [:id])])
+                 :family
+                 sp/MAP-VALS
+                 vector?
+                 sp/ALL
+                 :family]
+                (fn [family _] (:id family))
+                family))
 
 (defn descend-to-family
   [definitions-node]
@@ -69,6 +133,24 @@
       slurp
       (dx/parse-str :namespace-aware false :skip-whitespace true)))
 
+(defn xml-files->graph-data
+  "Transform data in order to obtain a format that is good for a graph
+  visualization.
+
+  The input is a string sequence of paths and the ruturn is the a
+  Clojure map."
+  [xml-files]
+  (->> xml-files
+       (into [] (comp (map parse-resource-xml)
+                      (map descend-to-family)
+                      (map node->clj)
+                      (map add-family-id)
+                      (map propagate-family-id)
+                      (map add-resource-id)
+                      #_
+                      (map normalize-relationship)))
+       #_(dx/element :definitions {})))
+
 (defn xml-files->families
   "Aggregate <family> under <definitions>
 
@@ -76,7 +158,8 @@
   Clojure map of xml nodes."
   [xml-files]
   (->> xml-files
-       (into [] (map (comp descend-to-family parse-resource-xml)))
+       (into [] (comp (map parse-resource-xml)
+                      (map descend-to-family)))
        (dx/element :definitions {})))
 
 (defn resource-xml?
@@ -127,6 +210,9 @@
   (def xml-root (-> r parse-resource-xml! zip/xml-zip))
   (def root {:tag :root :attrs {} :content (list (->> file-path parse-resource-xml!))})
   (def json-defs (-> root element->map second json/encode))
+  (def fs (into [] (comp (map parse-resource-xml)
+                         (map descend-to-family)
+                         (map node->clj)) (classpath-resource-xmls!)))
   (spit "resource-data.json" json-defs)
   (zip/make-node family-loc (dx/element :root) (map zip/node (dzx/xml-> family-loc :whatever)))
   ;; Some test data

@@ -2,7 +2,6 @@
   (:require [clojure.spec :as s]
             [clojure.test.check.generators :as gen]))
 
-;; (def generate gen/)
 (s/def :uri-part/name string?)
 (s/def :uri-part/description string?)
 
@@ -10,7 +9,9 @@
 (s/def :resource/description string?)
 (s/def :resource/uri string?)
 (s/def :resource/alias string?)
-(s/def :resource/entity string?)
+
+(s/def :resource/entity (s/keys :req-un [:resource/name :resource/uri]
+                                :opt-un [:resource/alias :resource/description]))
 
 (s/def :relationship/name string?)
 (s/def :relationship/description string?)
@@ -27,6 +28,8 @@
 
 (s/def :family/name string?)
 (s/def :family/description string?)
-(s/def :family/uri-part (s/keys :req-un [:uri-part/name :uri-part/description]))
 
-(s/def ::family (s/keys :req-un [:family/name :family/description :family/uri-part]))
+(s/def :coll/resource (s/coll-of :resource/entity :kind vector?))
+
+(s/def :family/entity (s/keys :req-un [:family/description:family/name :coll/resource]
+                              :opt-un []))
