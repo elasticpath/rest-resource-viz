@@ -133,7 +133,8 @@
                          [adzerk/env "0.4.0"]
                          [prismatic/dommy "1.1.0" :scope "test"]
                          [binaryage/oops "0.5.2"]
-                         [cljsjs/d3 "4.3.0-2"]]}})
+                         [cljsjs/d3 "4.3.0-2"]
+                         [reagent "0.6.0"]]}})
 
 (deftask init-web
   "Start the dev interactive environment."

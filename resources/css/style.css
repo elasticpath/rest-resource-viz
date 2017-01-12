@@ -1,11 +1,21 @@
 body {
     font-family: sans-serif;
     background-color: #001144;
-    color: #00FF00;
+    color: #FFFF00;
+}
+
+svg {
+    background-color: #DDDDDD;
+}
+
+.node {
+    cursor: pointer;
 }
 
 .node circle {
-    fill: #999;
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
 }
 
 .node text {

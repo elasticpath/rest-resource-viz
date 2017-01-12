@@ -10,28 +10,16 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {:name "User"}))
-
-;; (swap! app-state assoc :name "Andrea")
-
 (env/def
-  RESOURCE_DATA_URL "resource-data.json")
+  RESOURCE_DATA_URL "graph-data.json")
 
-;; (def collapse [node]
-;; (if (seq (.-children node))
-;; (recur (collapse (first (.-children node))))
-;; ))
-
-(def margin {:top 20 :right 120 :bottom 20 :left 120})
-(def width (- 960 (:right margin) (:left margin)))
-(def height (- 800 (:top margin) (:bottom margin)))
-(def tree (-> js/d3 (.tree) (.size (clj->js [width height]))))
-(def g (doto (dommy/create-element "g")
-         (dommy/set-attr! "transform" (str "translate(" (:left margin) "," (:top margin) ")"))))
-(def svg (doto (-> js/d3 (.select "svg") (.node))
-           (dommy/append! g)
-           (dommy/set-attr! "width" (+ width (:left margin) (:right margin)))
-           (dommy/set-attr! "height" (+ height (:top margin) (:bottom margin)))))
+#_(def tree (-> js/d3 (.tree) (.size (clj->js [width height]))))
+#_(def g (doto (dommy/create-element "g")
+           (dommy/set-attr! "transform" (str "translate(" (:left margin) "," (:top margin) ")"))))
+#_(def svg (doto (-> js/d3 (.select "svg") (.node))
+             (dommy/append! g)
+             (dommy/set-attr! "width" (+ width (:left margin) (:right margin)))
+             (dommy/set-attr! "height" (+ height (:top margin) (:bottom margin)))))
 
 (defn data-callback
   [error data]
@@ -46,21 +34,81 @@
 
   )
 
+(def init-state {:margin {:top 40 :right 20 :bottom 40 :left 20}
+                 :width 400
+                 :height 400
+                 :nodes {:spacing 100}
+                 :data #{{:name "cart" } {:name "wishlist"}}})
+
+(defonce state
+  (r/atom init-state))
+
+(defn btn-reset [state]
+  [:div
+   [:button
+    {:on-click #(reset! state init-state)}
+    "Reset state"]])
+
+(defn get-width [state]
+  (let [margin (:margin @state)]
+    (- (:width @state) (:right margin) (:left margin))))
+
+(defn get-height [state]
+  (let [margin (:margin @state)]
+    (- (:height @state) (:top margin) (:bottom margin))))
+
+(defn graph-enter [state]
+  (when-let [data (:data @state)]
+    (let [node-enter (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll "rect")
+                         (.data (clj->js data))
+                         (.enter))]
+      (-> node-enter
+          (.append "g")
+          (.attr "class" "node")
+          (.append "circle")
+          (.attr "r" 20)
+          (.attr "cy" 100)))))
+
+(defn graph-update [state]
+  (let [margin (:margin @state)
+        width @(r/track get-width state)
+        height @(r/track get-height state)
+        spacing (get-in @state [:nodes :spacing])
+        data (map-indexed #(assoc %2 :index %1) (:data @state))]
+    (-> (js/d3.select "#graph-container svg .graph")
+        (.selectAll ".node circle")
+        (.data (clj->js data))
+        (.attr "cx" (fn [d] (+ (:left margin) (* (o/oget d :index) spacing)))))))
+
+(defn graph-exit [state]
+  (when-let [data (:data @state)]
+    (let [node-exit (-> (js/d3.select "#graph-container svg .graph")
+                        (.selectAll ".node")
+                        (.data (clj->js data))
+                        (.exit))]
+      (-> node-exit
+          (.remove)))))
+
+(defn viz [state]
+  [:div {:id "graph-container"}
+   (let [margin (:margin @state)
+         width @(r/track get-width state)
+         height @(r/track get-height state)]
+     [:svg {:width width :height height}
+      [:g.graph {:transform (str "translate(" (:left margin) "," (:top margin) ")")}]])])
+
+(defn landing [state]
+  [:div
+   [btn-reset state]
+   [viz state]])
+
+;; Cheating
+(defonce track-graph-enter (r/track! graph-enter state))
+(defonce track-graph-update (r/track! graph-update state))
+(defonce track-graph-exit (r/track! graph-exit state))
+
 (defn on-jsload []
   (.info js/console "Reloading Javascript...")
-
-  (let [margin {:top top :right right :bottom bottom :left left}
-        width (- 960 right left)
-        height (- 800 top bottom)
-
-        #_#_tree (doto js/d3 (.tree) (.size (clj->js [width height])))
-
-        #_#_g (doto (dommy/create-element "g")
-                (dommy/set-attr! "transform" (str "translate(" left "," top ")")))
-
-        #_#_svg (doto (-> js/d3 (.select "svg") (.node))
-                  (dommy/append! g)
-                  (dommy/set-attr! "width" (+ width right left))
-                  (dommy/set-attr! "height" (+ height top bottom)))]
-
-    ))
+  (r/render [landing state] (.getElementById js/document "app"))
+  #_(reset! state init-state))
