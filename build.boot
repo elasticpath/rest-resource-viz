@@ -159,7 +159,7 @@
   (init-web)
   (comp (serve)
         (watch)
-        (cljs-devtools)
+        ;; (cljs-devtools)
         (reload :client-opts {:debug true})
         (cljs-repl :nrepl-opts {:port 5055})
         (cljs :source-map true

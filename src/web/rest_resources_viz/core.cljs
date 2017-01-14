@@ -109,6 +109,6 @@
 (defonce track-graph-exit (r/track! graph-exit state))
 
 (defn on-jsload []
-  (.info js/console "Reloading Javascript...")
+  (.info js/console "Reloading Javacript...")
   (r/render [landing state] (.getElementById js/document "app"))
   #_(reset! state init-state))
