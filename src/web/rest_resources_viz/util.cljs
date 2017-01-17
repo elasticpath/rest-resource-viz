@@ -1,18 +1,37 @@
 (ns ^{:doc "A classic, utility namespace."
       :author "Andrea Richiardi"}
     rest-resources-viz.util
-  (:import [goog.net XhrIo]))
+  (:require-macros [rest-resources-viz.logging :as log])
+  (:import [goog object]
+           [goog.net XhrIo]))
+
+(defn keyword->str [k]
+  (str (if-let [n (namespace k)] (str n "/")) (name k)))
+
+(extend-type Keyword
+  IEncodeJS
+  (-clj->js [x] (keyword->str x))
+  (-key->js [x] (keyword->str x)))
+
+(comment
+  ;; "soft tests"
+  (= "test" (clj->js :test))
+  (= "test/test" (clj->js :test/test)))
 
 (defn fetch-file!
   "Very simple implementation of XMLHttpRequests that given a file path
   calls src-cb with the string fetched of nil in case of error.
   See doc at https://developers.google.com/closure/library/docs/xhrio"
   [file-url src-cb]
-  (try
-    (.send XhrIo file-url
-           (fn [e]
-             (if (.isSuccess (.-target e))
-               (src-cb (.. e -target getResponseText))
-               (src-cb nil))))
-    (catch :default e
-      (src-cb nil))))
+  (let [log-error #(log/error "Could not fetch" file-url ":" %)]
+    (try
+      (.send XhrIo file-url
+             (fn [e]
+               (log/debug "XhrIo returned" e)
+               (if (.isSuccess (.-target e))
+                 (src-cb (.. e -target getResponseText))
+                 (do (log-error (-> (.-target e) (object.get "lastError_")))
+                     (src-cb nil)))))
+      (catch :default e
+        (log-error (.-message e))
+        (src-cb nil)))))

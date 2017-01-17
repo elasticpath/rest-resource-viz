@@ -114,7 +114,7 @@
 
 (def conf-web
   {:env {:resource-paths #{"resources"}
-         :source-paths #{"src/web"}
+         :source-paths #{"src/web" "src/shared"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                          [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
                          [powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]

@@ -10,3 +10,6 @@
 
 (defmacro warn [& args]
   `(.warn js/console ~@args))
+
+(defmacro error [& args]
+  `(.error js/console ~@args))
