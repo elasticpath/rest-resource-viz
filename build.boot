@@ -117,7 +117,7 @@
          :source-paths #{"src/web"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                          [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
-                         [adzerk/boot-reload "0.5.0-figwheel-SNAPSHOT" :scope "test"]
+                         [powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]
 
                          [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
                          [com.cemerick/piggieback "0.2.1"  :scope "test"]
@@ -144,13 +144,13 @@
   (apply-conf! conf-web)
   (require '[adzerk.boot-cljs]
            '[adzerk.boot-cljs-repl]
-           '[adzerk.boot-reload]
+           '[powerlaces.boot-figreload]
            '[pandeiro.boot-http]
            '[adzerk.env]
            '[powerlaces.boot-cljs-devtools])
   (def cljs (resolve 'adzerk.boot-cljs/cljs))
   (def cljs-repl (resolve 'adzerk.boot-cljs-repl/cljs-repl))
-  (def reload (resolve 'adzerk.boot-reload/reload))
+  (def reload (resolve 'powerlaces.boot-figreload/reload))
   (def serve (resolve 'pandeiro.boot-http/serve))
   (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools))
   (def dirac (resolve 'powerlaces.boot-cljs-devtools/dirac)))
@@ -159,7 +159,7 @@
   (init-web)
   (comp (serve)
         (watch)
-        ;; (cljs-devtools)
+        (cljs-devtools)
         (reload :client-opts {:debug true})
         (cljs-repl :nrepl-opts {:port 5055})
         (cljs :source-map true
