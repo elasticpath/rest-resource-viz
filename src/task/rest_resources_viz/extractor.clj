@@ -98,13 +98,6 @@
       (when (seq ss)
         (apply keyword (remove empty? (str/split s #"\." 2)))))))
 
-(comment
-  (nil? (keywordize ""))
-  (nil? (keywordize "."))
-  (= :line-item (keywordize "line-item"))
-  (= :line-item (keywordize ".line-item"))
-  (= :carts/line-item (keywordize "carts.line-item")))
-
 (defn descend-to-family
   [definitions-node]
   (-> definitions-node :content first))

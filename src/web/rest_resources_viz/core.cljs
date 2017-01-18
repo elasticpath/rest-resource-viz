@@ -3,7 +3,6 @@
             [clojure.string :as str]
             [clojure.set :as set]
             [adzerk.env :as env]
-            [dommy.core :as dommy]
             [oops.core :as o]
             [cljsjs.d3]
             [reagent.core :as r]

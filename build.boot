@@ -132,7 +132,6 @@
                          ;; App deps
                          [org.clojure/clojurescript "1.9.293"  :scope "test"]
                          [adzerk/env "0.4.0"]
-                         [prismatic/dommy "1.1.0" :scope "test"]
                          [binaryage/oops "0.5.2"]
                          [cljsjs/d3 "4.3.0-2"]
                          [reagent "0.6.0"]]}})
@@ -152,8 +151,8 @@
   (def cljs-repl (resolve 'adzerk.boot-cljs-repl/cljs-repl))
   (def reload (resolve 'powerlaces.boot-figreload/reload))
   (def serve (resolve 'pandeiro.boot-http/serve))
-  (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools))
-  (def dirac (resolve 'powerlaces.boot-cljs-devtools/dirac)))
+  ;; (def dirac (resolve 'powerlaces.boot-cljs-devtools/dirac))
+  (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools)))
 
 (deftask dev-web []
   (init-web)
@@ -169,5 +168,25 @@
                                                     :fn-symbol "λ"
                                                     :print-config-overrides true}}})))
 
-#_(deftask build-web []
-    (cljs :optimizations :advanced))
+(def conf-tests
+  {:env {:resource-paths #{"resources"}
+         :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
+         :dependencies (into (get-in conf-extractor [:env :dependencies])
+                             '[[org.clojure/tools.namespace "0.3.0-alpha3"]
+                               [metosin/boot-alt-test "0.2.1"]])}})
+
+(deftask init-tests
+  "Start the dev interactive environment."
+  []
+  (util/dbug "Current conf:\n%s\n" (util/pp-str conf-tests))
+  (apply-conf! conf-tests)
+  (require '[metosin.boot-alt-test])
+  (def alt-test (resolve 'metosin.boot-alt-test/alt-test)))
+
+(ns-unmap *ns* 'test)
+
+(deftask test
+  "Testing once (dev profile)"
+  []
+  (init-tests)
+  (alt-test))
