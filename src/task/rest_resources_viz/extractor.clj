@@ -1,5 +1,6 @@
 (ns rest-resources-viz.extractor
-  (:require [clojure.set :as set]
+  (:require [clojure.tools.cli :as cli]
+            [clojure.set :as set]
             [clojure.spec :as s]
             [clojure.spec.test :as stest]
             [clojure.pprint :as pp :refer [pprint]]
@@ -299,9 +300,21 @@
       <family>
       </family>
       ...
-    </definitions>"
+    </definitions>
+
+  If the opts contains :pretty true, the output will be pretty printed."
   [f & [opts]]
   (spit-xml f (xml-files->definitions (classpath-resource-xmls!)) opts))
+
+(defn usage [options-summary]
+  (->> [""
+        "Dump resource data to disk."
+        ""
+        "Usage: boot [ extract -- options ]"
+        ""
+        "Options:"
+        options-summary]
+       (str/join \newline)))
 
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
@@ -314,11 +327,20 @@
       (println msg)))
   (System/exit status))
 
+(def cli-options
+  [["-f" "--family-xml FILE-PATH" "Dumps an xml with all the families defined"]
+   ["-g" "--graph-edn FILE-PATH" "Dumps an edn containing the graph data"]
+   ["-p" "--pretty" "Pretty prints the output"]
+   ["-h" "--help" "Prints out the help"]])
+
 (defn -main [args]
-  (if-not (= (count args) 0)
-    (exit 127 "The extractor need the module file path as argument.")
-    (println "TODO")
-    #_(let [ ])))
+  (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
+    (cond
+      (:help options) (exit 0 (usage summary))
+      (:family-xml options) (apply spit-family-xml! (:family-xml options) :pretty (:pretty options))
+      (:graph-edn options) (spit-graph-data-edn! (:graph-edn options) {:pretty (:pretty options)})
+      errors (exit 1 (error-msg errors))
+      :else (exit 1 (usage summary)))))
 
 (comment
   (def file-path "META-INF/rest-definitions/profiles.xml")

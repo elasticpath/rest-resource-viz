@@ -60,6 +60,7 @@
   {:env {:resource-paths #{"resources"}
          :source-paths #{"src/task" "src/shared"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+                         [org.clojure/tools.cli "0.3.5"]
                          [org.clojure/data.xml "0.2.0-alpha1"]
                          [org.clojure/data.zip "0.1.2"]
                          [org.clojure/test.check "0.9.0"]
@@ -105,6 +106,17 @@
         (repl :server true
               :port 5088)
         (wait)))
+
+(deftask extract
+  "Run the -main function in some namespace with arguments"
+  []
+  (comp (init-extractor)
+        (with-pass-thru _
+          (let [main-ns 'rest-resources-viz.extractor]
+            (require main-ns)
+            (if-let [f (ns-resolve main-ns '-main)]
+              (f *args*)
+              (throw (ex-info "No -main method found" {:main-ns main-ns})))))))
 
 (deftask dev [] (dev-extractor))
 
