@@ -93,11 +93,13 @@
   "Convert \"family.resource\" into :family/resource
 
   If no \".\" is found, the string is converted to keyword as is"
-  [s]
+  [family s]
   (when s
     (let [ss (remove empty? (str/split s #"\." 2))]
       (when (seq ss)
-        (apply keyword (remove empty? (str/split s #"\." 2)))))))
+        (if (= 2 (count ss))
+          (apply keyword ss)
+          (keyword family (first ss)))))))
 
 (defn descend-to-family
   [definitions-node]
@@ -132,7 +134,9 @@
 
 (defn add-family-id
   [definitions]
-  (sp/transform [:family] #(assoc % :id (keyword (:name %))) definitions))
+  (sp/transform [(sp/must :family)]
+                #(assoc % :id (keyword (:name %)))
+                definitions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; propagate-family-id ;;
@@ -147,7 +151,7 @@
 
 (defn propagate-family-id
   [definitions]
-  (sp/transform [:family
+  (sp/transform [(sp/must :family)
                  (sp/collect-one [:id])
                  sp/MAP-VALS
                  vector?
@@ -171,12 +175,12 @@
 
 (defn add-resource-id
   [definitions]
-  (sp/transform [:family
-                 :resource
+  (sp/transform [(sp/must :family)
+                 (sp/must :resource)
                  sp/ALL
                  (sp/collect-one [(sp/submap [:family-id :name])])
                  :id]
-                (fn [m _] (keywordize (str (-> m :family-id name) "." (:name m))))
+                (fn [m _] (keywordize (-> m :family-id name) (:name m)))
                 definitions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -196,12 +200,14 @@
 
 (defn sanitize-relationship
   [family]
-  (sp/transform [:family
-                 :relationship
-                 sp/ALL]
-                #(into %
-                       [(when-let [s (:from %)] [:from (keywordize s)])
-                        (when-let [s (:to %)] [:to (keywordize s)])])
+  (sp/transform [(sp/must :family)
+                 (sp/must :relationship)
+                 sp/ALL
+                 (sp/collect-one [:family-id])]
+                (fn [family-id rel]
+                  (into rel
+                        [(when-let [s (:from rel)] [:from (keywordize (name family-id) s)])
+                         (when-let [s (:to rel)] [:to (keywordize (name family-id) s)])]))
                 family))
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -241,12 +247,9 @@
        (into [] (comp (map parse-resource-xml)
                       (map descend-to-family)
                       (map node->clj)
-                      (map remove-nils)
                       (map add-family-id)
                       (map propagate-family-id)
-                      (map remove-nils)
                       (map add-resource-id)
-                      (map remove-nils)
                       (map sanitize-relationship)))
        normalize-family)) ;; TODO - spec the final version
 

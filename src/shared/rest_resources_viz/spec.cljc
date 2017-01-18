@@ -18,7 +18,7 @@
 (s/def :uri-part/name string?)
 (s/def :uri-part/description string?)
 
-(s/def :resource/id qual-or-unqual-keyword?)
+(s/def :resource/id qualified-keyword?)
 (s/def :resource/name string?)
 (s/def :resource/description string?)
 (s/def :resource/uri string?)
@@ -32,9 +32,9 @@
 (s/def :relationship/description string?)
 (s/def :relationship/rel string?)
 (s/def :relationship/rev string?)
-(s/def :relationship/from qual-or-unqual-keyword?)
-(s/def :relationship/to qual-or-unqual-keyword?)
-(s/def :relationship/family-id :family/family-id)
+(s/def :relationship/from qualified-keyword?)
+(s/def :relationship/to qualified-keyword?)
+(s/def :relationship/family-id :family/id)
 
 (s/def :relationship/entity (s/keys :req-un [:relationship/name :relationship/rel
                                              :relationship/from :relationship/to
@@ -45,9 +45,9 @@
 (s/def :property/description string?)
 (s/def :property/type #{:internal :string})
 
-(s/def :graph-data/family :family/entity)
+(s/def :graph-data/family (s/coll-of :family/entity :kind vector?))
 (s/def :graph-data/resource (s/coll-of :resource/entity :kind vector?))
 (s/def :graph-data/relationship (s/coll-of :relationship/entity :kind vector?))
-(s/def :graph-data/entity (s/keys :req-un [:graph-data/resource
-                                           :graph-data/family
+(s/def :graph-data/entity (s/keys :req-un [:graph-data/family]
+                                  :opt-un [:graph-data/resource
                                            :graph-data/relationship]))

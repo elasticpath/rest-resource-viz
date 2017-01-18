@@ -22,11 +22,11 @@
 (use-fixtures :once wrap-setup)
 
 (deftest keywordize
-  (is (nil? (ext/keywordize "")) "When input is empty, return nil")
-  (is (nil? (ext/keywordize ".")) "When input is just a full stop (.), return nil")
-  (is (= :line-item (ext/keywordize "line-item")) "Convert single string with no . to unqualified keyword")
-  (is (= :line-item (ext/keywordize ".line-item")) "Convert single string with no one preceding . to unqualified keyword")
-  (is (= :carts/line-item (ext/keywordize "carts.line-item")) "Convert string with something preceding and following full stop (.) to qualified keyword"))
+  (is (nil? (ext/keywordize "" "")) "When input is empty, return nil")
+  (is (nil? (ext/keywordize "" ".")) "When input is just a full stop (.), return nil")
+  (is (= :family/line-item (ext/keywordize "family" "line-item")) "Convert single string with no . to qualified keyword with family")
+  (is (= :family/line-item (ext/keywordize "family" ".line-item")) "Convert single string with no one preceding . to qualified keyword with family")
+  (is (= :carts/line-item (ext/keywordize "family" "carts.line-item")) "Convert string with something preceding and following full stop (.) to qualified keyword ignoring family"))
 
 (deftest graph-data
   (testing "Spec conformance test"
