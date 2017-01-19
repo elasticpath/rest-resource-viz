@@ -32,24 +32,28 @@
     (assert (or (nil? props) (map? props)) "Option :props should be a map.")
     (set-system-properties! props)))
 
-(def module-data-path "resources/modules.edn")
-(def resources-group-id "com.elasticpath.rest.definitions")
-(def resources-format "%s/ep-resource-%s-api") ;; need group and resource name
-(def resources-version "0-SNAPSHOT") ;; TODO, read it from env vars?
+(defn calculate-resource-deps
+  [{:keys [module-edn-path resources-group-id
+           resources-format resources-version]
+    :as res-conf}]
+  (->> module-edn-path
+       io/file
+       slurp
+       edn/read-string
+       (map #(vector (-> (format resources-format resources-group-id %)
+                         symbol)
+                     resources-version))))
 
 (defn add-resources-deps!
   "Returns a vector containing the rest-resources coordinates given for
   the modules. It reads the modules collection names from a file called
   modules.edn."
   [conf]
-  (let [coords (->> module-data-path
-                    io/file
-                    slurp
-                    edn/read-string
-                    (map #(vector (-> (format resources-format resources-group-id %)
-                                      symbol)
-                                  resources-version)))]
-    (util/dbug "Rest resources coordinates %s\n" (vec coords))
+  (let [res-conf (:resources conf)
+        coords (-> #{}
+                   (into (:additional-deps res-conf))
+                   (into (calculate-resource-deps res-conf))
+                   vec)]
     (update-in conf [:env :dependencies] #(-> % (concat coords) distinct vec))))
 
 ;;;;;;;;;;;;;;;
@@ -57,9 +61,17 @@
 ;;;;;;;;;;;;;;;
 
 (def conf-extractor
-  {:env {:resource-paths #{"resources"}
+  {:resources {:module-edn-path "resources/modules.edn"
+               :resources-group-id "com.elasticpath.rest.definitions"
+               :resources-format "%s/ep-resource-%s-api"
+               :resources-version "0-SNAPSHOT"
+               :additional-deps '[[com.elasticpath.rest.definitions/ep-resource-collections-api "0-SNAPSHOT"]
+                                  [com.elasticpath.rest.definitions/ep-resource-base-api "0-SNAPSHOT"]
+                                  [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]}
+   :env {:resource-paths #{"resources"}
          :source-paths #{"src/task" "src/shared"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+                         [org.clojure/tools.cli "0.3.5"]
                          [org.clojure/data.xml "0.2.0-alpha1"]
                          [org.clojure/data.zip "0.1.2"]
                          [org.clojure/test.check "0.9.0"]
@@ -103,8 +115,19 @@
   (util/info "Starting interactive dev...\n")
   (comp (init-extractor)
         (repl :server true
-              :port 5088)
+              :port 5055)
         (wait)))
+
+(deftask extract
+  "Run the -main function in some namespace with arguments"
+  []
+  (comp (init-extractor)
+        (with-pass-thru _
+          (let [main-ns 'rest-resources-viz.extractor]
+            (require main-ns)
+            (if-let [f (ns-resolve main-ns '-main)]
+              (f *args*)
+              (throw (ex-info "No -main method found" {:main-ns main-ns})))))))
 
 (deftask dev [] (dev-extractor))
 
@@ -114,10 +137,10 @@
 
 (def conf-web
   {:env {:resource-paths #{"resources"}
-         :source-paths #{"src/web"}
+         :source-paths #{"src/web" "src/shared"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                          [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
-                         [adzerk/boot-reload "0.5.0-figwheel-SNAPSHOT" :scope "test"]
+                         [powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]
 
                          [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
                          [com.cemerick/piggieback "0.2.1"  :scope "test"]
@@ -132,7 +155,6 @@
                          ;; App deps
                          [org.clojure/clojurescript "1.9.293"  :scope "test"]
                          [adzerk/env "0.4.0"]
-                         [prismatic/dommy "1.1.0" :scope "test"]
                          [binaryage/oops "0.5.2"]
                          [cljsjs/d3 "4.3.0-2"]
                          [reagent "0.6.0"]]}})
@@ -144,24 +166,24 @@
   (apply-conf! conf-web)
   (require '[adzerk.boot-cljs]
            '[adzerk.boot-cljs-repl]
-           '[adzerk.boot-reload]
+           '[powerlaces.boot-figreload]
            '[pandeiro.boot-http]
            '[adzerk.env]
            '[powerlaces.boot-cljs-devtools])
   (def cljs (resolve 'adzerk.boot-cljs/cljs))
   (def cljs-repl (resolve 'adzerk.boot-cljs-repl/cljs-repl))
-  (def reload (resolve 'adzerk.boot-reload/reload))
+  (def reload (resolve 'powerlaces.boot-figreload/reload))
   (def serve (resolve 'pandeiro.boot-http/serve))
-  (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools))
-  (def dirac (resolve 'powerlaces.boot-cljs-devtools/dirac)))
+  ;; (def dirac (resolve 'powerlaces.boot-cljs-devtools/dirac))
+  (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools)))
 
 (deftask dev-web []
   (init-web)
   (comp (serve)
         (watch)
-        ;; (cljs-devtools)
+        (cljs-devtools)
         (reload :client-opts {:debug true})
-        (cljs-repl :nrepl-opts {:port 5055})
+        (cljs-repl :nrepl-opts {:port 5088})
         (cljs :source-map true
               :optimizations :none
               :compiler-options {:external-config
@@ -169,5 +191,25 @@
                                                     :fn-symbol "λ"
                                                     :print-config-overrides true}}})))
 
-#_(deftask build-web []
-    (cljs :optimizations :advanced))
+(def conf-tests
+  {:env {:resource-paths #{"resources"}
+         :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
+         :dependencies (into (get-in conf-extractor [:env :dependencies])
+                             '[[org.clojure/tools.namespace "0.3.0-alpha3"]
+                               [metosin/boot-alt-test "0.2.1"]])}})
+
+(deftask init-tests
+  "Start the dev interactive environment."
+  []
+  (util/dbug "Current conf:\n%s\n" (util/pp-str conf-tests))
+  (apply-conf! conf-tests)
+  (require '[metosin.boot-alt-test])
+  (def alt-test (resolve 'metosin.boot-alt-test/alt-test)))
+
+(ns-unmap *ns* 'test)
+
+(deftask test
+  "Testing once (dev profile)"
+  []
+  (init-tests)
+  (alt-test))

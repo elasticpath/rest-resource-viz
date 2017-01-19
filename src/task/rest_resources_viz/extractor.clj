@@ -1,5 +1,6 @@
 (ns rest-resources-viz.extractor
-  (:require [clojure.set :as set]
+  (:require [clojure.tools.cli :as cli]
+            [clojure.set :as set]
             [clojure.spec :as s]
             [clojure.spec.test :as stest]
             [clojure.pprint :as pp :refer [pprint]]
@@ -16,6 +17,14 @@
             [cheshire.core :as json]
             [com.rpl.specter :as sp]
             [rest-resources-viz.spec :as rspec]))
+
+(defn remove-nils [m]
+  (let [f (fn [x]
+            (if (map? x)
+              (let [kvs (filter (comp not nil? second) x)]
+                (if (empty? kvs) nil (into {} kvs)))
+              x))]
+    (walk/postwalk f m)))
 
 (defn children
   [node]
@@ -61,13 +70,13 @@
 
 (comment
   ;; The following was presenting the issue
-  (s/explain :family/entity (->> (classpath-resource-xmls!)
-                                 (filter (partial re-find #"shipments-shipping-address"))
-                                 (into [] (comp (map parse-resource-xml)
-                                                (map descend-to-family)
-                                                (map node->clj)))
-                                 first
-                                 :family)))
+  (s/explain :graph-data/entity (->> (classpath-resource-xmls!)
+                                     (filter (partial re-find #"shipments-shipping-address"))
+                                     (into [] (comp (map parse-resource-xml)
+                                                    (map descend-to-family)
+                                                    (map node->clj)))
+                                     first
+                                     :family)))
 
 (defn spit-xml
   "Spit an xml, the opts will be passed to clojure.java.io/writer
@@ -84,58 +93,135 @@
   "Convert \"family.resource\" into :family/resource
 
   If no \".\" is found, the string is converted to keyword as is"
-  [s]
+  [family s]
   (when s
     (let [ss (remove empty? (str/split s #"\." 2))]
       (when (seq ss)
-        (apply keyword (remove empty? (str/split s #"\." 2)))))))
+        (if (= 2 (count ss))
+          (apply keyword ss)
+          (keyword family (first ss)))))))
 
-(comment
-  (nil? (keywordize ""))
-  (nil? (keywordize "."))
-  (= :line-item (keywordize "line-item"))
-  (= :line-item (keywordize ".line-item"))
-  (= :carts/line-item (keywordize "carts.line-item")))
+(defn descend-to-family
+  [definitions-node]
+  (-> definitions-node :content first))
 
-(s/fdef add-resource-id
-  :args (s/cat :definitions :with-family-id/definitions))
+(defn parse-resource-xml
+  "Return the resource xml"
+  [resource-xml-path]
+  (-> resource-xml-path
+      io/resource
+      slurp
+      (dx/parse-str :namespace-aware false :skip-whitespace true)))
 
-(defn add-resource-id
-  [definitions]
-  (sp/transform [:family
-                 :resource
-                 sp/ALL
-                 (sp/collect-one [(sp/submap [:family-id :name])])
-                 :id]
-                (fn [m _] (keywordize (str (-> m :family-id name) "." (:name m))))
-                definitions))
+;;;;;;;;;;;;;;;;;;;
+;; add-family-id ;;
+;;;;;;;;;;;;;;;;;;;
+(s/def :add-family-id/resource (s/coll-of (s/keys :req-un [:resource/name :resource/uri]
+                                                  :opt-un [:resource/alias :resource/description])
+                                          :kind vector?))
+(s/def :add-family-id-relationship/from string?)
+(s/def :add-family-id-relationship/to string?)
+(s/def :add-family-id/relationship (s/coll-of (s/keys :req-un [:relationship/name :relationship/rel
+                                                               :add-family-id-relationship/from :add-family-id-relationship/to]
+                                                      :opt-un [:relationship/description :relationship/rev])
+                                              :kind vector?))
+(s/def :add-family-id/family (s/keys :req-un [:family/name]
+                                     :opt-un [:family/description :add-family-id/resource :add-family-id/relationship]))
+(s/def :add-family-id/definitions (s/keys :req-un [:add-family-id/family]))
 
 (s/fdef add-family-id
-  :args (s/cat :definitions :entity/definitions))
+  :args (s/cat :definitions :add-family-id/definitions))
 
 (defn add-family-id
   [definitions]
-  (sp/transform [:family] #(assoc % :id (keyword (:name %))) definitions))
+  (sp/transform [(sp/must :family)]
+                #(assoc % :id (keyword (:name %)))
+                definitions))
 
-(defn has-resources?
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; propagate-family-id ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+(s/def :propagate-family-id/family (s/merge :add-family-id/family
+                                            (s/keys :req-un [:family/id])))
+
+(s/def :propagate-family-id/definitions (s/keys :req-un [:propagate-family-id/family]))
+
+(s/fdef propagate-family-id
+  :args (s/cat :definitions :propagate-family-id/definitions))
+
+(defn propagate-family-id
   [definitions]
-  (get-in definitions [:family :resource]))
+  (sp/transform [(sp/must :family)
+                 (sp/collect-one [:id])
+                 sp/MAP-VALS
+                 vector?
+                 sp/ALL
+                 :family-id]
+                (fn [id _] id)
+                definitions))
+
+;;;;;;;;;;;;;;;;;;;;;
+;; add-resource-id ;;
+;;;;;;;;;;;;;;;;;;;;;
+(s/def :add-resource-id/resource (s/coll-of (s/keys :req-un [:resource/name :resource/uri :resource/family-id]
+                                                    :opt-un [:resource/alias :resource/description])
+                                            :kind vector?))
+(s/def :add-resource-id/family (s/merge :propagate-family-id/family
+                                        (s/keys :opt-un [:add-resource-id/resource])))
+(s/def :add-resource-id/definitions (s/keys :req-un [:add-resource-id/family]))
+
+(s/fdef add-resource-id
+  :args (s/cat :definitions :add-resource-id/definitions))
+
+(defn add-resource-id
+  [definitions]
+  (sp/transform [(sp/must :family)
+                 (sp/must :resource)
+                 sp/ALL
+                 (sp/collect-one [(sp/submap [:family-id :name])])
+                 :id]
+                (fn [m _] (keywordize (-> m :family-id name) (:name m)))
+                definitions))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; sanitize-relationship ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(s/def :sanitize-relationship/resource (s/coll-of (s/keys :req-un [:resource/family-id :resource/id :resource/name :resource/uri]
+                                                          :opt-un [:resource/alias :resource/description])
+                                                  :kind vector?))
+(s/def :sanitize-relationship/family (s/keys :req-un [:family/name]
+                                             :opt-un [:family/description
+                                                      :sanitize-relationship/resource
+                                                      :add-family-id/relationship]))
+(s/def :sanitize-relationship/definitions (s/keys :req-un [:sanitize-relationship/family]))
 
 (s/fdef sanitize-relationship
-  :args (s/cat :definitions :with-family-id/definitions))
+  :args (s/cat :definitions :sanitize-relationship/definitions))
 
 (defn sanitize-relationship
   [family]
-  (sp/transform [:family
-                 :relationship
-                 sp/ALL]
-                #(into %
-                       [(when-let [s (:from %)] [:from (keywordize s)])
-                        (when-let [s (:to %)] [:to (keywordize s)])])
+  (sp/transform [(sp/must :family)
+                 (sp/must :relationship)
+                 sp/ALL
+                 (sp/collect-one [:family-id])]
+                (fn [family-id rel]
+                  (into rel
+                        [(when-let [s (:from rel)] [:from (keywordize (name family-id) s)])
+                         (when-let [s (:to rel)] [:to (keywordize (name family-id) s)])]))
                 family))
 
+;;;;;;;;;;;;;;;;;;;;;;
+;; normalize-family ;;
+;;;;;;;;;;;;;;;;;;;;;;
+(s/def :normalize-family/relationship (s/coll-of :relationship/entity :kind vector?))
+(s/def :normalize-family/family (s/keys :req-un [:family/name]
+                                        :opt-un [:family/description
+                                                 :sanitize-relationship/resource
+                                                 :normalize-family/relationship]))
+(s/def :normalize-family/definitions (s/keys :req-un [:normalize-family/family]))
+
 (s/fdef normalize-family
-  :args (s/cat :definitions :coll-pre-norm/definitions))
+  :args (s/cat :definition-vector (s/coll-of :normalize-family/definitions :kind vector?)))
 
 (defn normalize-family
   [definitions]
@@ -150,32 +236,6 @@
                     (sp/select [sp/ALL :family sp/ALL (sp/pred (comp vector? second))]
                                definitions))))
 
-(s/fdef propagate-family-id
-  :args (s/cat :definitions :with-id/definitions))
-
-(defn propagate-family-id
-  [definitions]
-  (sp/transform [:family
-                 (sp/collect-one [:id])
-                 sp/MAP-VALS
-                 vector?
-                 sp/ALL
-                 :family-id]
-                (fn [id _] id)
-                definitions))
-
-(defn descend-to-family
-  [definitions-node]
-  (-> definitions-node :content first))
-
-(defn parse-resource-xml
-  "Return the resource xml"
-  [resource-xml-path]
-  (-> resource-xml-path
-      io/resource
-      slurp
-      (dx/parse-str :namespace-aware false :skip-whitespace true)))
-
 (defn xml-files->graph-data
   "Transform data in order to obtain a format that is good for a graph
   visualization.
@@ -187,7 +247,6 @@
        (into [] (comp (map parse-resource-xml)
                       (map descend-to-family)
                       (map node->clj)
-                      (filter has-resources?)
                       (map add-family-id)
                       (map propagate-family-id)
                       (map add-resource-id)
@@ -244,9 +303,21 @@
       <family>
       </family>
       ...
-    </definitions>"
+    </definitions>
+
+  If the opts contains :pretty true, the output will be pretty printed."
   [f & [opts]]
   (spit-xml f (xml-files->definitions (classpath-resource-xmls!)) opts))
+
+(defn usage [options-summary]
+  (->> [""
+        "Dump resource data to disk."
+        ""
+        "Usage: boot [ extract -- options ]"
+        ""
+        "Options:"
+        options-summary]
+       (str/join \newline)))
 
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
@@ -259,11 +330,20 @@
       (println msg)))
   (System/exit status))
 
+(def cli-options
+  [["-f" "--family-xml FILE-PATH" "Dumps an xml with all the families defined"]
+   ["-g" "--graph-edn FILE-PATH" "Dumps an edn containing the graph data"]
+   ["-p" "--pretty" "Pretty prints the output"]
+   ["-h" "--help" "Prints out the help"]])
+
 (defn -main [args]
-  (if-not (= (count args) 0)
-    (exit 127 "The extractor need the module file path as argument.")
-    (println "TODO")
-    #_(let [ ])))
+  (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
+    (cond
+      (:help options) (exit 0 (usage summary))
+      (:family-xml options) (apply spit-family-xml! (:family-xml options) :pretty (:pretty options))
+      (:graph-edn options) (spit-graph-data-edn! (:graph-edn options) {:pretty (:pretty options)})
+      errors (exit 1 (error-msg errors))
+      :else (exit 1 (usage summary)))))
 
 (comment
   (def file-path "META-INF/rest-definitions/profiles.xml")

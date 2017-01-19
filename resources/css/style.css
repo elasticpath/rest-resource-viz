@@ -4,8 +4,38 @@ body {
     color: #FFFF00;
 }
 
+.row {
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+}
+
+.tooltip {
+    padding: 0px;
+    margin: 0px;
+    position: absolute;
+    text-align: center;
+    pointer-events: none;
+}
+
+.tooltip rect {
+    stroke: steelblue;
+    stroke-width: 4;
+    fill: #FFFFFF;
+    opacity: 0.9;
+}
+
+.tooltip text {
+    font: 14px sans-serif;
+    fill: steelblue;
+    font-weight: bold;
+    pointer-events: auto;
+}
+
 svg {
-    background-color: #DDDDDD;
+    background-color: #FFFFFF;
 }
 
 .node {
@@ -13,7 +43,7 @@ svg {
 }
 
 .node circle {
-    fill: #fff;
+    fill: #DDDDDD;
     stroke: steelblue;
     stroke-width: 1.5px;
 }
@@ -22,17 +52,14 @@ svg {
     font: 10px sans-serif;
 }
 
-.node--internal circle {
-    fill: #555;
-}
-
-.node--internal text {
-    text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+marker {
+    fill: steelblue;
+    fill-opacity: 0.5;
 }
 
 .link {
     fill: none;
-    stroke: #555;
-    stroke-opacity: 0.4;
+    stroke: steelblue;
+    stroke-opacity: 0.5;
     stroke-width: 1.5px;
 }
