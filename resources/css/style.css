@@ -22,7 +22,6 @@ body {
 
 .tooltip rect {
     stroke: steelblue;
-    stroke-width: 4;
     fill: #FFFFFF;
     opacity: 0.9;
 }
