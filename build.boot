@@ -32,24 +32,28 @@
     (assert (or (nil? props) (map? props)) "Option :props should be a map.")
     (set-system-properties! props)))
 
-(def module-data-path "resources/modules.edn")
-(def resources-group-id "com.elasticpath.rest.definitions")
-(def resources-format "%s/ep-resource-%s-api") ;; need group and resource name
-(def resources-version "0-SNAPSHOT") ;; TODO, read it from env vars?
+(defn calculate-resource-deps
+  [{:keys [module-edn-path resources-group-id
+           resources-format resources-version]
+    :as res-conf}]
+  (->> module-edn-path
+       io/file
+       slurp
+       edn/read-string
+       (map #(vector (-> (format resources-format resources-group-id %)
+                         symbol)
+                     resources-version))))
 
 (defn add-resources-deps!
   "Returns a vector containing the rest-resources coordinates given for
   the modules. It reads the modules collection names from a file called
   modules.edn."
   [conf]
-  (let [coords (->> module-data-path
-                    io/file
-                    slurp
-                    edn/read-string
-                    (map #(vector (-> (format resources-format resources-group-id %)
-                                      symbol)
-                                  resources-version)))]
-    (util/dbug "Rest resources coordinates %s\n" (vec coords))
+  (let [res-conf (:resources conf)
+        coords (-> #{}
+                   (into (:additional-deps res-conf))
+                   (into (calculate-resource-deps res-conf))
+                   vec)]
     (update-in conf [:env :dependencies] #(-> % (concat coords) distinct vec))))
 
 ;;;;;;;;;;;;;;;
@@ -57,7 +61,14 @@
 ;;;;;;;;;;;;;;;
 
 (def conf-extractor
-  {:env {:resource-paths #{"resources"}
+  {:resources {:module-edn-path "resources/modules.edn"
+               :resources-group-id "com.elasticpath.rest.definitions"
+               :resources-format "%s/ep-resource-%s-api"
+               :resources-version "0-SNAPSHOT"
+               :additional-deps '[[com.elasticpath.rest.definitions/ep-resource-collections-api "0-SNAPSHOT"]
+                                  [com.elasticpath.rest.definitions/ep-resource-base-api "0-SNAPSHOT"]
+                                  [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]}
+   :env {:resource-paths #{"resources"}
          :source-paths #{"src/task" "src/shared"}
          :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                          [org.clojure/tools.cli "0.3.5"]
@@ -104,7 +115,7 @@
   (util/info "Starting interactive dev...\n")
   (comp (init-extractor)
         (repl :server true
-              :port 5088)
+              :port 5055)
         (wait)))
 
 (deftask extract
@@ -172,7 +183,7 @@
         (watch)
         (cljs-devtools)
         (reload :client-opts {:debug true})
-        (cljs-repl :nrepl-opts {:port 5055})
+        (cljs-repl :nrepl-opts {:port 5088})
         (cljs :source-map true
               :optimizations :none
               :compiler-options {:external-config
