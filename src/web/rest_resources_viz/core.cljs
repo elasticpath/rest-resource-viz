@@ -20,8 +20,12 @@
                  :height 820
                  :attrs {:graph {:strength -75}
                          :node {:radius 8
-                                :family->color {}}
-                         :link {:distance 50}
+                                :family->color {}
+                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory20"))
+                                :default-color "steelblue"}
+                         :link {:distance 30
+                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory10"))
+                                :default-color "steelblue"}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -40,25 +44,40 @@
   [x y]
   (str "translate(" x "," y ")"))
 
+(defn get-in-and-assign-kind
+  "Similarly to get-in, tries to get from ks and also assoc the last
+  selector as :kind.
+
+  It assumes you can map over the retrieved thing, does not handle
+  literal values (for now)."
+  [m ks]
+  (->> (get-in m ks)
+       (mapv #(assoc % :kind (last ks)))))
+
 (defn get-resources [state]
-  (let [resources (get-in @state [:graph-data :resource])]
-    (log/debug "Node count" (count resources))
-    (log/debug "Node sample" (first resources))
+  (let [resources (get-in-and-assign-kind @state [:graph-data :resource])]
+    (log/debug "Resource" (sort-by :name resources))
+    (log/debug "Resource count" (count resources))
+    (log/debug "Resource sample" (first resources))
     resources))
 
 (defn get-relationships [state]
-  (let [rels (-> @state
-                 (get-in [:graph-data :relationship])
-                 (xform/unfold-relationships))]
-    (log/debug "Link count" (count rels))
-    (log/debug "Link sample" (second rels))
+  (let [rels (->> (concat (get-in-and-assign-kind @state [:graph-data :relationship])
+                          (get-in-and-assign-kind @state [:graph-data :list-of-relationship])
+                          (get-in-and-assign-kind @state [:graph-data :pagination-relationship])
+                          (get-in-and-assign-kind @state [:graph-data :alias-relationship]))
+                  (xform/unfold-relationships))]
+    (log/debug "Relationships" (sort-by :name rels))
+    (log/debug "Relationships count" (count rels))
+    (log/debug "Relationships sample" (second rels))
     rels))
 
 (defn get-js-nodes [state]
-  (clj->js @(r/track get-resources state)))
+  (clj->js @(r/track! get-resources state)))
 
 (defn get-js-links [state]
-  (clj->js @(r/track get-relationships state)))
+
+  (clj->js @(r/track! get-relationships state)))
 
 (defn get-width [state]
   (let [margin (:margin @state)]
@@ -115,10 +134,13 @@
 
 (defn append-node!
   [d3-selection node-attrs]
-  (let [group (-> d3-selection
+  (let [color-fn (:color-fn node-attrs)
+        group (-> d3-selection
                   (.append  "g")
                   (.attr "class" "node")
-                  (.append "circle"))]
+                  (.append "circle")
+                  (.attr "fill" #(color-fn (or (o/oget % "?family-id")
+                                               (:default-color node-attrs)))))]
     ;; Text
     #_(-> group
           (.append "text")
@@ -127,12 +149,15 @@
     group))
 
 (defn append-link!
-  [d3-selection _]
-  (-> d3-selection
-      (.append "g")
-      (.attr "class" "link")
-      (.append "line")
-      (.style "marker-end" "url(#end-arrow)")))
+  [d3-selection link-attrs]
+  (let [color-fn (:color-fn link-attrs)]
+    (-> d3-selection
+        (.append "g")
+        (.attr "class" "link")
+        (.append "line")
+        (.attr "stroke" #(color-fn (or (o/oget % "?kind")
+                                       (:default-color link-attrs))))
+        (.style "marker-end" "url(#end-arrow)"))))
 
 (comment
   (def rels-by-to (group-by :to (first (relationships-with-dups rels))))
@@ -173,19 +198,19 @@
                                                                        (.strength (:strength graph-attrs))))
                                                   (.force "x" (js/d3.forceX (/ width 2)))
                                                   (.force "y" (js/d3.forceY (/ height 2))))))
+
+            d3-links (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll ".link")
+                         (.data link-js-data)
+                         (.enter)
+                         (append-link! link-attrs))
             d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node")
                          (.data node-js-data)
                          (.enter)
                          (append-node! node-attrs)
                          (install-drag! d3-simulation)
-                         (install-node-events! d3-tooltip tooltip-attrs))
-            d3-links (-> (js/d3.select "#graph-container svg .graph")
-                         (.selectAll ".link")
-                         (.data link-js-data)
-                         (.enter)
-                         (append-link! link-attrs))]
-
+                         (install-node-events! d3-tooltip tooltip-attrs))]
 
         (.on d3-simulation "tick" (fn []
                                     (-> d3-links
@@ -207,14 +232,15 @@
   (.restart (:simulation @state)))
 
 (defn reset-state! []
-  (let [state (reset! app-state init-state)]
-    (fetch-data!)
-    (graph-enter! state)
-    (graph-update! state)))
+  (reset! app-state init-state)
+  (fetch-data!)
+  (graph-enter! app-state)
+  (graph-update! app-state))
 
 (defn btn-draw [state]
   [:button.btn
-   {:on-click #(graph-update! state)}
+   {:on-click #(do (graph-enter! state)
+                   (graph-update! state))}
    "Force draw"])
 
 (defn btn-reset [state]
