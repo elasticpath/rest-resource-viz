@@ -287,6 +287,12 @@
                                                    (sp/select-one [:resource (sp/filterer #(:paginates %))])
                                                    (mapv (partial resource->relationship :name :paginates)))))
 
+(defn add-alias-relationship
+  [definitions]
+  (assoc definitions :alias-relationship (->> definitions
+                                              (sp/select-one [:resource (sp/filterer #(:alias %))])
+                                              (mapv (partial resource->relationship :name :alias)))))
+
 (comment
   (sp/select-one [:resource (sp/filterer #(:list-of %))] gd))
 
@@ -307,7 +313,8 @@
                       (map sanitize-relationship)))
        normalize-family
        add-list-of-relationship
-       add-pagination-relationship)) ;; TODO - spec the final version
+       add-pagination-relationship
+       add-alias-relationship)) ;; TODO - spec the final version
 
 (defn xml-files->definitions
   "Aggregate <family> under <definitions>

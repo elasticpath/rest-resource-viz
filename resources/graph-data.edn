@@ -180,6 +180,1168 @@
    :description
    "\n\t\t\t\nThe Payment Methods resource is responsible for the customer's paymentmethods. This resource lists all the paymentmethods\ndefined for the customer either credit cards or payment tokens. Selecting a payment method for a purchase is set\nduring the purchase's order phase.\n\t\t\t\n\t\t",
    :id :paymentmethods}],
+ :advisor
+ [{:name "add-item-to-wishlist-form",
+   :description "Add to wishlist pre-conditions check",
+   :blocks "add-item-to-wishlist-form",
+   :family-id :wishlists}
+  {:name "move-to-wishlist-form",
+   :description "Move to wishlist pre-conditions check",
+   :blocks "move-to-wishlist-form",
+   :family-id :wishlists}
+  {:name "move-to-cart-form",
+   :description "Move to cart pre-conditions check",
+   :blocks "move-to-cart-form",
+   :family-id :wishlists}],
+ :relationship
+ [{:name "price-for-item",
+   :description
+   "\n\t\t\t\tRead the unit price of an [item][items]. The unit price of an item is the price for one unit (quantity = 1) ",
+   :rel "price",
+   :rev "item",
+   :from :items/item,
+   :to :prices/price-for-item,
+   :family-id :prices}
+  {:name "price-for-cart-line-item",
+   :description
+   "Read the unit price of a cart line item. The unit price of a cart line item is the price for one unit when a given quantity is purchased (the line item quantity).",
+   :rel "price",
+   :rev "lineitem",
+   :from :carts/line-item,
+   :to :prices/price-for-cart-line-item,
+   :family-id :prices}
+  {:name "lowest-price-for-item-definition",
+   :description
+   "\n\t\t\t\tRead the price of the item option with the lowest price. This link will only appear if the item has options.",
+   :rel "fromprice",
+   :rev "definition",
+   :from :itemdefinitions/item-definition,
+   :to :prices/price-for-itemdefinition,
+   :family-id :prices}
+  {:name "price-for-shipment-line-item",
+   :description "Retrieves the price of a shipment line item.",
+   :rel "price",
+   :from :shipments/shipment-line-item,
+   :to :prices/price-for-shipment-line-item,
+   :family-id :prices}
+  {:name "selector-for-destination-info",
+   :description "Use a Selector to select a destination.",
+   :rel "selector",
+   :rev "destinationinfo",
+   :from :shipmentdetails/destination-info,
+   :to :shipmentdetails/destination-info-selector,
+   :family-id :shipmentdetails}
+  {:name "choice-for-destination-info-selector",
+   :description "Retrieve a choice.",
+   :rel "choice",
+   :rev "selector",
+   :from :shipmentdetails/destination-info-selector,
+   :to :shipmentdetails/destination-info-selector-choice,
+   :family-id :shipmentdetails}
+  {:name "description-for-destination-info-selector-choice",
+   :description "Retrieve a choice's description.",
+   :rel "description",
+   :from :shipmentdetails/destination-info-selector-choice,
+   :to :addresses/address,
+   :family-id :shipmentdetails}
+  {:name "action-for-destination-info-selector-choice",
+   :description "Select a choice.",
+   :rel "selectaction",
+   :from :shipmentdetails/destination-info-selector-choice,
+   :to :shipmentdetails/destination-info-selector-choice,
+   :family-id :shipmentdetails}
+  {:name "destination-info-for-order",
+   :description "Retrieves the order's destination info.",
+   :rel "destinationinfo",
+   :rev "delivery",
+   :from :orders/order,
+   :to :shipmentdetails/destination-info,
+   :family-id :shipmentdetails}
+  {:name "shipping-address-for-order",
+   :description
+   "Retrieve the shipping address that is currently selected for the order.",
+   :rel "destination",
+   :from :shipmentdetails/destination-info,
+   :to :addresses/address,
+   :family-id :shipmentdetails}
+  {:name "selector-for-shipping-option",
+   :description
+   "Use a Selector to select a shipping option (i.e. FedEx, Canada Post, etc.)",
+   :rel "selector",
+   :rev "shippingoptioninfo",
+   :from :shipmentdetails/shipping-option-info,
+   :to :shipmentdetails/shipping-option-info-selector,
+   :family-id :shipmentdetails}
+  {:name "choice-for-shipping-option-selector",
+   :description "Retrieve a choice.",
+   :rel "choice",
+   :rev "selector",
+   :from :shipmentdetails/shipping-option-info-selector,
+   :to :shipmentdetails/shipping-option-info-selector-choice,
+   :family-id :shipmentdetails}
+  {:name "description-for-shipping-option-selector-choice",
+   :description "Retrieve a choice's description.",
+   :rel "description",
+   :from :shipmentdetails/shipping-option-info-selector-choice,
+   :to :shipmentdetails/shipping-option,
+   :family-id :shipmentdetails}
+  {:name "action-for-shipping-option-selector-choice",
+   :description "Select a choice.",
+   :rel "selectaction",
+   :from :shipmentdetails/shipping-option-info-selector-choice,
+   :to :shipmentdetails/shipping-option-info-selector-choice,
+   :family-id :shipmentdetails}
+  {:name "components-for-item-definition",
+   :description
+   "Read the item definition component from the list of available components.",
+   :rel "components",
+   :from :itemdefinitions/item-definition,
+   :to :itemdefinitions/item-definition-components,
+   :family-id :itemdefinitions}
+  {:name "standalone-item-for-item-definition-component",
+   :description
+   "Read the component's stand alone item. Some components can be\n\t\t\tpurchased separately.",
+   :rel "standaloneitem",
+   :from :itemdefinitions/item-definition-component,
+   :to :items/item,
+   :family-id :itemdefinitions}
+  {:name "options-for-item-definition-component",
+   :description "Read the options for an item definition component.",
+   :rel "options",
+   :from :itemdefinitions/item-definition-component,
+   :to :itemdefinitions/item-definition-component-options,
+   :family-id :itemdefinitions}
+  {:name "value-for-item-definition-component-option",
+   :description "Read the item definition component option value.",
+   :rel "value",
+   :rev "option",
+   :from :itemdefinitions/item-definition-component-option,
+   :to :itemdefinitions/item-definition-component-option-value,
+   :family-id :itemdefinitions}
+  {:name "nested-components-for-item-definition-component",
+   :description "Read a list of nested item definition components.",
+   :rel "definition",
+   :from :itemdefinitions/item-definition-component,
+   :to :itemdefinitions/item-definition-nested-components,
+   :family-id :itemdefinitions}
+  {:name "options-for-nested-item-definition-component",
+   :description
+   "Read the options for a nested item definition component.",
+   :rel "options",
+   :from :itemdefinitions/item-definition-nested-component,
+   :to :itemdefinitions/item-definition-nested-component-options,
+   :family-id :itemdefinitions}
+  {:name "value-for-nested-item-definition-component-option",
+   :description
+   "Read the nested item definition component option value.",
+   :rel "value",
+   :rev "option",
+   :from :itemdefinitions/item-definition-nested-component-option,
+   :to :itemdefinitions/item-definition-nested-component-option-value,
+   :family-id :itemdefinitions}
+  {:name "item-definition-for-item",
+   :description "Read the item definition from the item.",
+   :rel "definition",
+   :rev "item",
+   :from :items/item,
+   :to :itemdefinitions/item-definition,
+   :family-id :itemdefinitions}
+  {:name "options-for-item-definition",
+   :description "Read the options for an item definition.",
+   :rel "options",
+   :from :itemdefinitions/item-definition,
+   :to :itemdefinitions/item-definition-options,
+   :family-id :itemdefinitions}
+  {:name "value-for-item-definition-option",
+   :description "Read the item definition option value.",
+   :rel "value",
+   :rev "option",
+   :from :itemdefinitions/item-definition-option,
+   :to :itemdefinitions/item-definition-option-value,
+   :family-id :itemdefinitions}
+  {:name "create-purchase-form-from-order",
+   :description "Retrieve the form.",
+   :rel "purchaseform",
+   :from :orders/order,
+   :to :purchases/create-purchase-form,
+   :family-id :purchases}
+  {:name "create-purchase-action-from-create-purchase-form",
+   :description "Submit the purchase form to complete the purchase.",
+   :rel "submitorderaction",
+   :from :purchases/create-purchase-form,
+   :to :purchases/create-purchase-action,
+   :family-id :purchases}
+  {:name "line-items-for-purchase",
+   :description
+   "\n\t\t\t\tRetrieve a purchase's line items, which includes details on the item that was purchased such as item name, quantity purchased, and cost.",
+   :rel "lineitems",
+   :rev "purchase",
+   :from :purchases/purchase,
+   :to :purchases/purchase-line-items,
+   :family-id :purchases}
+  {:name "options-for-purchase-line-item",
+   :description "The options for the item purchased. ",
+   :rel "options",
+   :rev "lineitem",
+   :from :purchases/purchase-line-item,
+   :to :purchases/purchase-line-item-options,
+   :family-id :purchases}
+  {:name "value-for-purchase-line-item-option",
+   :description "The option value for the item purchased. ",
+   :rel "value",
+   :rev "option",
+   :from :purchases/purchase-line-item-option,
+   :to :purchases/purchase-line-item-option-value,
+   :family-id :purchases}
+  {:name "components-for-purchase-line-items",
+   :description "Components for the purchased line item.",
+   :rel "components",
+   :from :purchases/purchase-line-item,
+   :to :purchases/purchase-line-item-components,
+   :family-id :purchases}
+  {:name "options-for-purchase-line-item-component",
+   :description "The options for the item's component. ",
+   :rel "options",
+   :rev "lineitem",
+   :from :purchases/purchase-line-item-component,
+   :to :purchases/purchase-line-item-component-options,
+   :family-id :purchases}
+  {:name "value-for-purchase-line-item-component-option",
+   :description "The option value for the item's component. ",
+   :rel "value",
+   :rev "option",
+   :from :purchases/purchase-line-item-component-option,
+   :to :purchases/purchase-line-item-component-option-value,
+   :family-id :purchases}
+  {:name "paymentmeans-for-purchase",
+   :description "List payment means for a purchase.",
+   :rel "paymentmeans",
+   :rev "purchase",
+   :from :purchases/purchase-paymentmeans,
+   :to :purchases/purchase,
+   :family-id :purchases}
+  {:name "purchases-for-profile",
+   :description
+   "Retrieve a list of purchases for the logged in customer.",
+   :rel "purchases",
+   :from :profiles/profile,
+   :to :purchases/purchases,
+   :family-id :purchases}
+  {:name "billing-address-for-purchase",
+   :description "The billing address associated with this purchase.",
+   :rel "billingaddress",
+   :from :purchases/purchase,
+   :to :purchases/purchase-billingaddress,
+   :family-id :purchases}
+  {:name "add-address-form-from-addresses",
+   :description "Form to create an address.",
+   :rel "addressform",
+   :from :addresses/addresses,
+   :to :addresses/address-form,
+   :family-id :addresses}
+  {:name "add-address-form-action",
+   :description "Action link to send address form to.",
+   :rel "createaddressaction",
+   :from :addresses/address-form,
+   :to :addresses/create-address-action,
+   :family-id :addresses}
+  {:name "addresses-for-profile",
+   :description "Read the list of the profile's addresses.",
+   :rel "addresses",
+   :from :profiles/profile,
+   :to :addresses/addresses,
+   :family-id :addresses}
+  {:name "billing-addresses-from-addresses",
+   :description "Read billing addresses from the list of addresses.",
+   :rel "billingaddresses",
+   :from :addresses/addresses,
+   :to :addresses/billing-addresses,
+   :family-id :addresses}
+  {:name "default-billing-address-from-billing-addresses",
+   :description
+   "Read the default billing address from the list of billing addresses.",
+   :rel "default",
+   :from :addresses/billing-addresses,
+   :to :addresses/default-billing-address,
+   :family-id :addresses}
+  {:name "profile-from-billing-addresses",
+   :description "Read the profile linked to the billing addresses.",
+   :rel "profile",
+   :from :addresses/billing-addresses,
+   :to :profiles/profile,
+   :family-id :addresses}
+  {:name "shipping-addresses-from-addresses",
+   :description "Read shipping addresses from the list of addresses.",
+   :rel "shippingaddresses",
+   :from :addresses/addresses,
+   :to :addresses/shipping-addresses,
+   :family-id :addresses}
+  {:name "default-shipping-address-from-shipping-addresses",
+   :description
+   "Read the default shipping address from the list of shipping addresses.",
+   :rel "default",
+   :from :addresses/shipping-addresses,
+   :to :addresses/default-shipping-address,
+   :family-id :addresses}
+  {:name "profile-from-shipping-addresses",
+   :description "Read the profile linked to the shipping addresses.",
+   :rel "profile",
+   :from :addresses/shipping-addresses,
+   :to :profiles/profile,
+   :family-id :addresses}
+  {:name "selector-for-billingaddress-info",
+   :description "Retrieve the selector.",
+   :rel "selector",
+   :rev "billingaddressinfo",
+   :from :orders/billingaddress-info,
+   :to :orders/billingaddress-info-selector,
+   :family-id :orders}
+  {:name "choices-for-billingaddress-info-selector",
+   :description
+   "Retrieve the choices for the billing address selector.",
+   :rel "choice",
+   :rev "selector",
+   :from :orders/billingaddress-info-selector,
+   :to :orders/billingaddress-info-selector-choices,
+   :family-id :orders}
+  {:name "choice-for-billingaddress-info-selector-choice",
+   :description "Retrieve a choice.",
+   :rel "choice",
+   :rev "selector",
+   :from :orders/billingaddress-info-selector-choices,
+   :to :orders/billingaddress-info-selector-choice,
+   :family-id :orders}
+  {:name "description-for-billingaddress-info-selector-choice",
+   :description "Retrieve a choice's description.",
+   :rel "description",
+   :from :orders/billingaddress-info-selector-choice,
+   :to :addresses/address,
+   :family-id :orders}
+  {:name "action-for-billingaddress-info-selector-choice",
+   :description "Select a choice.",
+   :rel "selectaction",
+   :from :orders/billingaddress-info-selector-choice,
+   :to :orders/billingaddress-info-selector-choice,
+   :family-id :orders}
+  {:name "deliveries-for-order",
+   :description
+   "Retreive a list of [deliveries](#order-deliveries) for an order.",
+   :rel "deliveries",
+   :rev "order",
+   :from :orders/order,
+   :to :orders/deliveries,
+   :family-id :orders}
+  {:name "email-info-for-order",
+   :description "Read order email needinfo from order.",
+   :rel "emailinfo",
+   :from :orders/order,
+   :to :orders/email-info,
+   :family-id :orders}
+  {:name "discount-applied-to-cart",
+   :description
+   "\n\t\t\t\t\nRetrieve the discount amount applied to a cart [total][totals], excluding line item discounts.\n\n[totals]: #totals\n\t\t\t\t\n\t\t\t",
+   :rel "discount",
+   :rev "cart",
+   :from :carts/cart,
+   :to :discounts/discount-for-cart,
+   :family-id :discounts}
+  {:name "discount-applied-to-purchase",
+   :description
+   "\n\t\t\t\t\nRetrieve the discount amount applied to a [purchase][purchases].\n\n[purchases]: #purchases\n\t\t\t\t\n\t\t\t",
+   :rel "discount",
+   :rev "purchase",
+   :from :purchases/purchase,
+   :to :discounts/discount-for-purchase,
+   :family-id :discounts}
+  {:name "add-email-form-from-emails",
+   :description "A form to add an email address to the current user.",
+   :rel "emailform",
+   :from :emails/emails,
+   :to :emails/add-email-form,
+   :family-id :emails}
+  {:name "action-for-add-email-form",
+   :description
+   "Submit a form to add an email address to the current user.",
+   :rel "createemailaction",
+   :from :emails/add-email-form,
+   :to :emails/add-email-action,
+   :family-id :emails}
+  {:name "emails-for-profile",
+   :description "Read the list of the profile's email addresses.",
+   :rel "emails",
+   :from :profiles/profile,
+   :to :emails/emails,
+   :family-id :emails}
+  {:name "recommendations-for-item",
+   :description "Read other items recommended for an item.",
+   :rel "recommendations",
+   :from :items/item,
+   :to :recommendations/item-recommendation-groups,
+   :family-id :recommendations}
+  {:name "recommendations-for-navigation",
+   :description "Read other items recommended for a navigation node.",
+   :rel "recommendations",
+   :from :navigations/navigation,
+   :to :recommendations/item-recommendation-groups,
+   :family-id :recommendations}
+  {:name "navigations-from-root",
+   :description "Navigations can be found from the root resource.",
+   :rel "navigations",
+   :from :base/root,
+   :to :navigations/navigations,
+   :family-id :navigations}
+  {:name "navigations-to-navigation",
+   :description
+   "The top navigations resource to the first-level navigation list.",
+   :rel "element",
+   :rev "top",
+   :from :navigations/navigations,
+   :to :navigations/navigation,
+   :family-id :navigations}
+  {:name "parent-node-to-child",
+   :description "Navigate from a parent to a child navigation.",
+   :rel "child",
+   :rev "parent",
+   :from :navigations/navigation,
+   :to :navigations/navigation,
+   :family-id :navigations}
+  {:name "apply-coupon-form-from-couponinfo",
+   :description "Form to apply a coupon to the order.",
+   :rel "couponform",
+   :from :coupons/couponinfo,
+   :to :coupons/apply-coupon-to-order-form,
+   :family-id :coupons}
+  {:name "apply-coupon-to-order-action",
+   :description "Apply a coupon to the order.",
+   :rel "applycouponaction",
+   :from :coupons/apply-coupon-to-order-form,
+   :to :coupons/order-coupon-action,
+   :family-id :coupons}
+  {:name "coupon-from-couponinfo",
+   :description "Read coupon from couponinfo.",
+   :rel "coupon",
+   :from :coupons/couponinfo,
+   :to :coupons/order-coupon,
+   :family-id :coupons}
+  {:name "coupons-applied-to-order",
+   :description "Read coupons applied to the order.",
+   :rel "couponinfo",
+   :rev "order",
+   :from :orders/order,
+   :to :coupons/couponinfo,
+   :family-id :coupons}
+  {:name "coupons-applied-to-purchase",
+   :description "Read coupons applied to the purchase.",
+   :rel "coupons",
+   :from :purchases/purchase,
+   :to :coupons/purchase-coupon-list,
+   :family-id :coupons}
+  {:name "slots-from-root",
+   :description "Discover slots from the root of the API.",
+   :rel "slots",
+   :from :base/root,
+   :to :slots/slots,
+   :family-id :slots}
+  {:name "item-onevent-for-slot",
+   :description "Link an event from a slot to an item.",
+   :rel "onevent",
+   :from :slots/slot,
+   :to :items/item,
+   :family-id :slots}
+  {:name "navigation-onevent-for-slot",
+   :description "Link an event from a slot to a navigation node.",
+   :rel "onevent",
+   :from :slots/slot,
+   :to :navigations/navigation,
+   :family-id :slots}
+  {:name "form-for-order-payment-token",
+   :description "Form to create a new payment token for an order.",
+   :rel "paymenttokenform",
+   :from :paymentmethods/paymentmethod-info,
+   :to :paymenttokens/order-payment-token-form,
+   :family-id :paymenttokens}
+  {:name "action-for-payment-token-for-order",
+   :description "Action to create payment token for an order.",
+   :rel "createpaymenttokenaction",
+   :from :paymenttokens/order-payment-token-form,
+   :to :paymenttokens/order-payment-token,
+   :family-id :paymenttokens}
+  {:name "form-for-profile-payment-token",
+   :description "Form to crate a new payment token for a profile.",
+   :rel "paymenttokenform",
+   :from :paymentmethods/paymentmethods,
+   :to :paymenttokens/profile-payment-token-form,
+   :family-id :paymenttokens}
+  {:name "create-payment-token-form-action",
+   :description "Action link to send payment token form to.",
+   :rel "createpaymenttokenaction",
+   :from :paymenttokens/profile-payment-token-form,
+   :to :paymenttokens/create-payment-token,
+   :family-id :paymenttokens}
+  {:name "line-items-for-cart",
+   :description
+   "A collection of items that have been added to a cart.",
+   :rel "lineitems",
+   :from :carts/cart,
+   :to :carts/line-items,
+   :family-id :carts}
+  {:name "root-to-line-items-for-default-cart",
+   :description
+   "A collection of items that have been added to the default cart.",
+   :rel "lineitems",
+   :from :base/root,
+   :to :carts/default-cart-line-items,
+   :family-id :carts}
+  {:name "cart-for-line-item",
+   :description
+   "Retrieve the cart that has the given line item. This workflow is\n\t\t\tuseful when you need to determine which cart the line item belongs to.",
+   :rel "cart",
+   :from :carts/line-item,
+   :to :carts/cart,
+   :family-id :carts}
+  {:name "item-for-line-item",
+   :description "What's the item this line item points to?",
+   :rel "item",
+   :from :carts/line-item,
+   :to :items/item,
+   :family-id :carts}
+  {:name "add-to-default-cart-form-for-item",
+   :description "The form to add an item to the default cart.",
+   :rel "addtodefaultcartform",
+   :from :items/item,
+   :to :carts/add-to-default-cart-form,
+   :family-id :carts}
+  {:name "add-to-default-cart-action-for-form",
+   :description
+   "The action to invoke when submitting an add-to-default-cart form.",
+   :rel "addtodefaultcartaction",
+   :from :carts/add-to-default-cart-form,
+   :to :carts/add-line-item-to-default-cart-action,
+   :family-id :carts}
+  {:name "cart-memberships-from-item",
+   :description "Cart memberships from item",
+   :rel "cartmemberships",
+   :from :items/item,
+   :to :carts/read-cart-memberships,
+   :family-id :carts}
+  {:name "root-to-default-cart",
+   :description
+   "\n\t\t\t\nRetrieve the shopper's default cart. When using *default* in the cart's URI, default evaluates to the logged in shopper's cart I.D.\nSee the main Cortex documentation for more information on *default*.\n\t\t\t\n\t\t",
+   :rel "defaultcart",
+   :from :base/root,
+   :to :carts/default-cart,
+   :family-id :carts}
+  {:name "item-to-wishlist-form",
+   :description
+   "Link from items.item to a form used to add that item to a wishlist",
+   :rel "addtowishlistform",
+   :from :items/item,
+   :to :wishlists/add-item-to-wishlist-form,
+   :family-id :wishlists}
+  {:name "wishlist-line-items-for-wishlist",
+   :description
+   "A collection of items that have been added to a wishlist.",
+   :rel "lineitems",
+   :rev "wishlist",
+   :from :wishlists/wishlist,
+   :to :wishlists/wishlist-line-items,
+   :family-id :wishlists}
+  {:name "wishlist-line-items-for-wishlist-line-item",
+   :description
+   "A collection of items that have been added to a wishlist.",
+   :rel "list",
+   :from :wishlists/wishlist-line-item,
+   :to :wishlists/wishlist-line-items,
+   :family-id :wishlists}
+  {:name "wishlist-for-wishlist-line-item",
+   :description
+   "Retrieve the wishlist that has the given line item. This workflow is\n\t\t\tuseful when you need to determine which wishlist the line item belongs to.",
+   :rel "wishlist",
+   :from :wishlists/wishlist-line-item,
+   :to :wishlists/wishlist,
+   :family-id :wishlists}
+  {:name "item-for-wishlist-line-item",
+   :description "What's the item this line item points to?",
+   :rel "item",
+   :from :wishlists/wishlist-line-item,
+   :to :items/item,
+   :family-id :wishlists}
+  {:name "wishlist-move-to-wishlist-form",
+   :description
+   "Link for a form used to move cart line item a wishlist",
+   :rel "movetowishlistform",
+   :from :carts/line-item,
+   :to :wishlists/move-to-wishlist-form,
+   :family-id :wishlists}
+  {:name "wishlist-move-to-cart-form",
+   :description "Link for a form used to move wishlist item to a cart",
+   :rel "movetocartform",
+   :from :wishlists/wishlist-line-item,
+   :to :wishlists/move-to-cart-form,
+   :family-id :wishlists}
+  {:name "wishlist-membership-from-item",
+   :description "Wishlist memberships for a given item",
+   :rel "wishlistmemberships",
+   :from :items/item,
+   :to :wishlists/read-wishlist-memberships,
+   :family-id :wishlists}
+  {:name "default-wishlist-from-root",
+   :description "Link from root resource to default wishlist.",
+   :rel "defaultwishlist",
+   :from :base/root,
+   :to :wishlists/default-wishlist,
+   :family-id :wishlists}
+  {:name "profile-to-wishlists",
+   :description "Retrieve a list of links to a shopper's wishlists",
+   :rel "wishlists",
+   :rev "profile",
+   :from :profiles/profile,
+   :to :wishlists/wishlists,
+   :family-id :wishlists}
+  {:name "line-items-for-shipment",
+   :description
+   "Retrieve the shipment line items associated with a shipment.",
+   :rel "lineitems",
+   :from :shipments/shipment,
+   :to :shipments/shipment-line-items,
+   :family-id :shipments}
+  {:name "options-for-shipment-line-item",
+   :description
+   "Retrieve the options associated with a shipment line item.",
+   :rel "options",
+   :from :shipments/shipment-line-item,
+   :to :shipments/shipment-line-item-options,
+   :family-id :shipments}
+  {:name "value-for-shipment-line-item-option",
+   :description
+   "Retrieve the option value associated with a shipment line item.",
+   :rel "value",
+   :from :shipments/shipment-line-item-option,
+   :to :shipments/shipment-line-item-option-value,
+   :family-id :shipments}
+  {:name "destination-address-for-purchase",
+   :description
+   "Follow a link from a shipment to the shipping address.",
+   :rel "destination",
+   :from :shipments/shipment,
+   :to :shipments/purchase-shipment-shipping-address,
+   :family-id :shipments}
+  {:name "shipping-option-for-purchase",
+   :description
+   "Follow a link from a shipment to the shipping option.",
+   :rel "shippingoption",
+   :from :shipments/shipment,
+   :to :shipments/purchase-shipment-shipping-option,
+   :family-id :shipments}
+  {:name "shipments-for-purchase",
+   :description "Retrieve the shipments associated with a purchase.",
+   :rel "shipments",
+   :from :purchases/purchase,
+   :to :shipments/shipments,
+   :family-id :shipments}
+  {:name "total-for-cart",
+   :description
+   "Retrieve the total cost of all cart line items before cart total discounts are applied.",
+   :rel "total",
+   :from :carts/cart,
+   :to :totals/cart-total,
+   :family-id :totals}
+  {:name "total-for-cart-line-item",
+   :description
+   "Retrieve the total cost of a single cart line item before cart line item discounts are applied.",
+   :rel "total",
+   :from :carts/line-item,
+   :to :totals/cart-line-item-total,
+   :family-id :totals}
+  {:name "total-for-order",
+   :description
+   "Retrieve the total cost of the shopper's order including taxes and shipping costs.",
+   :rel "total",
+   :from :orders/order,
+   :to :totals/order-total,
+   :family-id :totals}
+  {:name "total-for-shipment",
+   :description "Retrieve the total cost for a shipment.",
+   :rel "total",
+   :from :shipments/shipment,
+   :to :totals/shipment-total,
+   :family-id :totals}
+  {:name "total-for-shipment-line-item",
+   :description "Retrieve the total cost for a shipment line item.",
+   :rel "total",
+   :from :shipments/shipment-line-item,
+   :to :totals/shipment-line-item-total,
+   :family-id :totals}
+  {:name "root-to-countries",
+   :description "Countries can be discovered at the root.",
+   :rel "countries",
+   :from :base/root,
+   :to :geographies/countries,
+   :family-id :geographies}
+  {:name "regions-for-country",
+   :description "A list of regions for a country.",
+   :rel "regions",
+   :from :geographies/country,
+   :to :geographies/regions,
+   :family-id :geographies}
+  {:name "default-profile-from-root",
+   :description "Link from root resource to default profile.",
+   :rel "defaultprofile",
+   :from :base/root,
+   :to :profiles/default-profile,
+   :family-id :profiles}
+  {:name "items-from-root",
+   :description "Link from root resource to items.",
+   :rel "items",
+   :from :base/root,
+   :to :items/items,
+   :family-id :items}
+  {:name "selector-for-item-definition-option",
+   :description "Selector for an item option value.",
+   :rel "selector",
+   :rev "option",
+   :from :itemdefinitions/item-definition-option,
+   :to :itemselections/itemselections-option-selector,
+   :family-id :itemselections}
+  {:name "value-choice-for-itemselections-option-selector",
+   :description "Retrieve a choice.",
+   :rel "choice",
+   :rev "selector",
+   :from :itemselections/itemselections-option-selector,
+   :to :itemselections/itemselections-option-value-selector,
+   :family-id :itemselections}
+  {:name "description-for-itemselections-option-value-selector-choice",
+   :description "Retrieve a choice's description.",
+   :rel "description",
+   :from :itemselections/itemselections-option-value-selector,
+   :to :itemdefinitions/item-definition-option-value,
+   :family-id :itemselections}
+  {:name "action-for-itemselections-option-selector-choice",
+   :description "Select a choice.",
+   :rel "selectaction",
+   :from :itemselections/itemselections-option-value-selector,
+   :to :itemselections/itemselections-option-value-selector,
+   :family-id :itemselections}
+  {:name "read-cart-line-item-availability",
+   :description
+   "\n\t\t\t\tRead a line item's availability. The availability rule identifies the purchasable state of the item(s) in the line item.\n\t\t\t",
+   :rel "availability",
+   :rev "lineitem",
+   :from :carts/line-item,
+   :to :availabilities/availability-for-cart-line-item,
+   :family-id :availabilities}
+  {:name "read-item-availability",
+   :description
+   "Read an item's availability. The availability rule identifies the item's purchasability.",
+   :rel "availability",
+   :rev "item",
+   :from :items/item,
+   :to :availabilities/availability-for-item,
+   :family-id :availabilities}
+  {:name "batch-items-form-from-lookups",
+   :description
+   "A link from the lookups resource to the batch items form.",
+   :rel "batchitemslookupform",
+   :from :lookups/lookups,
+   :to :lookups/batch-items-form,
+   :family-id :lookups}
+  {:name "batch-items-action-from-form",
+   :description "Submit action for a batched item lookup form.",
+   :rel "batchlookupaction",
+   :from :lookups/batch-items-form,
+   :to :lookups/batch-items-action,
+   :family-id :lookups}
+  {:name "result-for-batch-items",
+   :description "The result from a batch lookup form action.",
+   :rel "batchlookupaction",
+   :from :lookups/batch-items-action,
+   :to :lookups/batch-items,
+   :family-id :lookups}
+  {:name "lookup-item-form-from-lookups",
+   :description "A link from the lookups resource to this form.",
+   :rel "itemlookupform",
+   :from :lookups/lookups,
+   :to :lookups/lookup-item-form,
+   :family-id :lookups}
+  {:name "lookup-item-action-from-form",
+   :description "Submit action for an item lookup form.",
+   :rel "itemlookupaction",
+   :from :lookups/lookup-item-form,
+   :to :lookups/lookup-item-action,
+   :family-id :lookups}
+  {:name "root-to-lookups",
+   :description "Link from root to lookups.",
+   :rel "lookups",
+   :from :base/root,
+   :to :lookups/lookups,
+   :family-id :lookups}
+  {:name "code-for-item",
+   :description "Read the code of an [item][items].",
+   :rel "item",
+   :rev "code",
+   :from :items/item,
+   :to :lookups/code-for-item,
+   :family-id :lookups}
+  {:name "registration-from-root",
+   :description
+   "Provides the form with which to register a new account.",
+   :rel "newaccountform",
+   :from :base/root,
+   :to :registrations/new-account-registration-form,
+   :family-id :registrations}
+  {:name "applied-promotions-for-cart-line-item",
+   :description "Retrieve the promotions applied to a cart line item.",
+   :rel "appliedpromotions",
+   :from :carts/line-item,
+   :to :promotions/applied-promotions-for-cart-line-item,
+   :family-id :promotions}
+  {:name "applied-promotions-for-cart",
+   :description "Retrieve promotions applied to a cart",
+   :rel "appliedpromotions",
+   :from :carts/cart,
+   :to :promotions/applied-promotions-for-cart,
+   :family-id :promotions}
+  {:name "possible-promotions-for-cart",
+   :description "Retrieve possible promotions for a cart.",
+   :rel "possiblepromotions",
+   :from :carts/cart,
+   :to :promotions/possible-promotions-for-cart,
+   :family-id :promotions}
+  {:name "applied-promotions-for-purchase",
+   :description "Retrieve promotions applied to a purchase.",
+   :rel "appliedpromotions",
+   :from :purchases/purchase,
+   :to :promotions/applied-promotions-for-purchase,
+   :family-id :promotions}
+  {:name "applied-promotions-for-item",
+   :description "Retrieve promotions applied to an item.",
+   :rel "appliedpromotions",
+   :from :items/item,
+   :to :promotions/applied-promotions-for-item,
+   :family-id :promotions}
+  {:name "possible-promotions-for-item",
+   :description "Retrieve possible promotions for an item.",
+   :rel "possiblepromotions",
+   :from :items/item,
+   :to :promotions/possible-promotions-for-item,
+   :family-id :promotions}
+  {:name "applied-promotions-for-shipping-option",
+   :description "Retrieve promotions applied to a shipping option.",
+   :rel "appliedpromotions",
+   :from :shipmentdetails/shipping-option,
+   :to :promotions/applied-promotions-for-shipping-option,
+   :family-id :promotions}
+  {:name "promotion-for-order-coupon",
+   :description
+   "Retrieve a promotion trigged by a coupon on an order.",
+   :rel "appliedpromotions",
+   :from :coupons/order-coupon,
+   :to :promotions/applied-promotions-for-order-coupon,
+   :family-id :promotions}
+  {:name "promotion-for-purchase-coupon",
+   :description
+   "Retrieve a promotion trigged by a coupon on a purchase.",
+   :rel "appliedpromotions",
+   :from :coupons/purchase-coupon,
+   :to :promotions/applied-promotions-for-purchase-coupon,
+   :family-id :promotions}
+  {:name "fake-link-to-root",
+   :description "Fake link to keep validator happy",
+   :rel "purchasecoupons",
+   :from :base/root,
+   :to :promotions/purchase-coupon-promotion,
+   :family-id :promotions}
+  {:name "assets-for-item",
+   :description "Retrieves an item's asset.",
+   :rel "assets",
+   :rev "definition",
+   :from :itemdefinitions/item-definition,
+   :to :assets/assets,
+   :family-id :assets}
+  {:name "next-page-keyword-search-results",
+   :description "Pages of search results.",
+   :rel "next",
+   :rev "previous",
+   :from :searches/keyword-search-result,
+   :to :searches/keyword-search-result-paged,
+   :family-id :searches}
+  {:name "search-to-keyword-search-form",
+   :description "Provide a navigation to keyword search.",
+   :rel "keywordsearchform",
+   :from :searches/searches,
+   :to :searches/keyword-search-form,
+   :family-id :searches}
+  {:name "action-for-keyword-search-form",
+   :description "Submit a keyword search action to this link.",
+   :rel "submit",
+   :from :searches/keyword-search-form,
+   :to :searches/keyword-search-action,
+   :family-id :searches}
+  {:name "result-for-keyword-search",
+   :description
+   "The result from a keyword search. This should go into the 'result' section of a form definition.",
+   :rel "itemkeywordsearchaction",
+   :from :searches/keyword-search-action,
+   :to :searches/keyword-search-result,
+   :family-id :searches}
+  {:name "next-page-navigation-items",
+   :description "Pages of navigation items.",
+   :rel "next",
+   :rev "previous",
+   :from :searches/navigation-items,
+   :to :searches/navigation-items-paged,
+   :family-id :searches}
+  {:name "root-to-searches",
+   :description "Link from root resource to searches.",
+   :rel "searches",
+   :from :base/root,
+   :to :searches/searches,
+   :family-id :searches}
+  {:name "navigation-to-items",
+   :description
+   "Retrieve a paginated list of items associated with the navigation node.",
+   :rel "items",
+   :from :navigations/navigation,
+   :to :searches/navigation-items,
+   :family-id :searches}
+  {:name "taxes-for-order",
+   :description
+   "Retrieves the total tax for an order, which includes the order's tax amount, currency, and type of tax (VAT, HST, etc.).",
+   :rel "tax",
+   :from :orders/order,
+   :to :taxes/order-tax,
+   :family-id :taxes}
+  {:name "taxes-for-shipment",
+   :description
+   "\n\t\t\t\tRetrieves the total tax for a shipment, which includes the shipments' tax amount, currency, and type of tax (VAT, HST, etc.).",
+   :rel "tax",
+   :from :shipments/shipment,
+   :to :taxes/shipment-tax,
+   :family-id :taxes}
+  {:name "taxes-for-shipment-line-item",
+   :description "Retrieve the tax amount for a shipment line item.",
+   :rel "tax",
+   :from :shipments/shipment-line-item,
+   :to :taxes/shipment-line-item-tax,
+   :family-id :taxes}
+  {:name "selector-for-paymentmethod-info",
+   :description "Retrieve the selector for paymentmethod info.",
+   :rel "selector",
+   :rev "paymentmethodinfo",
+   :from :paymentmethods/paymentmethod-info,
+   :to :paymentmethods/paymentmethods-selector,
+   :family-id :paymentmethods}
+  {:name "choice-for-paymentmethods-selector",
+   :description "Retrieve a choice.",
+   :rel "choice",
+   :rev "selector",
+   :from :paymentmethods/paymentmethods-selector,
+   :to :paymentmethods/paymentmethods-selector-choice,
+   :family-id :paymentmethods}
+  {:name "description-for-paymentmethods-selector-choice",
+   :description "Retrieve a choice's description.",
+   :rel "description",
+   :rev "selector",
+   :from :paymentmethods/paymentmethods-selector,
+   :to :paymentmethods/paymentmethods-selector-choice,
+   :family-id :paymentmethods}
+  {:name "select-paymentmethods-choice",
+   :description "Select a choice.",
+   :rel "selectaction",
+   :from :paymentmethods/paymentmethods-selector-choice,
+   :to :paymentmethods/paymentmethods-selector-choice,
+   :family-id :paymentmethods}
+  {:name "paymentmethods-for-profile",
+   :description "The customer's payment methods.",
+   :rel "paymentmethods",
+   :rev "profile",
+   :from :profiles/profile,
+   :to :paymentmethods/paymentmethods,
+   :family-id :paymentmethods}
+  {:name "default-paymentmethod",
+   :description "The customer's default payment method.",
+   :rel "default",
+   :rev "list",
+   :from :paymentmethods/paymentmethods,
+   :to :paymentmethods/default-paymentmethod,
+   :family-id :paymentmethods}
+  {:name "paymentmethod-info-for-order",
+   :description
+   "Read the payment method currently selected for the order.",
+   :rel "paymentmethodinfo",
+   :rev "order",
+   :from :orders/order,
+   :to :paymentmethods/paymentmethod-info,
+   :family-id :paymentmethods}
+  {:name "paymentmethod-for-order",
+   :description "Read a payment method.",
+   :rel "paymentmethod",
+   :from :paymentmethods/paymentmethod-info,
+   :to :paymentmethods/paymentmethod-for-order,
+   :family-id :paymentmethods}],
+ :pagination-relationship [],
+ :alias-relationship
+ [{:name "default-billing-address",
+   :family-id :addresses,
+   :from :addresses/default-billing-address,
+   :to :addresses/address,
+   :rel "default-billing-address"}
+  {:name "default-shipping-address",
+   :family-id :addresses,
+   :from :addresses/default-shipping-address,
+   :to :addresses/address,
+   :rel "default-shipping-address"}
+  {:name "default-cart-line-items",
+   :family-id :carts,
+   :from :carts/default-cart-line-items,
+   :to :carts/line-items,
+   :rel "default-cart-line-items"}
+  {:name "add-line-item-to-default-cart-action",
+   :family-id :carts,
+   :from :carts/add-line-item-to-default-cart-action,
+   :to :carts/add-line-item-to-cart-action,
+   :rel "add-line-item-to-default-cart-action"}
+  {:name "default-cart",
+   :family-id :carts,
+   :from :carts/default-cart,
+   :to :carts/cart,
+   :rel "default-cart"}
+  {:name "default-wishlist",
+   :family-id :wishlists,
+   :from :wishlists/default-wishlist,
+   :to :wishlists/wishlist,
+   :rel "default-wishlist"}
+  {:name "default-profile",
+   :family-id :profiles,
+   :from :profiles/default-profile,
+   :to :profiles/profile,
+   :rel "default-profile"}
+  {:name "default-paymentmethod",
+   :family-id :paymentmethods,
+   :from :paymentmethods/default-paymentmethod,
+   :to :paymentmethods/paymentmethod,
+   :rel "default-paymentmethod"}],
+ :uri-part
+ [{:name "shipment-details-id",
+   :description
+   "A value representing the shipment detail identification.",
+   :family-id :shipmentdetails}
+  {:name "shipping-option-id",
+   :description
+   "A value representing the shipping option identification.",
+   :family-id :shipmentdetails}
+  {:name "component-id",
+   :description "The component ID.",
+   :family-id :itemdefinitions}
+  {:name "option-id",
+   :description "The option ID.",
+   :family-id :itemdefinitions}
+  {:name "option-value-id",
+   :description "The option value ID.",
+   :family-id :itemdefinitions}
+  {:name "line-item-id",
+   :description "The line item identifier.",
+   :family-id :purchases}
+  {:name "paymentmeans-id",
+   :description "The paymentmeans ID.",
+   :family-id :purchases}
+  {:name "payment-id",
+   :description "The paymentmeans ID.",
+   :family-id :purchases}
+  {:name "purchase-id",
+   :description "The purchase ID",
+   :family-id :purchases}
+  {:name "address-id",
+   :description "The address ID.",
+   :family-id :addresses}
+  {:name "delivery-id",
+   :description "The delivery ID",
+   :family-id :orders}
+  {:name "order-id", :description "The order ID", :family-id :orders}
+  {:name "email-id",
+   :description "A value representing the customer's email ID.",
+   :family-id :emails}
+  {:name "group-id",
+   :description "The recommendations group ID.",
+   :family-id :recommendations}
+  {:name "node-id",
+   :description "The navigation ID.",
+   :family-id :navigations}
+  {:name "coupon-id",
+   :description "The coupon ID.",
+   :family-id :coupons}
+  {:name "slot-id", :description "The slot ID", :family-id :slots}
+  {:name "line-item-id",
+   :description
+   "\n\t\t\t\t\nThe line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a cart.\n\n[items]: #items\n\t\t\t\t\n\t\t\t",
+   :family-id :carts}
+  {:name "cart-id",
+   :description "The cart identifier.",
+   :family-id :carts}
+  {:name "line-item-id",
+   :description
+   "\n\t\t\t\t\nThe line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a wishlist.\n\n[items]: #items\n\t\t\t\t\n\t\t\t",
+   :family-id :wishlists}
+  {:name "wishlist-id",
+   :description "The wishlist identifier.",
+   :family-id :wishlists}
+  {:name "shipment-line-item-id",
+   :description "The shipment line item ID.",
+   :family-id :shipments}
+  {:name "shipment-line-item-option-id",
+   :description "The shipment line item option ID.",
+   :family-id :shipments}
+  {:name "shipment-line-item-option-value-id",
+   :description "The shipment line item option value ID.",
+   :family-id :shipments}
+  {:name "shipment-id",
+   :description "The shipment ID.",
+   :family-id :shipments}
+  {:name "country-id",
+   :description "The country id.",
+   :family-id :geographies}
+  {:name "region-id",
+   :description "The region id.",
+   :family-id :geographies}
+  {:name "profile-id",
+   :description "The profile ID.",
+   :family-id :profiles}
+  {:name "item-id",
+   :description
+   "The item identifier. This ID is a unique value across the scope.",
+   :family-id :items}
+  {:name "option-id",
+   :description "The option ID.",
+   :family-id :itemselections}
+  {:name "option-value-id",
+   :description "The option value ID.",
+   :family-id :itemselections}
+  {:name "family",
+   :description
+   "Defines the name of a definitions family, like 'items' or 'prices'.",
+   :family-id :base}
+  {:name "scope",
+   :description "Defines the scope of a resource.",
+   :family-id :base}
+  {:name "resource-id",
+   :description "Defines a resource ID.",
+   :family-id :base}
+  {:name "batch-id", :description "The batch id.", :family-id :lookups}
+  {:name "promotion-id",
+   :description "The promotion ID.",
+   :family-id :promotions}
+  {:name "asset-id",
+   :description "A value representing asset ID.",
+   :family-id :assets}
+  {:name "search-id",
+   :description "The search object's identifier",
+   :family-id :searches}
+  {:name "page-id",
+   :description "The paged search result's page identifier",
+   :family-id :searches}
+  {:name "paymentmethod-id",
+   :description "The payment method ID",
+   :family-id :paymentmethods}],
  :resource
  [{:name "price-for-item",
    :description "The item price resource.",
@@ -1216,992 +2378,248 @@
    :entity "credit-card",
    :family-id :paymentmethods,
    :id :paymentmethods/paymentmethod-for-order}],
- :relationship
- [{:name "price-for-item",
-   :description
-   "\n\t\t\t\tRead the unit price of an [item][items]. The unit price of an item is the price for one unit (quantity = 1) ",
-   :rel "price",
-   :rev "item",
-   :from :items/item,
-   :to :prices/price-for-item,
-   :family-id :prices}
-  {:name "price-for-cart-line-item",
-   :description
-   "Read the unit price of a cart line item. The unit price of a cart line item is the price for one unit when a given quantity is purchased (the line item quantity).",
-   :rel "price",
-   :rev "lineitem",
-   :from :carts/line-item,
-   :to :prices/price-for-cart-line-item,
-   :family-id :prices}
-  {:name "lowest-price-for-item-definition",
-   :description
-   "\n\t\t\t\tRead the price of the item option with the lowest price. This link will only appear if the item has options.",
-   :rel "fromprice",
-   :rev "definition",
-   :from :itemdefinitions/item-definition,
-   :to :prices/price-for-itemdefinition,
-   :family-id :prices}
-  {:name "price-for-shipment-line-item",
-   :description "Retrieves the price of a shipment line item.",
-   :rel "price",
-   :from :shipments/shipment-line-item,
-   :to :prices/price-for-shipment-line-item,
-   :family-id :prices}
-  {:name "selector-for-destination-info",
-   :description "Use a Selector to select a destination.",
-   :rel "selector",
-   :rev "destinationinfo",
-   :from :shipmentdetails/destination-info,
-   :to :shipmentdetails/destination-info-selector,
-   :family-id :shipmentdetails}
-  {:name "choice-for-destination-info-selector",
-   :description "Retrieve a choice.",
-   :rel "choice",
-   :rev "selector",
-   :from :shipmentdetails/destination-info-selector,
-   :to :shipmentdetails/destination-info-selector-choice,
-   :family-id :shipmentdetails}
-  {:name "description-for-destination-info-selector-choice",
-   :description "Retrieve a choice's description.",
-   :rel "description",
-   :from :shipmentdetails/destination-info-selector-choice,
-   :to :addresses/address,
-   :family-id :shipmentdetails}
-  {:name "action-for-destination-info-selector-choice",
-   :description "Select a choice.",
-   :rel "selectaction",
-   :from :shipmentdetails/destination-info-selector-choice,
-   :to :shipmentdetails/destination-info-selector-choice,
-   :family-id :shipmentdetails}
-  {:name "destination-info-for-order",
-   :description "Retrieves the order's destination info.",
-   :rel "destinationinfo",
-   :rev "delivery",
-   :from :orders/order,
-   :to :shipmentdetails/destination-info,
-   :family-id :shipmentdetails}
-  {:name "shipping-address-for-order",
-   :description
-   "Retrieve the shipping address that is currently selected for the order.",
-   :rel "destination",
-   :from :shipmentdetails/destination-info,
-   :to :addresses/address,
-   :family-id :shipmentdetails}
-  {:name "selector-for-shipping-option",
-   :description
-   "Use a Selector to select a shipping option (i.e. FedEx, Canada Post, etc.)",
-   :rel "selector",
-   :rev "shippingoptioninfo",
-   :from :shipmentdetails/shipping-option-info,
-   :to :shipmentdetails/shipping-option-info-selector,
-   :family-id :shipmentdetails}
-  {:name "choice-for-shipping-option-selector",
-   :description "Retrieve a choice.",
-   :rel "choice",
-   :rev "selector",
-   :from :shipmentdetails/shipping-option-info-selector,
-   :to :shipmentdetails/shipping-option-info-selector-choice,
-   :family-id :shipmentdetails}
-  {:name "description-for-shipping-option-selector-choice",
-   :description "Retrieve a choice's description.",
-   :rel "description",
-   :from :shipmentdetails/shipping-option-info-selector-choice,
-   :to :shipmentdetails/shipping-option,
-   :family-id :shipmentdetails}
-  {:name "action-for-shipping-option-selector-choice",
-   :description "Select a choice.",
-   :rel "selectaction",
-   :from :shipmentdetails/shipping-option-info-selector-choice,
-   :to :shipmentdetails/shipping-option-info-selector-choice,
-   :family-id :shipmentdetails}
-  {:name "components-for-item-definition",
-   :description
-   "Read the item definition component from the list of available components.",
-   :rel "components",
-   :from :itemdefinitions/item-definition,
-   :to :itemdefinitions/item-definition-components,
-   :family-id :itemdefinitions}
-  {:name "standalone-item-for-item-definition-component",
-   :description
-   "Read the component's stand alone item. Some components can be\n\t\t\tpurchased separately.",
-   :rel "standaloneitem",
-   :from :itemdefinitions/item-definition-component,
-   :to :items/item,
-   :family-id :itemdefinitions}
-  {:name "options-for-item-definition-component",
-   :description "Read the options for an item definition component.",
-   :rel "options",
-   :from :itemdefinitions/item-definition-component,
-   :to :itemdefinitions/item-definition-component-options,
-   :family-id :itemdefinitions}
-  {:name "value-for-item-definition-component-option",
-   :description "Read the item definition component option value.",
-   :rel "value",
-   :rev "option",
-   :from :itemdefinitions/item-definition-component-option,
-   :to :itemdefinitions/item-definition-component-option-value,
-   :family-id :itemdefinitions}
-  {:name "nested-components-for-item-definition-component",
-   :description "Read a list of nested item definition components.",
-   :rel "definition",
-   :from :itemdefinitions/item-definition-component,
-   :to :itemdefinitions/item-definition-nested-components,
-   :family-id :itemdefinitions}
-  {:name "options-for-nested-item-definition-component",
-   :description
-   "Read the options for a nested item definition component.",
-   :rel "options",
-   :from :itemdefinitions/item-definition-nested-component,
-   :to :itemdefinitions/item-definition-nested-component-options,
-   :family-id :itemdefinitions}
-  {:name "value-for-nested-item-definition-component-option",
-   :description
-   "Read the nested item definition component option value.",
-   :rel "value",
-   :rev "option",
-   :from :itemdefinitions/item-definition-nested-component-option,
-   :to :itemdefinitions/item-definition-nested-component-option-value,
-   :family-id :itemdefinitions}
-  {:name "item-definition-for-item",
-   :description "Read the item definition from the item.",
-   :rel "definition",
-   :rev "item",
-   :from :items/item,
-   :to :itemdefinitions/item-definition,
-   :family-id :itemdefinitions}
-  {:name "options-for-item-definition",
-   :description "Read the options for an item definition.",
-   :rel "options",
-   :from :itemdefinitions/item-definition,
-   :to :itemdefinitions/item-definition-options,
-   :family-id :itemdefinitions}
-  {:name "value-for-item-definition-option",
-   :description "Read the item definition option value.",
-   :rel "value",
-   :rev "option",
-   :from :itemdefinitions/item-definition-option,
-   :to :itemdefinitions/item-definition-option-value,
-   :family-id :itemdefinitions}
-  {:name "create-purchase-form-from-order",
-   :description "Retrieve the form.",
-   :rel "purchaseform",
-   :from :orders/order,
-   :to :purchases/create-purchase-form,
-   :family-id :purchases}
-  {:name "create-purchase-action-from-create-purchase-form",
-   :description "Submit the purchase form to complete the purchase.",
-   :rel "submitorderaction",
-   :from :purchases/create-purchase-form,
-   :to :purchases/create-purchase-action,
-   :family-id :purchases}
-  {:name "line-items-for-purchase",
-   :description
-   "\n\t\t\t\tRetrieve a purchase's line items, which includes details on the item that was purchased such as item name, quantity purchased, and cost.",
-   :rel "lineitems",
-   :rev "purchase",
-   :from :purchases/purchase,
-   :to :purchases/purchase-line-items,
-   :family-id :purchases}
-  {:name "options-for-purchase-line-item",
-   :description "The options for the item purchased. ",
-   :rel "options",
-   :rev "lineitem",
-   :from :purchases/purchase-line-item,
-   :to :purchases/purchase-line-item-options,
-   :family-id :purchases}
-  {:name "value-for-purchase-line-item-option",
-   :description "The option value for the item purchased. ",
-   :rel "value",
-   :rev "option",
-   :from :purchases/purchase-line-item-option,
-   :to :purchases/purchase-line-item-option-value,
-   :family-id :purchases}
-  {:name "components-for-purchase-line-items",
-   :description "Components for the purchased line item.",
-   :rel "components",
-   :from :purchases/purchase-line-item,
-   :to :purchases/purchase-line-item-components,
-   :family-id :purchases}
-  {:name "options-for-purchase-line-item-component",
-   :description "The options for the item's component. ",
-   :rel "options",
-   :rev "lineitem",
-   :from :purchases/purchase-line-item-component,
+ :list-of-relationship
+ [{:name "item-definition-components",
+   :family-id :itemdefinitions,
+   :from :itemdefinitions/item-definition-components,
+   :to :itemdefinitions/item-definition-component,
+   :rel "item-definition-components"}
+  {:name "item-definition-component-options",
+   :family-id :itemdefinitions,
+   :from :itemdefinitions/item-definition-component-options,
+   :to :itemdefinitions/item-definition-component-option,
+   :rel "item-definition-component-options"}
+  {:name "item-definition-nested-components",
+   :family-id :itemdefinitions,
+   :from :itemdefinitions/item-definition-nested-components,
+   :to :itemdefinitions/item-definition-nested-component,
+   :rel "item-definition-nested-components"}
+  {:name "item-definition-nested-component-options",
+   :family-id :itemdefinitions,
+   :from :itemdefinitions/item-definition-nested-component-options,
+   :to :itemdefinitions/item-definition-nested-component-option,
+   :rel "item-definition-nested-component-options"}
+  {:name "item-definition-options",
+   :family-id :itemdefinitions,
+   :from :itemdefinitions/item-definition-options,
+   :to :itemdefinitions/item-definition-option,
+   :rel "item-definition-options"}
+  {:name "purchase-line-items",
+   :family-id :purchases,
+   :from :purchases/purchase-line-items,
+   :to :purchases/purchase-line-item,
+   :rel "purchase-line-items"}
+  {:name "purchase-line-item-components",
+   :family-id :purchases,
+   :from :purchases/purchase-line-item-components,
+   :to :purchases/purchase-line-item-component,
+   :rel "purchase-line-item-components"}
+  {:name "purchase-line-item-component-options",
+   :family-id :purchases,
+   :from :purchases/purchase-line-item-component-options,
    :to :purchases/purchase-line-item-component-options,
-   :family-id :purchases}
-  {:name "value-for-purchase-line-item-component-option",
-   :description "The option value for the item's component. ",
-   :rel "value",
-   :rev "option",
-   :from :purchases/purchase-line-item-component-option,
-   :to :purchases/purchase-line-item-component-option-value,
-   :family-id :purchases}
-  {:name "paymentmeans-for-purchase",
-   :description "List payment means for a purchase.",
-   :rel "paymentmeans",
-   :rev "purchase",
+   :rel "purchase-line-item-component-options"}
+  {:name "purchase-line-item-options",
+   :family-id :purchases,
+   :from :purchases/purchase-line-item-options,
+   :to :purchases/purchase-line-item-option,
+   :rel "purchase-line-item-options"}
+  {:name "purchase-paymentmeans",
+   :family-id :purchases,
    :from :purchases/purchase-paymentmeans,
+   :to :purchases/purchase-paymentmean,
+   :rel "purchase-paymentmeans"}
+  {:name "purchases",
+   :family-id :purchases,
+   :from :purchases/purchases,
    :to :purchases/purchase,
-   :family-id :purchases}
-  {:name "purchases-for-profile",
-   :description
-   "Retrieve a list of purchases for the logged in customer.",
-   :rel "purchases",
-   :from :profiles/profile,
-   :to :purchases/purchases,
-   :family-id :purchases}
-  {:name "billing-address-for-purchase",
-   :description "The billing address associated with this purchase.",
-   :rel "billingaddress",
-   :from :purchases/purchase,
-   :to :purchases/purchase-billingaddress,
-   :family-id :purchases}
-  {:name "add-address-form-from-addresses",
-   :description "Form to create an address.",
-   :rel "addressform",
+   :rel "purchases"}
+  {:name "addresses",
+   :family-id :addresses,
    :from :addresses/addresses,
-   :to :addresses/address-form,
-   :family-id :addresses}
-  {:name "add-address-form-action",
-   :description "Action link to send address form to.",
-   :rel "createaddressaction",
-   :from :addresses/address-form,
-   :to :addresses/create-address-action,
-   :family-id :addresses}
-  {:name "addresses-for-profile",
-   :description "Read the list of the profile's addresses.",
-   :rel "addresses",
-   :from :profiles/profile,
-   :to :addresses/addresses,
-   :family-id :addresses}
-  {:name "billing-addresses-from-addresses",
-   :description "Read billing addresses from the list of addresses.",
-   :rel "billingaddresses",
-   :from :addresses/addresses,
-   :to :addresses/billing-addresses,
-   :family-id :addresses}
-  {:name "default-billing-address-from-billing-addresses",
-   :description
-   "Read the default billing address from the list of billing addresses.",
-   :rel "default",
-   :from :addresses/billing-addresses,
-   :to :addresses/default-billing-address,
-   :family-id :addresses}
-  {:name "profile-from-billing-addresses",
-   :description "Read the profile linked to the billing addresses.",
-   :rel "profile",
-   :from :addresses/billing-addresses,
-   :to :profiles/profile,
-   :family-id :addresses}
-  {:name "shipping-addresses-from-addresses",
-   :description "Read shipping addresses from the list of addresses.",
-   :rel "shippingaddresses",
-   :from :addresses/addresses,
-   :to :addresses/shipping-addresses,
-   :family-id :addresses}
-  {:name "default-shipping-address-from-shipping-addresses",
-   :description
-   "Read the default shipping address from the list of shipping addresses.",
-   :rel "default",
-   :from :addresses/shipping-addresses,
-   :to :addresses/default-shipping-address,
-   :family-id :addresses}
-  {:name "profile-from-shipping-addresses",
-   :description "Read the profile linked to the shipping addresses.",
-   :rel "profile",
-   :from :addresses/shipping-addresses,
-   :to :profiles/profile,
-   :family-id :addresses}
-  {:name "selector-for-billingaddress-info",
-   :description "Retrieve the selector.",
-   :rel "selector",
-   :rev "billingaddressinfo",
-   :from :orders/billingaddress-info,
-   :to :orders/billingaddress-info-selector,
-   :family-id :orders}
-  {:name "choices-for-billingaddress-info-selector",
-   :description
-   "Retrieve the choices for the billing address selector.",
-   :rel "choice",
-   :rev "selector",
-   :from :orders/billingaddress-info-selector,
-   :to :orders/billingaddress-info-selector-choices,
-   :family-id :orders}
-  {:name "choice-for-billingaddress-info-selector-choice",
-   :description "Retrieve a choice.",
-   :rel "choice",
-   :rev "selector",
-   :from :orders/billingaddress-info-selector-choices,
-   :to :orders/billingaddress-info-selector-choice,
-   :family-id :orders}
-  {:name "description-for-billingaddress-info-selector-choice",
-   :description "Retrieve a choice's description.",
-   :rel "description",
-   :from :orders/billingaddress-info-selector-choice,
    :to :addresses/address,
-   :family-id :orders}
-  {:name "action-for-billingaddress-info-selector-choice",
-   :description "Select a choice.",
-   :rel "selectaction",
-   :from :orders/billingaddress-info-selector-choice,
-   :to :orders/billingaddress-info-selector-choice,
-   :family-id :orders}
-  {:name "deliveries-for-order",
-   :description
-   "Retreive a list of [deliveries](#order-deliveries) for an order.",
-   :rel "deliveries",
-   :rev "order",
-   :from :orders/order,
-   :to :orders/deliveries,
-   :family-id :orders}
-  {:name "email-info-for-order",
-   :description "Read order email needinfo from order.",
-   :rel "emailinfo",
-   :from :orders/order,
-   :to :orders/email-info,
-   :family-id :orders}
-  {:name "discount-applied-to-cart",
-   :description
-   "\n\t\t\t\t\nRetrieve the discount amount applied to a cart [total][totals], excluding line item discounts.\n\n[totals]: #totals\n\t\t\t\t\n\t\t\t",
-   :rel "discount",
-   :rev "cart",
-   :from :carts/cart,
-   :to :discounts/discount-for-cart,
-   :family-id :discounts}
-  {:name "discount-applied-to-purchase",
-   :description
-   "\n\t\t\t\t\nRetrieve the discount amount applied to a [purchase][purchases].\n\n[purchases]: #purchases\n\t\t\t\t\n\t\t\t",
-   :rel "discount",
-   :rev "purchase",
-   :from :purchases/purchase,
-   :to :discounts/discount-for-purchase,
-   :family-id :discounts}
-  {:name "add-email-form-from-emails",
-   :description "A form to add an email address to the current user.",
-   :rel "emailform",
+   :rel "addresses"}
+  {:name "billing-addresses",
+   :family-id :addresses,
+   :from :addresses/billing-addresses,
+   :to :addresses/address,
+   :rel "billing-addresses"}
+  {:name "shipping-addresses",
+   :family-id :addresses,
+   :from :addresses/shipping-addresses,
+   :to :addresses/address,
+   :rel "shipping-addresses"}
+  {:name "deliveries",
+   :family-id :orders,
+   :from :orders/deliveries,
+   :to :orders/delivery,
+   :rel "deliveries"}
+  {:name "emails",
+   :family-id :emails,
    :from :emails/emails,
-   :to :emails/add-email-form,
-   :family-id :emails}
-  {:name "action-for-add-email-form",
-   :description
-   "Submit a form to add an email address to the current user.",
-   :rel "createemailaction",
-   :from :emails/add-email-form,
-   :to :emails/add-email-action,
-   :family-id :emails}
-  {:name "emails-for-profile",
-   :description "Read the list of the profile's email addresses.",
-   :rel "emails",
-   :from :profiles/profile,
-   :to :emails/emails,
-   :family-id :emails}
-  {:name "recommendations-for-item",
-   :description "Read other items recommended for an item.",
-   :rel "recommendations",
-   :from :items/item,
-   :to :recommendations/item-recommendation-groups,
-   :family-id :recommendations}
-  {:name "recommendations-for-navigation",
-   :description "Read other items recommended for a navigation node.",
-   :rel "recommendations",
-   :from :navigations/navigation,
-   :to :recommendations/item-recommendation-groups,
-   :family-id :recommendations}
-  {:name "navigations-from-root",
-   :description "Navigations can be found from the root resource.",
-   :rel "navigations",
-   :from :base/root,
-   :to :navigations/navigations,
-   :family-id :navigations}
-  {:name "navigations-to-navigation",
-   :description
-   "The top navigations resource to the first-level navigation list.",
-   :rel "element",
-   :rev "top",
-   :from :navigations/navigations,
-   :to :navigations/navigation,
-   :family-id :navigations}
-  {:name "parent-node-to-child",
-   :description "Navigate from a parent to a child navigation.",
-   :rel "child",
-   :rev "parent",
-   :from :navigations/navigation,
-   :to :navigations/navigation,
-   :family-id :navigations}
-  {:name "apply-coupon-form-from-couponinfo",
-   :description "Form to apply a coupon to the order.",
-   :rel "couponform",
-   :from :coupons/couponinfo,
-   :to :coupons/apply-coupon-to-order-form,
-   :family-id :coupons}
-  {:name "apply-coupon-to-order-action",
-   :description "Apply a coupon to the order.",
-   :rel "applycouponaction",
-   :from :coupons/apply-coupon-to-order-form,
-   :to :coupons/order-coupon-action,
-   :family-id :coupons}
-  {:name "coupon-from-couponinfo",
-   :description "Read coupon from couponinfo.",
-   :rel "coupon",
-   :from :coupons/couponinfo,
-   :to :coupons/order-coupon,
-   :family-id :coupons}
-  {:name "coupons-applied-to-order",
-   :description "Read coupons applied to the order.",
-   :rel "couponinfo",
-   :rev "order",
-   :from :orders/order,
-   :to :coupons/couponinfo,
-   :family-id :coupons}
-  {:name "coupons-applied-to-purchase",
-   :description "Read coupons applied to the purchase.",
-   :rel "coupons",
-   :from :purchases/purchase,
-   :to :coupons/purchase-coupon-list,
-   :family-id :coupons}
-  {:name "slots-from-root",
-   :description "Discover slots from the root of the API.",
-   :rel "slots",
-   :from :base/root,
-   :to :slots/slots,
-   :family-id :slots}
-  {:name "item-onevent-for-slot",
-   :description "Link an event from a slot to an item.",
-   :rel "onevent",
-   :from :slots/slot,
-   :to :items/item,
-   :family-id :slots}
-  {:name "navigation-onevent-for-slot",
-   :description "Link an event from a slot to a navigation node.",
-   :rel "onevent",
-   :from :slots/slot,
-   :to :navigations/navigation,
-   :family-id :slots}
-  {:name "form-for-order-payment-token",
-   :description "Form to create a new payment token for an order.",
-   :rel "paymenttokenform",
-   :from :paymentmethods/paymentmethod-info,
-   :to :paymenttokens/order-payment-token-form,
-   :family-id :paymenttokens}
-  {:name "action-for-payment-token-for-order",
-   :description "Action to create payment token for an order.",
-   :rel "createpaymenttokenaction",
-   :from :paymenttokens/order-payment-token-form,
-   :to :paymenttokens/order-payment-token,
-   :family-id :paymenttokens}
-  {:name "form-for-profile-payment-token",
-   :description "Form to crate a new payment token for a profile.",
-   :rel "paymenttokenform",
-   :from :paymentmethods/paymentmethods,
-   :to :paymenttokens/profile-payment-token-form,
-   :family-id :paymenttokens}
-  {:name "create-payment-token-form-action",
-   :description "Action link to send payment token form to.",
-   :rel "createpaymenttokenaction",
-   :from :paymenttokens/profile-payment-token-form,
-   :to :paymenttokens/create-payment-token,
-   :family-id :paymenttokens}
-  {:name "line-items-for-cart",
-   :description
-   "A collection of items that have been added to a cart.",
-   :rel "lineitems",
-   :from :carts/cart,
-   :to :carts/line-items,
-   :family-id :carts}
-  {:name "root-to-line-items-for-default-cart",
-   :description
-   "A collection of items that have been added to the default cart.",
-   :rel "lineitems",
-   :from :base/root,
-   :to :carts/default-cart-line-items,
-   :family-id :carts}
-  {:name "cart-for-line-item",
-   :description
-   "Retrieve the cart that has the given line item. This workflow is\n\t\t\tuseful when you need to determine which cart the line item belongs to.",
-   :rel "cart",
-   :from :carts/line-item,
-   :to :carts/cart,
-   :family-id :carts}
-  {:name "item-for-line-item",
-   :description "What's the item this line item points to?",
-   :rel "item",
-   :from :carts/line-item,
-   :to :items/item,
-   :family-id :carts}
-  {:name "add-to-default-cart-form-for-item",
-   :description "The form to add an item to the default cart.",
-   :rel "addtodefaultcartform",
-   :from :items/item,
-   :to :carts/add-to-default-cart-form,
-   :family-id :carts}
-  {:name "add-to-default-cart-action-for-form",
-   :description
-   "The action to invoke when submitting an add-to-default-cart form.",
-   :rel "addtodefaultcartaction",
-   :from :carts/add-to-default-cart-form,
-   :to :carts/add-line-item-to-default-cart-action,
-   :family-id :carts}
-  {:name "cart-memberships-from-item",
-   :description "Cart memberships from item",
-   :rel "cartmemberships",
-   :from :items/item,
-   :to :carts/read-cart-memberships,
-   :family-id :carts}
-  {:name "root-to-default-cart",
-   :description
-   "\n\t\t\t\nRetrieve the shopper's default cart. When using *default* in the cart's URI, default evaluates to the logged in shopper's cart I.D.\nSee the main Cortex documentation for more information on *default*.\n\t\t\t\n\t\t",
-   :rel "defaultcart",
-   :from :base/root,
-   :to :carts/default-cart,
-   :family-id :carts}
-  {:name "item-to-wishlist-form",
-   :description
-   "Link from items.item to a form used to add that item to a wishlist",
-   :rel "addtowishlistform",
-   :from :items/item,
-   :to :wishlists/add-item-to-wishlist-form,
-   :family-id :wishlists}
-  {:name "wishlist-line-items-for-wishlist",
-   :description
-   "A collection of items that have been added to a wishlist.",
-   :rel "lineitems",
-   :rev "wishlist",
-   :from :wishlists/wishlist,
-   :to :wishlists/wishlist-line-items,
-   :family-id :wishlists}
-  {:name "wishlist-line-items-for-wishlist-line-item",
-   :description
-   "A collection of items that have been added to a wishlist.",
-   :rel "list",
-   :from :wishlists/wishlist-line-item,
-   :to :wishlists/wishlist-line-items,
-   :family-id :wishlists}
-  {:name "wishlist-for-wishlist-line-item",
-   :description
-   "Retrieve the wishlist that has the given line item. This workflow is\n\t\t\tuseful when you need to determine which wishlist the line item belongs to.",
-   :rel "wishlist",
-   :from :wishlists/wishlist-line-item,
+   :to :emails/email,
+   :rel "emails"}
+  {:name "item-recommendation-groups",
+   :family-id :recommendations,
+   :from :recommendations/item-recommendation-groups,
+   :to :recommendations/item-recommendation-group,
+   :rel "item-recommendation-groups"}
+  {:name "purchase-coupon-list",
+   :family-id :coupons,
+   :from :coupons/purchase-coupon-list,
+   :to :coupons/purchase-coupon,
+   :rel "purchase-coupon-list"}
+  {:name "slots",
+   :family-id :slots,
+   :from :slots/slots,
+   :to :slots/slot,
+   :rel "slots"}
+  {:name "line-items",
+   :family-id :carts,
+   :from :carts/line-items,
+   :to :carts/line-item,
+   :rel "line-items"}
+  {:name "wishlist-line-items",
+   :family-id :wishlists,
+   :from :wishlists/wishlist-line-items,
+   :to :wishlists/wishlist-line-item,
+   :rel "wishlist-line-items"}
+  {:name "read-wishlist-memberships",
+   :family-id :wishlists,
+   :from :wishlists/read-wishlist-memberships,
    :to :wishlists/wishlist,
-   :family-id :wishlists}
-  {:name "item-for-wishlist-line-item",
-   :description "What's the item this line item points to?",
-   :rel "item",
-   :from :wishlists/wishlist-line-item,
+   :rel "read-wishlist-memberships"}
+  {:name "wishlists",
+   :family-id :wishlists,
+   :from :wishlists/wishlists,
+   :to :wishlists/wishlist,
+   :rel "wishlists"}
+  {:name "shipment-line-items",
+   :family-id :shipments,
+   :from :shipments/shipment-line-items,
+   :to :shipments/shipment-line-item,
+   :rel "shipment-line-items"}
+  {:name "shipment-line-item-options",
+   :family-id :shipments,
+   :from :shipments/shipment-line-item-options,
+   :to :shipments/shipment-line-item-option,
+   :rel "shipment-line-item-options"}
+  {:name "shipments",
+   :family-id :shipments,
+   :from :shipments/shipments,
+   :to :shipments/shipment,
+   :rel "shipments"}
+  {:name "countries",
+   :family-id :geographies,
+   :from :geographies/countries,
+   :to :geographies/country,
+   :rel "countries"}
+  {:name "regions",
+   :family-id :geographies,
+   :from :geographies/regions,
+   :to :geographies/region,
+   :rel "regions"}
+  {:name "items",
+   :family-id :items,
+   :from :items/items,
    :to :items/item,
-   :family-id :wishlists}
-  {:name "wishlist-move-to-wishlist-form",
-   :description
-   "Link for a form used to move cart line item a wishlist",
-   :rel "movetowishlistform",
-   :from :carts/line-item,
-   :to :wishlists/move-to-wishlist-form,
-   :family-id :wishlists}
-  {:name "wishlist-move-to-cart-form",
-   :description "Link for a form used to move wishlist item to a cart",
-   :rel "movetocartform",
-   :from :wishlists/wishlist-line-item,
-   :to :wishlists/move-to-cart-form,
-   :family-id :wishlists}
-  {:name "wishlist-membership-from-item",
-   :description "Wishlist memberships for a given item",
-   :rel "wishlistmemberships",
-   :from :items/item,
-   :to :wishlists/read-wishlist-memberships,
-   :family-id :wishlists}
-  {:name "default-wishlist-from-root",
-   :description "Link from root resource to default wishlist.",
-   :rel "defaultwishlist",
-   :from :base/root,
-   :to :wishlists/default-wishlist,
-   :family-id :wishlists}
-  {:name "profile-to-wishlists",
-   :description "Retrieve a list of links to a shopper's wishlists",
-   :rel "wishlists",
-   :rev "profile",
-   :from :profiles/profile,
-   :to :wishlists/wishlists,
-   :family-id :wishlists}
-  {:name "line-items-for-shipment",
-   :description
-   "Retrieve the shipment line items associated with a shipment.",
-   :rel "lineitems",
-   :from :shipments/shipment,
-   :to :shipments/shipment-line-items,
-   :family-id :shipments}
-  {:name "options-for-shipment-line-item",
-   :description
-   "Retrieve the options associated with a shipment line item.",
-   :rel "options",
-   :from :shipments/shipment-line-item,
-   :to :shipments/shipment-line-item-options,
-   :family-id :shipments}
-  {:name "value-for-shipment-line-item-option",
-   :description
-   "Retrieve the option value associated with a shipment line item.",
-   :rel "value",
-   :from :shipments/shipment-line-item-option,
-   :to :shipments/shipment-line-item-option-value,
-   :family-id :shipments}
-  {:name "destination-address-for-purchase",
-   :description
-   "Follow a link from a shipment to the shipping address.",
-   :rel "destination",
-   :from :shipments/shipment,
-   :to :shipments/purchase-shipment-shipping-address,
-   :family-id :shipments}
-  {:name "shipping-option-for-purchase",
-   :description
-   "Follow a link from a shipment to the shipping option.",
-   :rel "shippingoption",
-   :from :shipments/shipment,
-   :to :shipments/purchase-shipment-shipping-option,
-   :family-id :shipments}
-  {:name "shipments-for-purchase",
-   :description "Retrieve the shipments associated with a purchase.",
-   :rel "shipments",
-   :from :purchases/purchase,
-   :to :shipments/shipments,
-   :family-id :shipments}
-  {:name "total-for-cart",
-   :description
-   "Retrieve the total cost of all cart line items before cart total discounts are applied.",
-   :rel "total",
-   :from :carts/cart,
-   :to :totals/cart-total,
-   :family-id :totals}
-  {:name "total-for-cart-line-item",
-   :description
-   "Retrieve the total cost of a single cart line item before cart line item discounts are applied.",
-   :rel "total",
-   :from :carts/line-item,
-   :to :totals/cart-line-item-total,
-   :family-id :totals}
-  {:name "total-for-order",
-   :description
-   "Retrieve the total cost of the shopper's order including taxes and shipping costs.",
-   :rel "total",
-   :from :orders/order,
-   :to :totals/order-total,
-   :family-id :totals}
-  {:name "total-for-shipment",
-   :description "Retrieve the total cost for a shipment.",
-   :rel "total",
-   :from :shipments/shipment,
-   :to :totals/shipment-total,
-   :family-id :totals}
-  {:name "total-for-shipment-line-item",
-   :description "Retrieve the total cost for a shipment line item.",
-   :rel "total",
-   :from :shipments/shipment-line-item,
-   :to :totals/shipment-line-item-total,
-   :family-id :totals}
-  {:name "root-to-countries",
-   :description "Countries can be discovered at the root.",
-   :rel "countries",
-   :from :base/root,
-   :to :geographies/countries,
-   :family-id :geographies}
-  {:name "regions-for-country",
-   :description "A list of regions for a country.",
-   :rel "regions",
-   :from :geographies/country,
-   :to :geographies/regions,
-   :family-id :geographies}
-  {:name "default-profile-from-root",
-   :description "Link from root resource to default profile.",
-   :rel "defaultprofile",
-   :from :base/root,
-   :to :profiles/default-profile,
-   :family-id :profiles}
-  {:name "items-from-root",
-   :description "Link from root resource to items.",
-   :rel "items",
-   :from :base/root,
-   :to :items/items,
-   :family-id :items}
-  {:name "selector-for-item-definition-option",
-   :description "Selector for an item option value.",
-   :rel "selector",
-   :rev "option",
-   :from :itemdefinitions/item-definition-option,
-   :to :itemselections/itemselections-option-selector,
-   :family-id :itemselections}
-  {:name "value-choice-for-itemselections-option-selector",
-   :description "Retrieve a choice.",
-   :rel "choice",
-   :rev "selector",
-   :from :itemselections/itemselections-option-selector,
-   :to :itemselections/itemselections-option-value-selector,
-   :family-id :itemselections}
-  {:name "description-for-itemselections-option-value-selector-choice",
-   :description "Retrieve a choice's description.",
-   :rel "description",
-   :from :itemselections/itemselections-option-value-selector,
-   :to :itemdefinitions/item-definition-option-value,
-   :family-id :itemselections}
-  {:name "action-for-itemselections-option-selector-choice",
-   :description "Select a choice.",
-   :rel "selectaction",
-   :from :itemselections/itemselections-option-value-selector,
-   :to :itemselections/itemselections-option-value-selector,
-   :family-id :itemselections}
-  {:name "read-cart-line-item-availability",
-   :description
-   "\n\t\t\t\tRead a line item's availability. The availability rule identifies the purchasable state of the item(s) in the line item.\n\t\t\t",
-   :rel "availability",
-   :rev "lineitem",
-   :from :carts/line-item,
-   :to :availabilities/availability-for-cart-line-item,
-   :family-id :availabilities}
-  {:name "read-item-availability",
-   :description
-   "Read an item's availability. The availability rule identifies the item's purchasability.",
-   :rel "availability",
-   :rev "item",
-   :from :items/item,
-   :to :availabilities/availability-for-item,
-   :family-id :availabilities}
-  {:name "batch-items-form-from-lookups",
-   :description
-   "A link from the lookups resource to the batch items form.",
-   :rel "batchitemslookupform",
-   :from :lookups/lookups,
-   :to :lookups/batch-items-form,
-   :family-id :lookups}
-  {:name "batch-items-action-from-form",
-   :description "Submit action for a batched item lookup form.",
-   :rel "batchlookupaction",
-   :from :lookups/batch-items-form,
-   :to :lookups/batch-items-action,
-   :family-id :lookups}
-  {:name "result-for-batch-items",
-   :description "The result from a batch lookup form action.",
-   :rel "batchlookupaction",
-   :from :lookups/batch-items-action,
-   :to :lookups/batch-items,
-   :family-id :lookups}
-  {:name "lookup-item-form-from-lookups",
-   :description "A link from the lookups resource to this form.",
-   :rel "itemlookupform",
-   :from :lookups/lookups,
-   :to :lookups/lookup-item-form,
-   :family-id :lookups}
-  {:name "lookup-item-action-from-form",
-   :description "Submit action for an item lookup form.",
-   :rel "itemlookupaction",
-   :from :lookups/lookup-item-form,
-   :to :lookups/lookup-item-action,
-   :family-id :lookups}
-  {:name "root-to-lookups",
-   :description "Link from root to lookups.",
-   :rel "lookups",
-   :from :base/root,
-   :to :lookups/lookups,
-   :family-id :lookups}
-  {:name "code-for-item",
-   :description "Read the code of an [item][items].",
-   :rel "item",
-   :rev "code",
-   :from :items/item,
-   :to :lookups/code-for-item,
-   :family-id :lookups}
-  {:name "registration-from-root",
-   :description
-   "Provides the form with which to register a new account.",
-   :rel "newaccountform",
-   :from :base/root,
-   :to :registrations/new-account-registration-form,
-   :family-id :registrations}
+   :rel "items"}
+  {:name "batch-items",
+   :family-id :lookups,
+   :from :lookups/batch-items,
+   :to :items/item,
+   :rel "batch-items"}
   {:name "applied-promotions-for-cart-line-item",
-   :description "Retrieve the promotions applied to a cart line item.",
-   :rel "appliedpromotions",
-   :from :carts/line-item,
-   :to :promotions/applied-promotions-for-cart-line-item,
-   :family-id :promotions}
-  {:name "applied-promotions-for-cart",
-   :description "Retrieve promotions applied to a cart",
-   :rel "appliedpromotions",
-   :from :carts/cart,
-   :to :promotions/applied-promotions-for-cart,
-   :family-id :promotions}
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-cart-line-item,
+   :to :promotions/promotion,
+   :rel "applied-promotions-for-cart-line-item"}
   {:name "possible-promotions-for-cart",
-   :description "Retrieve possible promotions for a cart.",
-   :rel "possiblepromotions",
-   :from :carts/cart,
-   :to :promotions/possible-promotions-for-cart,
-   :family-id :promotions}
+   :family-id :promotions,
+   :from :promotions/possible-promotions-for-cart,
+   :to :promotions/promotion,
+   :rel "possible-promotions-for-cart"}
+  {:name "applied-promotions-for-cart",
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-cart,
+   :to :promotions/promotion,
+   :rel "applied-promotions-for-cart"}
   {:name "applied-promotions-for-purchase",
-   :description "Retrieve promotions applied to a purchase.",
-   :rel "appliedpromotions",
-   :from :purchases/purchase,
-   :to :promotions/applied-promotions-for-purchase,
-   :family-id :promotions}
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-purchase,
+   :to :promotions/purchase-promotion,
+   :rel "applied-promotions-for-purchase"}
   {:name "applied-promotions-for-item",
-   :description "Retrieve promotions applied to an item.",
-   :rel "appliedpromotions",
-   :from :items/item,
-   :to :promotions/applied-promotions-for-item,
-   :family-id :promotions}
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-item,
+   :to :promotions/promotion,
+   :rel "applied-promotions-for-item"}
   {:name "possible-promotions-for-item",
-   :description "Retrieve possible promotions for an item.",
-   :rel "possiblepromotions",
-   :from :items/item,
-   :to :promotions/possible-promotions-for-item,
-   :family-id :promotions}
+   :family-id :promotions,
+   :from :promotions/possible-promotions-for-item,
+   :to :promotions/promotion,
+   :rel "possible-promotions-for-item"}
   {:name "applied-promotions-for-shipping-option",
-   :description "Retrieve promotions applied to a shipping option.",
-   :rel "appliedpromotions",
-   :from :shipmentdetails/shipping-option,
-   :to :promotions/applied-promotions-for-shipping-option,
-   :family-id :promotions}
-  {:name "promotion-for-order-coupon",
-   :description
-   "Retrieve a promotion trigged by a coupon on an order.",
-   :rel "appliedpromotions",
-   :from :coupons/order-coupon,
-   :to :promotions/applied-promotions-for-order-coupon,
-   :family-id :promotions}
-  {:name "promotion-for-purchase-coupon",
-   :description
-   "Retrieve a promotion trigged by a coupon on a purchase.",
-   :rel "appliedpromotions",
-   :from :coupons/purchase-coupon,
-   :to :promotions/applied-promotions-for-purchase-coupon,
-   :family-id :promotions}
-  {:name "fake-link-to-root",
-   :description "Fake link to keep validator happy",
-   :rel "purchasecoupons",
-   :from :base/root,
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-shipping-option,
+   :to :promotions/promotion,
+   :rel "applied-promotions-for-shipping-option"}
+  {:name "applied-promotions-for-order-coupon",
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-order-coupon,
+   :to :promotions/promotion,
+   :rel "applied-promotions-for-order-coupon"}
+  {:name "applied-promotions-for-purchase-coupon",
+   :family-id :promotions,
+   :from :promotions/applied-promotions-for-purchase-coupon,
    :to :promotions/purchase-coupon-promotion,
-   :family-id :promotions}
-  {:name "assets-for-item",
-   :description "Retrieves an item's asset.",
-   :rel "assets",
-   :rev "definition",
-   :from :itemdefinitions/item-definition,
-   :to :assets/assets,
-   :family-id :assets}
-  {:name "next-page-keyword-search-results",
-   :description "Pages of search results.",
-   :rel "next",
-   :rev "previous",
-   :from :searches/keyword-search-result,
-   :to :searches/keyword-search-result-paged,
-   :family-id :searches}
-  {:name "search-to-keyword-search-form",
-   :description "Provide a navigation to keyword search.",
-   :rel "keywordsearchform",
-   :from :searches/searches,
-   :to :searches/keyword-search-form,
-   :family-id :searches}
-  {:name "action-for-keyword-search-form",
-   :description "Submit a keyword search action to this link.",
-   :rel "submit",
-   :from :searches/keyword-search-form,
-   :to :searches/keyword-search-action,
-   :family-id :searches}
-  {:name "result-for-keyword-search",
-   :description
-   "The result from a keyword search. This should go into the 'result' section of a form definition.",
-   :rel "itemkeywordsearchaction",
-   :from :searches/keyword-search-action,
-   :to :searches/keyword-search-result,
-   :family-id :searches}
-  {:name "next-page-navigation-items",
-   :description "Pages of navigation items.",
-   :rel "next",
-   :rev "previous",
-   :from :searches/navigation-items,
-   :to :searches/navigation-items-paged,
-   :family-id :searches}
-  {:name "root-to-searches",
-   :description "Link from root resource to searches.",
-   :rel "searches",
-   :from :base/root,
-   :to :searches/searches,
-   :family-id :searches}
-  {:name "navigation-to-items",
-   :description
-   "Retrieve a paginated list of items associated with the navigation node.",
-   :rel "items",
-   :from :navigations/navigation,
-   :to :searches/navigation-items,
-   :family-id :searches}
-  {:name "taxes-for-order",
-   :description
-   "Retrieves the total tax for an order, which includes the order's tax amount, currency, and type of tax (VAT, HST, etc.).",
-   :rel "tax",
-   :from :orders/order,
-   :to :taxes/order-tax,
-   :family-id :taxes}
-  {:name "taxes-for-shipment",
-   :description
-   "\n\t\t\t\tRetrieves the total tax for a shipment, which includes the shipments' tax amount, currency, and type of tax (VAT, HST, etc.).",
-   :rel "tax",
-   :from :shipments/shipment,
-   :to :taxes/shipment-tax,
-   :family-id :taxes}
-  {:name "taxes-for-shipment-line-item",
-   :description "Retrieve the tax amount for a shipment line item.",
-   :rel "tax",
-   :from :shipments/shipment-line-item,
-   :to :taxes/shipment-line-item-tax,
-   :family-id :taxes}
-  {:name "selector-for-paymentmethod-info",
-   :description "Retrieve the selector for paymentmethod info.",
-   :rel "selector",
-   :rev "paymentmethodinfo",
-   :from :paymentmethods/paymentmethod-info,
-   :to :paymentmethods/paymentmethods-selector,
-   :family-id :paymentmethods}
-  {:name "choice-for-paymentmethods-selector",
-   :description "Retrieve a choice.",
-   :rel "choice",
-   :rev "selector",
-   :from :paymentmethods/paymentmethods-selector,
-   :to :paymentmethods/paymentmethods-selector-choice,
-   :family-id :paymentmethods}
-  {:name "description-for-paymentmethods-selector-choice",
-   :description "Retrieve a choice's description.",
-   :rel "description",
-   :rev "selector",
-   :from :paymentmethods/paymentmethods-selector,
-   :to :paymentmethods/paymentmethods-selector-choice,
-   :family-id :paymentmethods}
-  {:name "select-paymentmethods-choice",
-   :description "Select a choice.",
-   :rel "selectaction",
-   :from :paymentmethods/paymentmethods-selector-choice,
-   :to :paymentmethods/paymentmethods-selector-choice,
-   :family-id :paymentmethods}
-  {:name "paymentmethods-for-profile",
-   :description "The customer's payment methods.",
-   :rel "paymentmethods",
-   :rev "profile",
-   :from :profiles/profile,
-   :to :paymentmethods/paymentmethods,
-   :family-id :paymentmethods}
-  {:name "default-paymentmethod",
-   :description "The customer's default payment method.",
-   :rel "default",
-   :rev "list",
+   :rel "applied-promotions-for-purchase-coupon"}
+  {:name "assets",
+   :family-id :assets,
+   :from :assets/assets,
+   :to :assets/asset,
+   :rel "assets"}
+  {:name "paymentmethods",
+   :family-id :paymentmethods,
    :from :paymentmethods/paymentmethods,
-   :to :paymentmethods/default-paymentmethod,
-   :family-id :paymentmethods}
-  {:name "paymentmethod-info-for-order",
-   :description
-   "Read the payment method currently selected for the order.",
-   :rel "paymentmethodinfo",
-   :rev "order",
-   :from :orders/order,
-   :to :paymentmethods/paymentmethod-info,
-   :family-id :paymentmethods}
-  {:name "paymentmethod-for-order",
-   :description "Read a payment method.",
-   :rel "paymentmethod",
-   :from :paymentmethods/paymentmethod-info,
-   :to :paymentmethods/paymentmethod-for-order,
-   :family-id :paymentmethods}],
+   :to :paymentmethods/paymentmethod,
+   :rel "paymentmethods"}],
+ :plan
+ [{:name "form-control-template",
+   :description "The template for a form control",
+   :step
+   [{:description "Retrieve the form.",
+     :start "{start-resource}",
+     :follow-link "{read-form-link}",
+     :result "{form-resource}"}
+    {:description "Submit the form",
+     :start "{form-resource}",
+     :submit "{form-resource}",
+     :to "{submit-resource}",
+     :via-link "{submit-action-link}",
+     :result "{submit-result}"}],
+   :family-id :controls}
+  {:name "list-element-template",
+   :description "Read an element in a list.",
+   :step
+   [{:description "Read the list.",
+     :start "{start-resource}",
+     :follow-link "{list-name}",
+     :link-back "{start-name}",
+     :result "{list-resource}"}
+    {:description "Read an element in the list.",
+     :start "{list-resource}",
+     :follow-link "element",
+     :link-back "list",
+     :result "{element-resource}"}],
+   :family-id :collections}
+  {:name "read-root",
+   :description "Read the root resource to discover the API.",
+   :step
+   [{:description "Read the root resource.",
+     :start "root",
+     :read-self [nil]}],
+   :family-id :base}],
  :entity
  [{:name "item-price",
    :description "The unit price of an item.",
@@ -3218,381 +3636,4 @@
      :description "The year of the expiration date.",
      :string [{:min-length "4", :max-length "4"}]}],
    :entity-type "elasticpath.paymentmethods.credit-card",
-   :family-id :paymentmethods}],
- :uri-part
- [{:name "shipment-details-id",
-   :description
-   "A value representing the shipment detail identification.",
-   :family-id :shipmentdetails}
-  {:name "shipping-option-id",
-   :description
-   "A value representing the shipping option identification.",
-   :family-id :shipmentdetails}
-  {:name "component-id",
-   :description "The component ID.",
-   :family-id :itemdefinitions}
-  {:name "option-id",
-   :description "The option ID.",
-   :family-id :itemdefinitions}
-  {:name "option-value-id",
-   :description "The option value ID.",
-   :family-id :itemdefinitions}
-  {:name "line-item-id",
-   :description "The line item identifier.",
-   :family-id :purchases}
-  {:name "paymentmeans-id",
-   :description "The paymentmeans ID.",
-   :family-id :purchases}
-  {:name "payment-id",
-   :description "The paymentmeans ID.",
-   :family-id :purchases}
-  {:name "purchase-id",
-   :description "The purchase ID",
-   :family-id :purchases}
-  {:name "address-id",
-   :description "The address ID.",
-   :family-id :addresses}
-  {:name "delivery-id",
-   :description "The delivery ID",
-   :family-id :orders}
-  {:name "order-id", :description "The order ID", :family-id :orders}
-  {:name "email-id",
-   :description "A value representing the customer's email ID.",
-   :family-id :emails}
-  {:name "group-id",
-   :description "The recommendations group ID.",
-   :family-id :recommendations}
-  {:name "node-id",
-   :description "The navigation ID.",
-   :family-id :navigations}
-  {:name "coupon-id",
-   :description "The coupon ID.",
-   :family-id :coupons}
-  {:name "slot-id", :description "The slot ID", :family-id :slots}
-  {:name "line-item-id",
-   :description
-   "\n\t\t\t\t\nThe line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a cart.\n\n[items]: #items\n\t\t\t\t\n\t\t\t",
-   :family-id :carts}
-  {:name "cart-id",
-   :description "The cart identifier.",
-   :family-id :carts}
-  {:name "line-item-id",
-   :description
-   "\n\t\t\t\t\nThe line item identifier. This ID is a unique number assigned by Cortex API when the [item][items]is added to a wishlist.\n\n[items]: #items\n\t\t\t\t\n\t\t\t",
-   :family-id :wishlists}
-  {:name "wishlist-id",
-   :description "The wishlist identifier.",
-   :family-id :wishlists}
-  {:name "shipment-line-item-id",
-   :description "The shipment line item ID.",
-   :family-id :shipments}
-  {:name "shipment-line-item-option-id",
-   :description "The shipment line item option ID.",
-   :family-id :shipments}
-  {:name "shipment-line-item-option-value-id",
-   :description "The shipment line item option value ID.",
-   :family-id :shipments}
-  {:name "shipment-id",
-   :description "The shipment ID.",
-   :family-id :shipments}
-  {:name "country-id",
-   :description "The country id.",
-   :family-id :geographies}
-  {:name "region-id",
-   :description "The region id.",
-   :family-id :geographies}
-  {:name "profile-id",
-   :description "The profile ID.",
-   :family-id :profiles}
-  {:name "item-id",
-   :description
-   "The item identifier. This ID is a unique value across the scope.",
-   :family-id :items}
-  {:name "option-id",
-   :description "The option ID.",
-   :family-id :itemselections}
-  {:name "option-value-id",
-   :description "The option value ID.",
-   :family-id :itemselections}
-  {:name "family",
-   :description
-   "Defines the name of a definitions family, like 'items' or 'prices'.",
-   :family-id :base}
-  {:name "scope",
-   :description "Defines the scope of a resource.",
-   :family-id :base}
-  {:name "resource-id",
-   :description "Defines a resource ID.",
-   :family-id :base}
-  {:name "batch-id", :description "The batch id.", :family-id :lookups}
-  {:name "promotion-id",
-   :description "The promotion ID.",
-   :family-id :promotions}
-  {:name "asset-id",
-   :description "A value representing asset ID.",
-   :family-id :assets}
-  {:name "search-id",
-   :description "The search object's identifier",
-   :family-id :searches}
-  {:name "page-id",
-   :description "The paged search result's page identifier",
-   :family-id :searches}
-  {:name "paymentmethod-id",
-   :description "The payment method ID",
-   :family-id :paymentmethods}],
- :plan
- [{:name "form-control-template",
-   :description "The template for a form control",
-   :step
-   [{:description "Retrieve the form.",
-     :start "{start-resource}",
-     :follow-link "{read-form-link}",
-     :result "{form-resource}"}
-    {:description "Submit the form",
-     :start "{form-resource}",
-     :submit "{form-resource}",
-     :to "{submit-resource}",
-     :via-link "{submit-action-link}",
-     :result "{submit-result}"}],
-   :family-id :controls}
-  {:name "list-element-template",
-   :description "Read an element in a list.",
-   :step
-   [{:description "Read the list.",
-     :start "{start-resource}",
-     :follow-link "{list-name}",
-     :link-back "{start-name}",
-     :result "{list-resource}"}
-    {:description "Read an element in the list.",
-     :start "{list-resource}",
-     :follow-link "element",
-     :link-back "list",
-     :result "{element-resource}"}],
-   :family-id :collections}
-  {:name "read-root",
-   :description "Read the root resource to discover the API.",
-   :step
-   [{:description "Read the root resource.",
-     :start "root",
-     :read-self [nil]}],
-   :family-id :base}],
- :advisor
- [{:name "add-item-to-wishlist-form",
-   :description "Add to wishlist pre-conditions check",
-   :blocks "add-item-to-wishlist-form",
-   :family-id :wishlists}
-  {:name "move-to-wishlist-form",
-   :description "Move to wishlist pre-conditions check",
-   :blocks "move-to-wishlist-form",
-   :family-id :wishlists}
-  {:name "move-to-cart-form",
-   :description "Move to cart pre-conditions check",
-   :blocks "move-to-cart-form",
-   :family-id :wishlists}],
- :list-of-relationship
- [{:name "item-definition-components",
-   :family-id :itemdefinitions,
-   :from :itemdefinitions/item-definition-components,
-   :to :itemdefinitions/item-definition-component,
-   :rel "item-definition-components"}
-  {:name "item-definition-component-options",
-   :family-id :itemdefinitions,
-   :from :itemdefinitions/item-definition-component-options,
-   :to :itemdefinitions/item-definition-component-option,
-   :rel "item-definition-component-options"}
-  {:name "item-definition-nested-components",
-   :family-id :itemdefinitions,
-   :from :itemdefinitions/item-definition-nested-components,
-   :to :itemdefinitions/item-definition-nested-component,
-   :rel "item-definition-nested-components"}
-  {:name "item-definition-nested-component-options",
-   :family-id :itemdefinitions,
-   :from :itemdefinitions/item-definition-nested-component-options,
-   :to :itemdefinitions/item-definition-nested-component-option,
-   :rel "item-definition-nested-component-options"}
-  {:name "item-definition-options",
-   :family-id :itemdefinitions,
-   :from :itemdefinitions/item-definition-options,
-   :to :itemdefinitions/item-definition-option,
-   :rel "item-definition-options"}
-  {:name "purchase-line-items",
-   :family-id :purchases,
-   :from :purchases/purchase-line-items,
-   :to :purchases/purchase-line-item,
-   :rel "purchase-line-items"}
-  {:name "purchase-line-item-components",
-   :family-id :purchases,
-   :from :purchases/purchase-line-item-components,
-   :to :purchases/purchase-line-item-component,
-   :rel "purchase-line-item-components"}
-  {:name "purchase-line-item-component-options",
-   :family-id :purchases,
-   :from :purchases/purchase-line-item-component-options,
-   :to :purchases/purchase-line-item-component-options,
-   :rel "purchase-line-item-component-options"}
-  {:name "purchase-line-item-options",
-   :family-id :purchases,
-   :from :purchases/purchase-line-item-options,
-   :to :purchases/purchase-line-item-option,
-   :rel "purchase-line-item-options"}
-  {:name "purchase-paymentmeans",
-   :family-id :purchases,
-   :from :purchases/purchase-paymentmeans,
-   :to :purchases/purchase-paymentmean,
-   :rel "purchase-paymentmeans"}
-  {:name "purchases",
-   :family-id :purchases,
-   :from :purchases/purchases,
-   :to :purchases/purchase,
-   :rel "purchases"}
-  {:name "addresses",
-   :family-id :addresses,
-   :from :addresses/addresses,
-   :to :addresses/address,
-   :rel "addresses"}
-  {:name "billing-addresses",
-   :family-id :addresses,
-   :from :addresses/billing-addresses,
-   :to :addresses/address,
-   :rel "billing-addresses"}
-  {:name "shipping-addresses",
-   :family-id :addresses,
-   :from :addresses/shipping-addresses,
-   :to :addresses/address,
-   :rel "shipping-addresses"}
-  {:name "deliveries",
-   :family-id :orders,
-   :from :orders/deliveries,
-   :to :orders/delivery,
-   :rel "deliveries"}
-  {:name "emails",
-   :family-id :emails,
-   :from :emails/emails,
-   :to :emails/email,
-   :rel "emails"}
-  {:name "item-recommendation-groups",
-   :family-id :recommendations,
-   :from :recommendations/item-recommendation-groups,
-   :to :recommendations/item-recommendation-group,
-   :rel "item-recommendation-groups"}
-  {:name "purchase-coupon-list",
-   :family-id :coupons,
-   :from :coupons/purchase-coupon-list,
-   :to :coupons/purchase-coupon,
-   :rel "purchase-coupon-list"}
-  {:name "slots",
-   :family-id :slots,
-   :from :slots/slots,
-   :to :slots/slot,
-   :rel "slots"}
-  {:name "line-items",
-   :family-id :carts,
-   :from :carts/line-items,
-   :to :carts/line-item,
-   :rel "line-items"}
-  {:name "wishlist-line-items",
-   :family-id :wishlists,
-   :from :wishlists/wishlist-line-items,
-   :to :wishlists/wishlist-line-item,
-   :rel "wishlist-line-items"}
-  {:name "read-wishlist-memberships",
-   :family-id :wishlists,
-   :from :wishlists/read-wishlist-memberships,
-   :to :wishlists/wishlist,
-   :rel "read-wishlist-memberships"}
-  {:name "wishlists",
-   :family-id :wishlists,
-   :from :wishlists/wishlists,
-   :to :wishlists/wishlist,
-   :rel "wishlists"}
-  {:name "shipment-line-items",
-   :family-id :shipments,
-   :from :shipments/shipment-line-items,
-   :to :shipments/shipment-line-item,
-   :rel "shipment-line-items"}
-  {:name "shipment-line-item-options",
-   :family-id :shipments,
-   :from :shipments/shipment-line-item-options,
-   :to :shipments/shipment-line-item-option,
-   :rel "shipment-line-item-options"}
-  {:name "shipments",
-   :family-id :shipments,
-   :from :shipments/shipments,
-   :to :shipments/shipment,
-   :rel "shipments"}
-  {:name "countries",
-   :family-id :geographies,
-   :from :geographies/countries,
-   :to :geographies/country,
-   :rel "countries"}
-  {:name "regions",
-   :family-id :geographies,
-   :from :geographies/regions,
-   :to :geographies/region,
-   :rel "regions"}
-  {:name "items",
-   :family-id :items,
-   :from :items/items,
-   :to :items/item,
-   :rel "items"}
-  {:name "batch-items",
-   :family-id :lookups,
-   :from :lookups/batch-items,
-   :to :items/item,
-   :rel "batch-items"}
-  {:name "applied-promotions-for-cart-line-item",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-cart-line-item,
-   :to :promotions/promotion,
-   :rel "applied-promotions-for-cart-line-item"}
-  {:name "possible-promotions-for-cart",
-   :family-id :promotions,
-   :from :promotions/possible-promotions-for-cart,
-   :to :promotions/promotion,
-   :rel "possible-promotions-for-cart"}
-  {:name "applied-promotions-for-cart",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-cart,
-   :to :promotions/promotion,
-   :rel "applied-promotions-for-cart"}
-  {:name "applied-promotions-for-purchase",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-purchase,
-   :to :promotions/purchase-promotion,
-   :rel "applied-promotions-for-purchase"}
-  {:name "applied-promotions-for-item",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-item,
-   :to :promotions/promotion,
-   :rel "applied-promotions-for-item"}
-  {:name "possible-promotions-for-item",
-   :family-id :promotions,
-   :from :promotions/possible-promotions-for-item,
-   :to :promotions/promotion,
-   :rel "possible-promotions-for-item"}
-  {:name "applied-promotions-for-shipping-option",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-shipping-option,
-   :to :promotions/promotion,
-   :rel "applied-promotions-for-shipping-option"}
-  {:name "applied-promotions-for-order-coupon",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-order-coupon,
-   :to :promotions/promotion,
-   :rel "applied-promotions-for-order-coupon"}
-  {:name "applied-promotions-for-purchase-coupon",
-   :family-id :promotions,
-   :from :promotions/applied-promotions-for-purchase-coupon,
-   :to :promotions/purchase-coupon-promotion,
-   :rel "applied-promotions-for-purchase-coupon"}
-  {:name "assets",
-   :family-id :assets,
-   :from :assets/assets,
-   :to :assets/asset,
-   :rel "assets"}
-  {:name "paymentmethods",
-   :family-id :paymentmethods,
-   :from :paymentmethods/paymentmethods,
-   :to :paymentmethods/paymentmethod,
-   :rel "paymentmethods"}],
- :pagination-relationship []}
+   :family-id :paymentmethods}]}
