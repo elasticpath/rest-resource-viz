@@ -48,6 +48,12 @@
 (s/def :graph-data/family (s/coll-of :family/entity :kind vector?))
 (s/def :graph-data/resource (s/coll-of :resource/entity :kind vector?))
 (s/def :graph-data/relationship (s/coll-of :relationship/entity :kind vector?))
+
+(s/def :graph-data/list-of-relationship (s/coll-of :relationship/entity :kind vector?))
+(s/def :graph-data/pagination-relationship (s/coll-of :relationship/entity :kind vector?))
+
 (s/def :graph-data/entity (s/keys :req-un [:graph-data/family]
                                   :opt-un [:graph-data/resource
-                                           :graph-data/relationship]))
+                                           :graph-data/relationship
+                                           :graph-data/list-of-relationship
+                                           :graph-data/pagination-relationship]))

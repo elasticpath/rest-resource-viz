@@ -101,6 +101,29 @@
           (apply keyword ss)
           (keyword family (first ss)))))))
 
+(s/fdef resource->relationship
+  :args (s/cat :from-fn (s/fspec :args (s/cat :resource :resource/entity)
+                                 :ret string?)
+               :to-fn (s/fspec :args (s/cat :resource :resource/entity)
+                               :ret string?)
+               :resource :resource/entity)
+  :ret :relationship/entity)
+
+(defn resource->relationship
+  "Produce a relationship from a resource
+
+  The return value of (to-fn resource) will be assigned to the :to
+  field, prepended with the family (required), so it should return a
+  string. See spec."
+  [from-fn to-fn resource]
+  (let [f-id (:family-id resource)
+        id (:id resource)]
+    {:name (name id)
+     :family-id f-id
+     :from (keywordize (name f-id) (from-fn resource))
+     :to (keywordize (name f-id) (to-fn resource))
+     :rel (name id)}))
+
 (defn descend-to-family
   [definitions-node]
   (-> definitions-node :content first))
@@ -221,7 +244,7 @@
 (s/def :normalize-family/definitions (s/keys :req-un [:normalize-family/family]))
 
 (s/fdef normalize-family
-  :args (s/cat :definition-vector (s/coll-of :normalize-family/definitions :kind vector?)))
+  :args (s/cat :defs (s/coll-of :normalize-family/definitions :kind vector?)))
 
 (defn normalize-family
   [definitions]
@@ -235,6 +258,37 @@
                     {}
                     (sp/select [sp/ALL :family sp/ALL (sp/pred (comp vector? second))]
                                definitions))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; add-list-of-relationship ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(s/def :add-list-of-relationship/family (s/coll-of :family/entity :kind vector?))
+(s/def :add-list-of-relationship/resource (s/coll-of :resource/entity :kind vector?))
+(s/def :add-list-of-relationship/relationship (s/coll-of :relationship/entity :kind vector?))
+(s/def :add-list-of-relationship/graph (s/keys :req-un [:add-list-of-relationship/family]
+                                               :opt-un [:add-list-of-relationship/resource
+                                                        :add-list-of-relationship/relationship]))
+
+(s/fdef add-list-of-relationship
+  :args (s/cat :defs :add-list-of-relationship/graph))
+
+(defn add-list-of-relationship
+  [definitions]
+  (assoc definitions :list-of-relationship (->> definitions
+                                                (sp/select-one [:resource (sp/filterer #(:list-of %))])
+                                                (mapv (partial resource->relationship :name :list-of)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; add-pagination-relationship ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn add-pagination-relationship
+  [definitions]
+  (assoc definitions :pagination-relationship (->> definitions
+                                                   (sp/select-one [:resource (sp/filterer #(:paginates %))])
+                                                   (mapv (partial resource->relationship :name :paginates)))))
+
+(comment
+  (sp/select-one [:resource (sp/filterer #(:list-of %))] gd))
 
 (defn xml-files->graph-data
   "Transform data in order to obtain a format that is good for a graph
@@ -251,7 +305,9 @@
                       (map propagate-family-id)
                       (map add-resource-id)
                       (map sanitize-relationship)))
-       normalize-family)) ;; TODO - spec the final version
+       normalize-family
+       add-list-of-relationship
+       add-pagination-relationship)) ;; TODO - spec the final version
 
 (defn xml-files->definitions
   "Aggregate <family> under <definitions>
