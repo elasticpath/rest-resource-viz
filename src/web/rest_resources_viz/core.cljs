@@ -95,6 +95,19 @@
   (.attr d3-selection "transform" #(translate-str (o/oget js/d3 "event.pageX")
                                                   (o/oget js/d3 "event.pageY"))))
 
+(defn zoomed
+  []
+  (let [transform (o/oget js/d3 "?event.?transform")]
+    (when transform
+      (-> (js/d3.select ".graph")
+          (.attr "transform" transform)))))
+
+(defn install-graph-events! []
+  (let [d3-zoom (-> (js/d3.zoom)
+                    (.on "zoom" zoomed))]
+    (-> (js/d3.select "svg")
+        (.call d3-zoom))))
+
 (defn install-node-events! [d3-selection d3-tooltip tooltip-attrs]
   ;; TODO - display the entities
   ;; (-> d3-tooltip (.select ".content") (.text "Test"))
@@ -212,6 +225,7 @@
                          (install-drag! d3-simulation)
                          (install-node-events! d3-tooltip tooltip-attrs))]
 
+        (install-graph-events!)
         (.on d3-simulation "tick" (fn []
                                     (-> d3-links
                                         (.attr "x1" #(o/oget % "source.x"))
