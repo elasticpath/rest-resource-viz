@@ -248,8 +248,12 @@
 
 (defn normalize-family
   [definitions]
-  (merge {:family (transduce (map :family)
-                             (completing conj)
+  (merge {:family (transduce (comp (map :family)
+                                   (filter :description))
+                             (completing (fn [acc fam]
+                                           (if (not-any? #(= (:name %) (:name fam)) acc)
+                                             (conj acc fam)
+                                             acc)))
                              []
                              (sp/setval [sp/ALL :family sp/MAP-VALS vector?] sp/NONE definitions))}
          (transduce (map identity)
@@ -262,7 +266,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; add-list-of-relationship ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(s/def :add-list-of-relationship/family (s/coll-of :family/entity :kind vector?))
+(s/def :add-list-of-relationship/family (s/coll-of :family/entity :kind vector? :distinct true))
 (s/def :add-list-of-relationship/resource (s/coll-of :resource/entity :kind vector?))
 (s/def :add-list-of-relationship/relationship (s/coll-of :relationship/entity :kind vector?))
 (s/def :add-list-of-relationship/graph (s/keys :req-un [:add-list-of-relationship/family]

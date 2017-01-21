@@ -45,7 +45,7 @@
 (s/def :property/description string?)
 (s/def :property/type #{:internal :string})
 
-(s/def :graph-data/family (s/coll-of :family/entity :kind vector?))
+(s/def :graph-data/family (s/coll-of :family/entity :kind vector? :distinct true))
 (s/def :graph-data/resource (s/coll-of :resource/entity :kind vector?))
 (s/def :graph-data/relationship (s/coll-of :relationship/entity :kind vector?))
 

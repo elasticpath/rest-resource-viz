@@ -3,16 +3,10 @@
    :description
    "\n\t\t\t\nPrices describe the amount of money required to purchase an item or items. The prices resource server links prices to: [items][items], cart line items and [item definitions][itemdefinitions]\n\n[items]: #items\n[itemdefinitions]: #itemdefinitions\n\t\t\t\n\t\t",
    :id :prices}
-  {:name "shipmentdetails", :id :shipmentdetails}
   {:name "shipmentdetails",
    :description
    "\n\t\t\t\nThe shipmentdetails resource defines how and where the physical goods you're purchasing are shipped. The *where* you're shipping\nis the shipping address, while the *how* are the shipping options (i.e. Canada Post, FedEx, etc) available for your store.\n\t\t\t\n\t\t",
    :id :shipmentdetails}
-  {:name "shipmentdetails",
-   :description
-   "\n\t\t\t\nUses a Selector to choose the shipping option for the order. The shipping option is how the order will be\nshipped, i.e. (FedEx, Canada Post, etc). The shipping options available for your shipment depend on which shipping regions\nand shipping service levels are configured for your store. Check with your store's administrator for more information on\nthese options.\n\t\t\t\t\n\t\t",
-   :id :shipmentdetails}
-  {:name "itemdefinitions", :id :itemdefinitions}
   {:name "itemdefinitions",
    :description
    "\n\t\t\t\nAn item definition describes the item. The item's name, media [assets][assets] (pictures of the item), options, components, from price, and details describing the item's characteristics are all part of the item definitions.\nNot every item definition contains assets, options, components, etc. What is available on the item definition depends on\nthe item and how your storefront has implemented Cortex API. Some resources may be customized for your implementation, so more, or even less details may exist.\n\n[assets]: #assets\n\t\t\t\n\t\t",
@@ -20,19 +14,6 @@
   {:name "purchases",
    :description "Submit the purchase form to complete the purchase.",
    :id :purchases}
-  {:name "purchases",
-   :description
-   "\n\t\t\t\nPurchase line items are collections of items the customer purchased. Each line item can contain one or more of the same item,\nbut will not have two different items. For example, one line item can have 7 Rock-Star t-shirts or one Rock-Star t-shirt,\nbut it won't have one Rock-Star t-shirt and a Song track. The Song track and t-shirt would be in separate line items.\n\t\t\t\n\t\t",
-   :id :purchases}
-  {:name "purchases",
-   :description
-   "\n\t\t\t\nThe Paymentmeans resource is responsible for recording a purchase's billing details, such as a customer's billing address and\n[paymentmethod][paymentmethods].\n\n[paymentmethods]: #paymentmethods\n\t\t\t\n\t\t",
-   :id :purchases}
-  {:name "purchases",
-   :description
-   "\n####Entry Point: /purchases/{scope}\n\nA purchase is a receipt of an executed order. A Purchase lists the order's total cost, purchase date, purchase status\n(COMPLETE or FAILED), tax paid, paymentmeans, which lists the billing and shipping details as well as\ncustomer's [paymentmethods][paymentmethods], and line items, which are lists of the [items][items] the customer\npurchased.\n\nEach time customers make successful purchases, Cortex API records them in its database. Using the purchases resource,\nclient developers can retrieve the customer's purchase history, which allows customers to inspect their previous purchases,\ncheck for correctness, and track the purchase's status. Cortex API records each successful purchase and the last failed\npurchase. Cortex API does not track each failed purchase, it only records the last failed purchase. Once the purchase\ncompletes, the failed purchase is removed from the record and a successful purchase is recorded.\n\n[paymentmethods]: #paymentmethods\n[items]: #items\n\t\t\t\n\t\t",
-   :id :purchases}
-  {:name "addresses", :id :addresses}
   {:name "addresses",
    :description
    "\n<a id=\"addresses\">\n### addresses\n</a>\n\nThe Addresses resource is responsible for the customer's shipping and billing address. This resource allows you to\nretrieve a logged in customer's addresses, edit existing addresses, and create new addresses.\n\n#### Shipping Address vs. Billing Addresses\n\nA shipping address is where you ship the physical goods that you purchased in the store. A billing address is the address\nassociated with the [paymentmethods][paymentmethods] used for a purchase. For example, the billing address would be the\naddress on the credit card that is being used for a purchase. Customers choose which billing and shipping address to use\nfor a purchase through the [orders][orders] resources.\n\nCurrently you cannot create an address and label it as a shipping only address or label it as a billing\nonly address. Cortex does not make a distinction between the shipping and billing addresses. Read Billing Address\nbilling addresses retrieves a list of all the customer's addresses; similarly, Read Shipping Address\nretrieves a list of all the customer's addresses. Future versions of the API may allow the possibility to label what the\naddress is for, but out of the box this API version does not support this functionality.\n\n[paymentmethods]: #paymentmethods\n[orders]: #orders\n",
@@ -40,18 +21,6 @@
   {:name "orders",
    :description
    "\n\t\t\t\nUse a selector to select the billing address to use for the purchase. Follow the workflow to read the billing address info\nand then create a choice to select the billing address to use for the purchase.\n\t\t\t\t\n\t\t",
-   :id :orders}
-  {:name "orders",
-   :description
-   "\n\t\t\t\nBilling Address Info:\n\nThe Billing address info resource provides the customer with a selector to select the billing address to use for\nthe [purchase][purchase] and an addressform to create a billing address to use for the purchase. The billing\naddress is the address that is related to the payment means, which in some cases is the address your credit card uses.\n\n[purchase]: #purchases\n\t\t\t\n\t\t",
-   :id :orders}
-  {:name "orders",
-   :description
-   "\nDeliveries:\n\nThe deliveries resource groups the shipment details, which are the how and where your goods are being shipped, for your\norders. Out of the box, you can't split orders into different shipments, so when you get the list of delivery elements\nfor an order only one element appears in the list. The order's shipment details are specified through the\n[shipmentdetails][shipmentdetails] resource.\n\n[shipmentdetails]: #shipmentdetails\n\t\t\t\n\t\t",
-   :id :orders}
-  {:name "orders",
-   :description
-   "\n\t\t\t\nAn order is a list of intentions Cortex API will undertake to complete a purchase. For example, an order lists the\nbilling and shipping address to use for the purchase, shipping options (Canada Post, FedEx, etc), paymentmethods to use\nfor the purchase, the cart containing the items to purchase, and the taxes to pay for the purchase. Once the order is\nPOSTed to a [purchase][purchases], Cortex API executes the purchase based on the intentions in the order.\n\nJust like the [cart][carts], an order is always available, persisted between sessions, and is updated automatically. For example, if a\ncustomer removes an item from their cart, the order is updated to remove the item. Once the order is POSTed to a purchase, the order is cleared and a new order is created for the customer.\n\nThe order contains *NeedInfo* links if the billing address, shipping address, shipping option or the payment methods haven't been selected.\n\n[purchases]: #purchases\n[carts]: #carts\n\t\t\t\n\t\t",
    :id :orders}
   {:name "discounts",
    :description
@@ -61,9 +30,6 @@
    :description
    "\n\t\t\t\nAdd an email to a logged in customer.\n\nOut of the box, customers can have only one email, which is their user name. If you create a new email for a registered customer, this changes the customer's user name.\n\t\t\t\n\t\t",
    :id :emails}
-  {:name "emails",
-   :description "The emails resource stores a customer's emails.",
-   :id :emails}
   {:name "recommendations",
    :description
    "\n\t\t\t\nRecommendations suggest additional items that may interest shoppers. For example, if a shopper is viewing an iPod,\nyou may want to display related items such as iPod accessories. If the shopper is viewing items in a Digital Camera\n[navigation node][navigations] then you can use recommendations to highlight a set of featured digital cameras in that node.\n\nRecommendations are lists of items, accessible through [item][items] for item recommendations,  [navigation nodes][navigations]\nfor navigation recommendations, and the recommendations entry point for store recommendations.\nThe recommendation's rel name reflects the type of recommendation.  For example, when accessing an item's recommendations\n a rel name could be \"crosssells\", which indicates the rel links to a list of \"cross-sell\" items.\n\t\t\t\n\t\t",
@@ -72,44 +38,18 @@
    :description
    "\n\t\t\t\n####Entry Point: /navigations/{scope}\n\nNavigation nodes organize your store's catalogs by providing containers to group related items into. Each navigation node\ncan contain details (attributes), any number of [items][items], and other child nodes. Your company's marketers create these navigation nodes, also known as categories, using the Commerce Manager. You may need\nto coordinate with your marketers for how the navigation nodes should be used in your client application.\n\n[items]: #items\n",
    :id :navigations}
-  {:name "coupons", :id :coupons}
   {:name "coupons",
    :description
    "\n\t\t\t\nA coupon is a code, consisting of letters or numbers that a shopper can apply to an order. When a coupon is\napplied to an order, it can trigger a promotion which inturn discounts or adds additional incentives to the order.\n\t\t\t\n\t\t",
    :id :coupons}
-  {:name "slots", :id :slots}
   {:name "paymenttokens",
    :description
    "The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.",
    :id :paymenttokens}
-  {:name "paymenttokens",
-   :description
-   "The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.",
-   :id :paymenttokens}
-  {:name "paymenttokens",
-   :description
-   "The Payment Tokens resource is responsible for saving payment tokens to a shopper's profile and order.",
-   :id :paymenttokens}
-  {:name "controls", :id :controls}
-  {:name "collections", :id :collections}
   {:name "carts",
    :description
    "\n\t\t\t\nA cart's line items is a collection of [items][items] that have been added to a cart. A line item can have one or more of the same [items][items] in it.\nFor example, one line item can have seven Rocker T-Shirt or a single Rocker T-Shirt, but it won't have one Rocker T-Shirt and a song track. The song\ntrack and T-shirt would be in separate line items.\n\t\t\t\n\t\t",
    :id :carts}
-  {:name "carts",
-   :description
-   "Items are added to the user's default cart by using a form.",
-   :id :carts}
-  {:name "carts", :description "Cart memberships resource", :id :carts}
-  {:name "carts",
-   :description
-   "\n####Entry Point: /carts/{scope}/default\n\nA cart is basically a basket that customers put items into that they want to purchase. While Cortex API's shopping\ncart has this as its core functionality, there is much more to this shopping cart than just that.\n\nKey concepts developers should know about carts:\n\n-  You can't delete a cart, you can only empty a cart of its contents.\n\n-  The do not need to instantiate the cart, a cart is always available.\n\n-  The do not need to create an order for the cart, an order is always available.\n\n-  Cortex automatically persists carts between customer sessions so a customer can log on through a mobile phone and\nthen log on through another device to complete the purchase\n\n\n[items]: #items\n[orders]: #orders\n[totals]: #totals\n\t\t\t\n\t\t",
-   :id :carts}
-  {:name "wishlists", :id :wishlists}
-  {:name "wishlists", :id :wishlists}
-  {:name "wishlists", :id :wishlists}
-  {:name "wishlists", :id :wishlists}
-  {:name "wishlists", :id :wishlists}
   {:name "wishlists",
    :description
    "\n####Entry Point: /wishlists/{scope}/default\n\nA wishlist is list that customers build up containing items that they are interested in, or desire to purchase.\nThis applies even to items which are out of stock, which allows a customer to track the item and to be notified when the item\nbecomes available.\nA wishlist is similar to a cart in that items can be added or removed.\nItems can also be moved between the wishlist and the cart.\nOnly one wishlist is available per shopper. This default wishlist is automatically available\nand cannot be deleted.\n\n\n[items]: #items\n[orders]: #orders\n[totals]: #totals\n\t\t\n\t\t",
@@ -117,13 +57,6 @@
   {:name "shipments",
    :description "Represents shipment line items.",
    :id :shipments}
-  {:name "shipments", :id :shipments}
-  {:name "shipments", :id :shipments}
-  {:name "shipments",
-   :description
-   "A shipment lists the shipments created by a purchase.",
-   :id :shipments}
-  {:name "shipments", :id :shipments}
   {:name "totals",
    :description
    "\n\t\t\t\nThe totals resource calculates the total costs for:\n\n* **[cart][carts]**\n* **[line-item][carts]**\n* **[order][orders]**\n* **[shipment][shipments]**\n* **[shipment-line-item][shipments]**\n\n[carts]: #carts\n[orders]: #orders\n[shipments]: #shipments\n\t\t\t\n\t\t",
@@ -152,12 +85,9 @@
    :description
    "\n\t\t\t\nDisplay the [item][items] and line item's availability. The availability identifies the item's\npurchasability. For example, in Elastic Path Commerce Engine the following states are available:\n\n*  ALWAYS\n*  NOT\\_AVAILABLE\n*  AVAILABLE\\_FOR\\_BACK\\_ORDER\n*  AVAILABLE\\_FOR\\_PRE\\_ORDER\n\n[items]: #items\n\t\t\t\n\t\t",
    :id :availabilities}
-  {:name "lookups", :id :lookups}
-  {:name "lookups", :id :lookups}
   {:name "lookups",
    :description "A lookup is a means of looking up an item.",
    :id :lookups}
-  {:name "registrations", :id :registrations}
   {:name "promotions",
    :description
    "\n\t\t\t\nPromotions are incentives offered to shoppers to promote the purchase of [items][items] in a store. A store’s marketer creates promotions\nand defines a set of conditions that must be met before the promotion is applied to a given shopper. Promotions may trigger discounts or\nmay trigger other incentives such as free [items][items]. When a promotion triggers a discount, the discounts are automatically applied to\nthe item price, cart line item price, shipping option cost, line items total, cart total, and the order [total][totals].\n\nPromotions are linked to a number of different resources:\n\n* [Promotions][promotions] - The promotions resource provides a list of all the promotions available for the store.\n* [Items][items] - Promotions are linked to items when a promotion exists for that item and the shopper is eligible to receive the promotion.\n* [Carts][carts] - Promotions are linked to carts when the contents of the shopper’s cart meet the conditions of the promotion.\n* Cart line items - Promotions are linked to cart line items when the line item meets the conditions of the promotion.\n* Shipping options - Promotions are linked to shipping options on an order shipment when the option meets the conditions of the promotion.\n* [Purchases][purchases] - Promotions are linked to purchases when the purchase had promotions applied to it.\n* [Coupons][coupons] - Promotion are linked to a coupon when the coupon triggered the promotions to apply.\n\n[orderdeliveries]: #order-deliveries\n[coupons]: #coupons\n\t\t\t\n\t\t",
@@ -166,8 +96,6 @@
    :description
    "\n\t\t\t\nAssets are the media (.png, .jpg, etc) linked to an item. The JSON object's content-location field specifies where the images are located. In most cases, the\ncontent-location will be on a separate media server.\n\n[items]: #items\n\t\t\t\n\t\t",
    :id :assets}
-  {:name "searches", :id :searches}
-  {:name "searches", :id :searches}
   {:name "taxes",
    :description
    "\n\t\t\t\nTaxes describe the amount of tax owing for orders, shipments and shipment lineitems.\n\n[orders]: #orders\n\t\t\t\n\t\t",
@@ -175,10 +103,6 @@
   {:name "paymentmethods",
    :description
    "\n\t\t\t\nUse a selector to select paymentmethod to use for the purchase. Follow the workflow to read the paymentmethodsinfo\nand then create a choice to select the paymentmethod to use for the purchase.\n\t\t\t\n\t\t",
-   :id :paymentmethods}
-  {:name "paymentmethods",
-   :description
-   "\n\t\t\t\nThe Payment Methods resource is responsible for the customer's paymentmethods. This resource lists all the paymentmethods\ndefined for the customer either credit cards or payment tokens. Selecting a payment method for a purchase is set\nduring the purchase's order phase.\n\t\t\t\n\t\t",
    :id :paymentmethods}],
  :advisor
  [{:name "add-item-to-wishlist-form",
