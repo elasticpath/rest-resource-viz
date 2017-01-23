@@ -196,7 +196,7 @@
          :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
          :dependencies (into (get-in conf-extractor [:env :dependencies])
                              '[[org.clojure/tools.namespace "0.3.0-alpha3"]
-                               [metosin/boot-alt-test "0.2.1"]])}})
+                               [metosin/boot-alt-test "0.3.0"]])}})
 
 (deftask init-tests
   "Start the dev interactive environment."

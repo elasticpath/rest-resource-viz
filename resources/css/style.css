@@ -22,7 +22,6 @@ body {
 
 .tooltip rect {
     stroke: steelblue;
-    stroke-width: 4;
     fill: #FFFFFF;
     opacity: 0.9;
 }
@@ -43,9 +42,6 @@ svg {
 }
 
 .node circle {
-    fill: #DDDDDD;
-    stroke: steelblue;
-    stroke-width: 1.5px;
 }
 
 .node text {
@@ -53,13 +49,10 @@ svg {
 }
 
 marker {
-    fill: steelblue;
     fill-opacity: 0.5;
 }
 
 .link {
-    fill: none;
-    stroke: steelblue;
     stroke-opacity: 0.5;
     stroke-width: 1.5px;
 }

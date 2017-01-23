@@ -32,3 +32,8 @@
   (testing "Spec conformance test"
     (let [graph-data (ext/xml-files->graph-data (ext/classpath-resource-xmls!))]
       (is (s/valid? :graph-data/entity graph-data) (s/explain-str :graph-data/entity graph-data)))))
+
+(deftest resource->relationship
+  (let [resource {:name "item-definition-components", :description "The list of item definition components.", :uri "{item-definition}/components", :list-of "item-definition-component", :family-id :itemdefinitions, :id :itemdefinitions/item-definition-components}
+        relationship (ext/resource->relationship :name :list-of resource)]
+    (is (s/valid? :relationship/entity relationship) (s/explain-str :relationship/entity relationship))))

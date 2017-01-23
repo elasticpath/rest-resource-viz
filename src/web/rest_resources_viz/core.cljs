@@ -20,15 +20,18 @@
                  :height 820
                  :attrs {:graph {:strength -75}
                          :node {:radius 8
-                                :family->color {}}
-                         :link {:distance 50}
+                                :family->color {}
+                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory20"))
+                                :default-color "steelblue"}
+                         :link {:distance 30
+                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory10"))
+                                :default-color "steelblue"}
                          :tooltip {:width 100 :height 20
-                                   :padding 10 :stroke-width 4
+                                   :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
                                    :dx 2 :dy 4}}})
 
-(defonce app-state
-  (r/atom init-state))
+(defonce app-state (r/atom init-state))
 
 (defn fetch-data! []
   (u/fetch-file! RESOURCE_DATA_URL (fn [gd]
@@ -36,22 +39,45 @@
                                        (swap! app-state assoc :graph-data (edn/read-string gd))
                                        (log/warn "Cannot fetch data!")))))
 
-(defn reset-state! []
-  (do (reset! app-state init-state)
-      (fetch-data!)))
-
 (defn translate-str
   "Return the translate string needed for the transform attribute"
   [x y]
   (str "translate(" x "," y ")"))
 
+(defn get-in-and-assign-kind
+  "Similarly to get-in, tries to get from ks and also assoc the last
+  selector as :kind.
+
+  It assumes you can map over the retrieved thing, does not handle
+  literal values (for now)."
+  [m ks]
+  (->> (get-in m ks)
+       (mapv #(assoc % :kind (last ks)))))
+
 (defn get-resources [state]
-  (get-in @state [:graph-data :resource]))
+  (let [resources (get-in-and-assign-kind @state [:graph-data :resource])]
+    (log/debug "Resource" (sort-by :name resources))
+    (log/debug "Resource count" (count resources))
+    (log/debug "Resource sample" (first resources))
+    resources))
 
 (defn get-relationships [state]
-  (-> @state
-      (get-in [:graph-data :relationship])
-      (xform/unfold-relationships)))
+  (let [rels (->> (concat (get-in-and-assign-kind @state [:graph-data :relationship])
+                          (get-in-and-assign-kind @state [:graph-data :list-of-relationship])
+                          (get-in-and-assign-kind @state [:graph-data :pagination-relationship])
+                          (get-in-and-assign-kind @state [:graph-data :alias-relationship]))
+                  (xform/unfold-relationships))]
+    (log/debug "Relationships" (sort-by :name rels))
+    (log/debug "Relationships count" (count rels))
+    (log/debug "Relationships sample" (second rels))
+    rels))
+
+(defn get-js-nodes [state]
+  (clj->js @(r/track! get-resources state)))
+
+(defn get-js-links [state]
+
+  (clj->js @(r/track! get-relationships state)))
 
 (defn get-width [state]
   (let [margin (:margin @state)]
@@ -69,29 +95,18 @@
   (.attr d3-selection "transform" #(translate-str (o/oget js/d3 "event.pageX")
                                                   (o/oget js/d3 "event.pageY"))))
 
-(defn append-tooltip!
-  [d3-selection attrs]
-  (let [d3-tooltip (-> d3-selection
-                       (.append "g")
-                       (.attr "class" "tooltip")
-                       (.style "opacity" 0))]
-    (-> d3-tooltip
-        (.append "rect")
-        (.attr "width" (:width attrs))
-        (.attr "height" (:height attrs))
-        (.attr "stroke-width" (:stroke-width attrs))
-        (.attr "rx" (:rx attrs))
-        (.attr "ry" (:ry attrs)))
-    (-> d3-tooltip
-        (.append "text")
-        (.attr "dx" (:padding attrs))
-        (.attr "dy" (+ (* (:padding attrs) 2) (/ (:stroke-width attrs) 2))))
-    ;; TODO - display the entities
-    ;; (.append "text")
-    ;; (.attr "class" "content")
-    ;; (.attr "x" 80)
-    ;; (.attr "y" 15)
-    d3-tooltip))
+(defn zoomed
+  []
+  (let [transform (o/oget js/d3 "?event.?transform")]
+    (when transform
+      (-> (js/d3.select ".graph")
+          (.attr "transform" transform)))))
+
+(defn install-graph-events! []
+  (let [d3-zoom (-> (js/d3.zoom)
+                    (.on "zoom" zoomed))]
+    (-> (js/d3.select "svg")
+        (.call d3-zoom))))
 
 (defn install-node-events! [d3-selection d3-tooltip tooltip-attrs]
   ;; TODO - display the entities
@@ -132,14 +147,13 @@
 
 (defn append-node!
   [d3-selection node-attrs]
-  (let [group (-> d3-selection
+  (let [color-fn (:color-fn node-attrs)
+        group (-> d3-selection
                   (.append  "g")
-                  (.attr "class" "node"))]
-    ;; Node
-    (-> group
-        (.attr "class" "node")
-        (.append "circle")
-        (.attr "r" (:radius node-attrs)))
+                  (.attr "class" "node")
+                  (.append "circle")
+                  (.attr "fill" #(color-fn (or (o/oget % "?family-id")
+                                               (:default-color node-attrs)))))]
     ;; Text
     #_(-> group
           (.append "text")
@@ -148,20 +162,31 @@
     group))
 
 (defn append-link!
-  [d3-selection]
-  (-> d3-selection
-      (.append "g")
-      (.attr "class" "link")
-      (.append "line")
-      (.style "marker-end" "url(#end-arrow)")))
+  [d3-selection link-attrs]
+  (let [color-fn (:color-fn link-attrs)]
+    (-> d3-selection
+        (.append "g")
+        (.attr "class" "link")
+        (.append "line")
+        (.attr "stroke" #(color-fn (or (o/oget % "?kind")
+                                       (:default-color link-attrs))))
+        (.style "marker-end" "url(#end-arrow)"))))
 
 (comment
-  (def rels (get-in @app-state [:graph-data :relationship]))
-  (def rels (get-in @app-state [:graph-data :resource]))
   (def rels-by-to (group-by :to (first (relationships-with-dups rels))))
   (def ress-by-id (group-by :id ress)))
 
 (defn graph-update! [state]
+  (let [node-attrs (get-in @state [:attrs :node])
+        d3-nodes @(r/track get-js-nodes state)]
+    (when (seq d3-nodes)
+      (let [nodes (-> (js/d3.select "#graph-container svg .graph")
+                      (.selectAll ".node"))]
+        (-> nodes
+            (.selectAll "circle")
+            (.attr "r" (:radius node-attrs)))))))
+
+(defn graph-enter! [state]
   (let [margin (:margin @state)
         node-attrs (get-in @state [:attrs :node])
         link-attrs (get-in @state [:attrs :link])
@@ -169,46 +194,38 @@
         tooltip-attrs (get-in @state [:attrs :tooltip])
         width @(r/track get-width state)
         height @(r/track get-height state)
-        resources @(r/track! get-resources state)
-        rels @(r/track! get-relationships state)]
-    (when (and (seq resources) (seq rels))
-      (let [d3-nodes (clj->js resources)
-            d3-links (clj->js rels)
-            d3-simulation (:force-simulation (swap! app-state
-                                                    assoc :force-simulation
-                                                    (-> (js/d3.forceSimulation)
-                                                        (.nodes d3-nodes)
-                                                        (.force "link" (-> (js/d3.forceLink)
-                                                                           (.links d3-links)
-                                                                           (.distance (:distance link-attrs))
-                                                                           (.id (fn [node] (o/oget node "id")))))
-                                                        (.force "collide" (js/d3.forceCollide (:radius node-attrs)))
-                                                        (.force "charge" (-> (js/d3.forceManyBody)
-                                                                             (.strength (:strength graph-attrs))))
-                                                        (.force "x" (js/d3.forceX (/ width 2)))
-                                                        (.force "y" (js/d3.forceY (/ height 2))))))
-
-            d3-tooltip (-> (js/d3.select "#graph-container svg")
-                           (append-tooltip! tooltip-attrs))
-            d3-nodes (-> (js/d3.select "#graph-container svg .graph")
-                         (.selectAll ".node")
-                         (.data d3-nodes)
-                         (.enter)
-                         (append-node! node-attrs)
-                         (install-drag! d3-simulation)
-                         (install-node-events! d3-tooltip tooltip-attrs))
+        node-js-data @(r/track get-js-nodes state)
+        link-js-data @(r/track get-js-links state)]
+    (when (and (seq node-js-data) (seq link-js-data))
+      (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
+            d3-simulation (:simulation (swap! app-state
+                                              assoc :simulation
+                                              (-> (js/d3.forceSimulation)
+                                                  (.nodes node-js-data)
+                                                  (.force "link" (-> (js/d3.forceLink)
+                                                                     (.links link-js-data)
+                                                                     (.distance (:distance link-attrs))
+                                                                     (.id (fn [node] (o/oget node "id")))))
+                                                  (.force "collide" (js/d3.forceCollide (:radius node-attrs)))
+                                                  (.force "charge" (-> (js/d3.forceManyBody)
+                                                                       (.strength (:strength graph-attrs))))
+                                                  (.force "x" (js/d3.forceX (/ width 2)))
+                                                  (.force "y" (js/d3.forceY (/ height 2))))))
 
             d3-links (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".link")
-                         (.data d3-links)
+                         (.data link-js-data)
                          (.enter)
-                         (append-link!))
-            ]
-        (log/debug "Node count" (count resources))
-        (log/debug "Node sample" (first resources))
-        (log/debug "Link count" (count rels))
-        (log/debug "Link sample" (second rels))
+                         (append-link! link-attrs))
+            d3-nodes (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll ".node")
+                         (.data node-js-data)
+                         (.enter)
+                         (append-node! node-attrs)
+                         (install-drag! d3-simulation)
+                         (install-node-events! d3-tooltip tooltip-attrs))]
 
+        (install-graph-events!)
         (.on d3-simulation "tick" (fn []
                                     (-> d3-links
                                         (.attr "x1" #(o/oget % "source.x"))
@@ -218,15 +235,43 @@
                                     (-> d3-nodes
                                         (.attr "transform" #(translate-str (o/oget % "x") (o/oget % "y"))))))))))
 
+(defn stop-simulation!
+  "Helper for stopping the force simulation"
+  [state]
+  (.stop (:simulation @state)))
+
+(defn start-simulation!
+  "Helper for stopping the force simulation"
+  [state]
+  (.restart (:simulation @state)))
+
+(defn reset-state! []
+  (reset! app-state init-state)
+  (fetch-data!)
+  (graph-enter! app-state)
+  (graph-update! app-state))
+
 (defn btn-draw [state]
   [:button.btn
-   {:on-click #(graph-update! app-state)}
+   {:on-click #(do (graph-enter! state)
+                   (graph-update! state))}
    "Force draw"])
 
 (defn btn-reset [state]
   [:button.btn
    {:on-click #(reset-state!)}
    "Reset state"])
+
+(defn btn-toggle-simulation [state]
+  (let [stopped? (r/atom false)]
+    (fn []
+      [:button.btn
+       {:on-click #(if @stopped?
+                     (do (start-simulation! state) (reset! stopped? false))
+                     (do (stop-simulation! state) (reset! stopped? true)))}
+       (if @stopped?
+         "Stop simulation"
+         "Start simulation")])))
 
 (defn svg-markers []
   [:defs
@@ -239,6 +284,17 @@
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
+(defn tooltip [state]
+  (let [attrs (get-in @state [:attrs :tooltip])]
+    [:g {:class "tooltip" :style {:opacity 0}}
+     [:rect {:width (:width attrs)
+             :height (:height attrs)
+             :stroke-width (str (:stroke-width attrs) "px")
+             :rx (:rx attrs)
+             :ry (:ry attrs)}]
+     [:text {:dx (:padding attrs)
+             :dy (+ (* (:padding attrs) 2) (/ (:stroke-width attrs) 2))}]]))
+
 (defn viz-render [state]
   [:div {:id "graph-container"}
    (let [margin (:margin @state)
@@ -246,13 +302,14 @@
          height @(r/track get-height state)]
      [:svg {:width width :height height}
       [svg-markers]
-      [:g.graph {:transform (str "translate(" (:left margin) "," (:top margin) ")")}]])])
+      [:g.graph {:transform (str "translate(" (:left margin) "," (:top margin) ")")}]
+      [tooltip state]])])
 
 (defn viz [state]
   (r/create-class
    {:reagent-render #(viz-render state)
-    #_#_:component-did-update #(graph-update! state)
-    :component-did-mount #(graph-update! state)}))
+    :component-did-update #(graph-update! state)
+    :component-did-mount #(graph-enter! state)}))
 
 (defn console [state]
   [:div {:id "console-container"}])
@@ -261,7 +318,8 @@
   [:div
    [:div.row
     [btn-reset state]
-    [btn-draw state]]
+    [btn-draw state]
+    [btn-toggle-simulation state]]
    [viz state]
    [console state]])
 
