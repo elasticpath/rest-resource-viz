@@ -21,7 +21,7 @@
                  :width 960
                  :height 820
                  :attrs {:graph {:strength -140}
-                         :node {:radius 8
+                         :node {:base-radius 8
                                 :default-color "steelblue"}
                          :link {:distance 30}
                          :tooltip {:width 100 :height 20
@@ -52,13 +52,6 @@
   (->> (get-in m ks)
        (mapv #(assoc % :kind (last ks)))))
 
-(defn get-resources [state]
-  (let [resources (get-in-and-assign-kind @state [:graph-data :resource])]
-    (log/debug "Resource" (sort-by :name resources))
-    (log/debug "Resource count" (count resources))
-    (log/debug "Resource sample" (first resources))
-    resources))
-
 (defn get-relationships [state]
   (let [rels (->> (concat (get-in-and-assign-kind @state [:graph-data :relationship])
                           (get-in-and-assign-kind @state [:graph-data :list-of-relationship])
@@ -70,11 +63,82 @@
     (log/debug "Relationships sample" (second rels))
     rels))
 
+(defn get-relationships-by-target [state]
+  (group-by :target @(r/track get-relationships state)))
+
+(defn get-relationships-by-source [state]
+  (group-by :source @(r/track get-relationships state)))
+
+(defn node-radius
+  "Return the radius for a node"
+  [base-radius rel-count rel-total]
+  ;; AR - arbitrary multiplier here, we are also good with failing in case the
+  ;; total is zero
+  (let [multiplier (* 3 (/ rel-count rel-total))]
+    (+ base-radius (* base-radius multiplier))))
+
+(defn relationship-bounds
+  "Calculate lower and upper bounds for relationships
+
+  Return a data structure like so:
+    {:target-rel-lower-bound _
+     :target-rel-upper-bound _
+     :source-rel-lower-bound _
+     :source-rel-upper-bound _}
+
+  It requires the presence of :target-rel-count and :source-rel-count"
+  [resources]
+  (reduce
+   (fn [{:keys [target-rel-lower-bound target-rel-upper-bound source-rel-lower-bound source-rel-upper-bound] :as totals}
+        {:keys [target-rel-count source-rel-count]}]
+     (cond
+       (and (not source-rel-count) (not target-rel-count)) totals
+       (and target-rel-count (< target-rel-count target-rel-lower-bound)) (assoc totals :target-rel-lower-bound target-rel-count)
+       (and target-rel-count (> target-rel-count target-rel-upper-bound)) (assoc totals :target-rel-upper-bound target-rel-count)
+       (and source-rel-count (< source-rel-count source-rel-lower-bound)) (assoc totals :source-rel-lower-bound source-rel-count)
+       (and source-rel-count (> source-rel-count source-rel-upper-bound)) (assoc totals :source-rel-upper-bound source-rel-count)
+       :else totals))
+   {:target-rel-lower-bound 0
+    :target-rel-upper-bound 0
+    :source-rel-lower-bound 0
+    :source-rel-upper-bound 0}
+   resources))
+
+(defn get-resources [state]
+  (let [rels-by-target @(r/track get-relationships-by-target state)
+        rels-by-source @(r/track get-relationships-by-source state)
+        base-radius (get-in @state [:attrs :node :base-radius])
+        resources (get-in-and-assign-kind @state [:graph-data :resource])
+        resources (map #(merge %
+                               {:target-rel-count (or (some->> % :id (get rels-by-target) count) 0)
+                                :source-rel-count (or (some->> % :id (get rels-by-source) count) 0)})
+                       resources)
+        rel-bounds (relationship-bounds resources)
+        resources (map #(assoc % :radius (node-radius base-radius
+                                                      (or (:source-rel-count %) 0)
+                                                      (:source-rel-upper-bound rel-bounds))) resources)]
+    (log/debug "Resource" (sort-by :name resources))
+    (log/debug "Resource count" (count resources))
+    (log/debug "Resource sample" (first resources))
+    resources))
+
+(defn get-families [state]
+  (let [families (get-in-and-assign-kind @state [:graph-data :family])]
+    (log/debug "Families" (sort-by :name families))
+    (log/debug "Family count" (count families))
+    (log/debug "Family sample" (second families))
+    families))
+
+(defn get-indexed-families [state]
+  (let [families @(r/track get-families state)]
+    (->> families
+         (map-indexed (fn [i v] [(:name v) i]))
+         (into {}))))
+
 (defn get-js-nodes [state]
   (clj->js @(r/track! get-resources state)))
 
 (defn get-js-links [state]
-
   (clj->js @(r/track! get-relationships state)))
 
 (defn get-width [state]
@@ -181,7 +245,7 @@
                       (.selectAll ".node"))]
         (-> nodes
             (.selectAll "circle")
-            (.attr "r" (:radius node-attrs)))))))
+            (.attr "r" #(o/oget % "radius")))))))
 
 (defn graph-enter! [state]
   (let [margin (:margin @state)
@@ -202,8 +266,8 @@
                                                   (.force "link" (-> (js/d3.forceLink)
                                                                      (.links link-js-data)
                                                                      (.distance (:distance link-attrs))
-                                                                     (.id (fn [node] (o/oget node "id")))))
-                                                  (.force "collide" (js/d3.forceCollide (:radius node-attrs)))
+                                                                     (.id #(o/oget % "id"))))
+                                                  (.force "collide" (js/d3.forceCollide #(o/oget % "radius")))
                                                   (.force "charge" (-> (js/d3.forceManyBody)
                                                                        (.strength (:strength graph-attrs))))
                                                   (.force "x" (js/d3.forceX (/ width 2)))
