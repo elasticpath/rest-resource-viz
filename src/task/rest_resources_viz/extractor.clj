@@ -248,14 +248,16 @@
 
 (defn normalize-family
   [definitions]
-  (merge {:family (transduce (comp (map :family)
-                                   (filter :description))
-                             (completing (fn [acc fam]
-                                           (if (not-any? #(= (:name %) (:name fam)) acc)
-                                             (conj acc fam)
-                                             acc)))
-                             []
-                             (sp/setval [sp/ALL :family sp/MAP-VALS vector?] sp/NONE definitions))}
+  (merge {:family (let [[base others] (transduce (map :family)
+                                                 (completing (fn [[base others] fam]
+                                                               (cond
+                                                                 (= "base" (:name fam)) [fam others]
+                                                                 (not-any? #(= (:name %) (:name fam)) others) [base (conj others fam)]
+                                                                 :else [base others])))
+                                                 [nil #{}]
+                                                 (sp/setval [sp/ALL :family sp/MAP-VALS vector?] sp/NONE definitions))]
+                    ;; set base as first item
+                    (into [base] others))}
          (transduce (map identity)
                     (completing (fn [acc [k v]]
                                   (update acc k #(into (or % []) v))))
