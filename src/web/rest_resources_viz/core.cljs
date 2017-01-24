@@ -15,17 +15,15 @@
 (env/def
   RESOURCE_DATA_URL "graph-data.edn")
 
+(def node-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"])
+
 (def init-state {:margin {:top 20 :right 60 :bottom 20 :left 60}
                  :width 960
                  :height 820
-                 :attrs {:graph {:strength -75}
-                         :node {:radius 8
-                                :family->color {}
-                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory20"))
+                 :attrs {:graph {:strength -140}
+                         :node {:base-radius 8
                                 :default-color "steelblue"}
-                         :link {:distance 30
-                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory10"))
-                                :default-color "steelblue"}
+                         :link {:distance 30}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -54,13 +52,6 @@
   (->> (get-in m ks)
        (mapv #(assoc % :kind (last ks)))))
 
-(defn get-resources [state]
-  (let [resources (get-in-and-assign-kind @state [:graph-data :resource])]
-    (log/debug "Resource" (sort-by :name resources))
-    (log/debug "Resource count" (count resources))
-    (log/debug "Resource sample" (first resources))
-    resources))
-
 (defn get-relationships [state]
   (let [rels (->> (concat (get-in-and-assign-kind @state [:graph-data :relationship])
                           (get-in-and-assign-kind @state [:graph-data :list-of-relationship])
@@ -72,11 +63,82 @@
     (log/debug "Relationships sample" (second rels))
     rels))
 
+(defn get-relationships-by-target [state]
+  (group-by :target @(r/track get-relationships state)))
+
+(defn get-relationships-by-source [state]
+  (group-by :source @(r/track get-relationships state)))
+
+(defn node-radius
+  "Return the radius for a node"
+  [base-radius rel-count rel-total]
+  ;; AR - arbitrary multiplier here, we are also good with failing in case the
+  ;; total is zero
+  (let [multiplier (* 3 (/ rel-count rel-total))]
+    (+ base-radius (* base-radius multiplier))))
+
+(defn relationship-bounds
+  "Calculate lower and upper bounds for relationships
+
+  Return a data structure like so:
+    {:target-rel-lower-bound _
+     :target-rel-upper-bound _
+     :source-rel-lower-bound _
+     :source-rel-upper-bound _}
+
+  It requires the presence of :target-rel-count and :source-rel-count"
+  [resources]
+  (reduce
+   (fn [{:keys [target-rel-lower-bound target-rel-upper-bound source-rel-lower-bound source-rel-upper-bound] :as totals}
+        {:keys [target-rel-count source-rel-count]}]
+     (cond
+       (and (not source-rel-count) (not target-rel-count)) totals
+       (and target-rel-count (< target-rel-count target-rel-lower-bound)) (assoc totals :target-rel-lower-bound target-rel-count)
+       (and target-rel-count (> target-rel-count target-rel-upper-bound)) (assoc totals :target-rel-upper-bound target-rel-count)
+       (and source-rel-count (< source-rel-count source-rel-lower-bound)) (assoc totals :source-rel-lower-bound source-rel-count)
+       (and source-rel-count (> source-rel-count source-rel-upper-bound)) (assoc totals :source-rel-upper-bound source-rel-count)
+       :else totals))
+   {:target-rel-lower-bound 0
+    :target-rel-upper-bound 0
+    :source-rel-lower-bound 0
+    :source-rel-upper-bound 0}
+   resources))
+
+(defn get-resources [state]
+  (let [rels-by-target @(r/track get-relationships-by-target state)
+        rels-by-source @(r/track get-relationships-by-source state)
+        base-radius (get-in @state [:attrs :node :base-radius])
+        resources (get-in-and-assign-kind @state [:graph-data :resource])
+        resources (map #(merge %
+                               {:target-rel-count (or (some->> % :id (get rels-by-target) count) 0)
+                                :source-rel-count (or (some->> % :id (get rels-by-source) count) 0)})
+                       resources)
+        rel-bounds (relationship-bounds resources)
+        resources (map #(assoc % :radius (node-radius base-radius
+                                                      (or (:source-rel-count %) 0)
+                                                      (:source-rel-upper-bound rel-bounds))) resources)]
+    (log/debug "Resource" (sort-by :name resources))
+    (log/debug "Resource count" (count resources))
+    (log/debug "Resource sample" (first resources))
+    resources))
+
+(defn get-families [state]
+  (let [families (get-in-and-assign-kind @state [:graph-data :family])]
+    (log/debug "Families" (sort-by :name families))
+    (log/debug "Family count" (count families))
+    (log/debug "Family sample" (second families))
+    families))
+
+(defn get-indexed-families [state]
+  (let [families @(r/track get-families state)]
+    (->> families
+         (map-indexed (fn [i v] [(:name v) i]))
+         (into {}))))
+
 (defn get-js-nodes [state]
   (clj->js @(r/track! get-resources state)))
 
 (defn get-js-links [state]
-
   (clj->js @(r/track! get-relationships state)))
 
 (defn get-width [state]
@@ -86,6 +148,10 @@
 (defn get-height [state]
   (let [margin (:margin @state)]
     (- (:height @state) (:top margin) (:bottom margin))))
+
+(defn get-node-color [state family-id]
+  (let [families @(r/track! get-indexed-families state)]
+    (get node-colors (get families family-id))))
 
 (defn event-xy! [d]
   (o/oset! d "x" (o/oget js/d3 "event.x"))
@@ -146,14 +212,12 @@
                           (event-xy! d))))))
 
 (defn append-node!
-  [d3-selection node-attrs]
-  (let [color-fn (:color-fn node-attrs)
-        group (-> d3-selection
+  [d3-selection state]
+  (let [group (-> d3-selection
                   (.append  "g")
                   (.attr "class" "node")
                   (.append "circle")
-                  (.attr "fill" #(color-fn (or (o/oget % "?family-id")
-                                               (:default-color node-attrs)))))]
+                  (.attr "fill" #(get-node-color state (o/oget % "?family-id"))))]
     ;; Text
     #_(-> group
           (.append "text")
@@ -162,15 +226,12 @@
     group))
 
 (defn append-link!
-  [d3-selection link-attrs]
-  (let [color-fn (:color-fn link-attrs)]
-    (-> d3-selection
-        (.append "g")
-        (.attr "class" "link")
-        (.append "line")
-        (.attr "stroke" #(color-fn (or (o/oget % "?kind")
-                                       (:default-color link-attrs))))
-        (.style "marker-end" "url(#end-arrow)"))))
+  [d3-selection state]
+  (-> d3-selection
+      (.append "g")
+      (.attr "class" "link")
+      (.append "line")
+      (.style "marker-end" "url(#end-arrow)")))
 
 (comment
   (def rels-by-to (group-by :to (first (relationships-with-dups rels))))
@@ -184,7 +245,7 @@
                       (.selectAll ".node"))]
         (-> nodes
             (.selectAll "circle")
-            (.attr "r" (:radius node-attrs)))))))
+            (.attr "r" #(o/oget % "radius")))))))
 
 (defn graph-enter! [state]
   (let [margin (:margin @state)
@@ -205,8 +266,8 @@
                                                   (.force "link" (-> (js/d3.forceLink)
                                                                      (.links link-js-data)
                                                                      (.distance (:distance link-attrs))
-                                                                     (.id (fn [node] (o/oget node "id")))))
-                                                  (.force "collide" (js/d3.forceCollide (:radius node-attrs)))
+                                                                     (.id #(o/oget % "id"))))
+                                                  (.force "collide" (js/d3.forceCollide #(o/oget % "radius")))
                                                   (.force "charge" (-> (js/d3.forceManyBody)
                                                                        (.strength (:strength graph-attrs))))
                                                   (.force "x" (js/d3.forceX (/ width 2)))
@@ -216,12 +277,12 @@
                          (.selectAll ".link")
                          (.data link-js-data)
                          (.enter)
-                         (append-link! link-attrs))
+                         (append-link! state))
             d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node")
                          (.data node-js-data)
                          (.enter)
-                         (append-node! node-attrs)
+                         (append-node! state)
                          (install-drag! d3-simulation)
                          (install-node-events! d3-tooltip tooltip-attrs))]
 
