@@ -54,3 +54,8 @@
                                            :graph-data/list-of-relationship
                                            :graph-data/pagination-relationship
                                            :graph-data/alias-relationship]))
+
+;; Spec for the frontend data, is it worth having it here?
+(s/def :graph/family->index (s/map-of string? int? :conform-keys true))
+(s/def :graph/colors (s/coll-of string? :kind vector?))
+(s/def :graph/family-id string?)

@@ -1,11 +1,14 @@
 (ns ^:figwheel-load rest-resources-viz.core
   (:require [cljs.reader :as edn]
+            [clojure.spec :as s]
+            [clojure.spec.test :as stest :include-macros true]
             [clojure.string :as str]
             [clojure.set :as set]
             [adzerk.env :as env]
             [oops.core :as o]
             [cljsjs.d3]
             [reagent.core :as r]
+            [rest-resources-viz.spec :as rspec]
             [rest-resources-viz.util :as u]
             [rest-resources-viz.xform :as xform])
   (:require-macros [rest-resources-viz.logging :as log]))
@@ -15,13 +18,13 @@
 (env/def
   RESOURCE_DATA_URL "graph-data.edn")
 
-(def node-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"])
 
 (def init-state {:margin {:top 20 :right 60 :bottom 20 :left 60}
                  :width 960
                  :height 820
-                 :attrs {:graph {:strength -140}
-                         :node {:base-radius 8
+                 :attrs {:graph {:strength -70}
+                         :node {:colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]
+                                :base-radius 8
                                 :default-color "steelblue"}
                          :link {:distance 30}
                          :tooltip {:width 100 :height 20
@@ -117,7 +120,7 @@
         resources (map #(assoc % :radius (node-radius base-radius
                                                       (or (:source-rel-count %) 0)
                                                       (:source-rel-upper-bound rel-bounds))) resources)]
-    (log/debug "Resource" (sort-by :name resources))
+    (log/debug "Resources" (sort-by :name resources))
     (log/debug "Resource count" (count resources))
     (log/debug "Resource sample" (first resources))
     resources))
@@ -149,9 +152,14 @@
   (let [margin (:margin @state)]
     (- (:height @state) (:top margin) (:bottom margin))))
 
-(defn get-node-color [state family-id]
-  (let [families @(r/track! get-indexed-families state)]
-    (get node-colors (get families family-id))))
+(s/fdef get-node-color
+  :args (s/cat :colors :graph/colors
+               :family-by-name :graph/family->index
+               :family-id :graph/family-id)
+  :ret string?)
+
+(defn get-node-color [colors family-by-name family-id]
+  (get colors (get family-by-name family-id)))
 
 (defn event-xy! [d]
   (o/oset! d "x" (o/oget js/d3 "event.x"))
@@ -174,11 +182,10 @@
     (-> (js/d3.select "svg")
         (.call d3-zoom))))
 
-(defn install-node-events! [d3-selection d3-tooltip tooltip-attrs]
+(defn install-node-events! [d3-selection d3-tooltip attrs]
   ;; TODO - display the entities
-  ;; (-> d3-tooltip (.select ".content") (.text "Test"))
   (-> d3-selection
-      (.on "mouseover" #(let [padding (:padding tooltip-attrs)
+      (.on "mouseover" #(let [padding (get-in attrs [:tooltip :padding])
                               d3-text (-> d3-tooltip
                                           (.select "text")
                                           (.text (o/oget % "id")))
@@ -212,12 +219,14 @@
                           (event-xy! d))))))
 
 (defn append-node!
-  [d3-selection state]
+  [d3-selection attrs family-by-name]
   (let [group (-> d3-selection
                   (.append  "g")
                   (.attr "class" "node")
                   (.append "circle")
-                  (.attr "fill" #(get-node-color state (o/oget % "?family-id"))))]
+                  (.attr "fill" #(get-node-color (get-in attrs [:node :colors])
+                                                 family-by-name
+                                                 (o/oget % "?family-id"))))]
     ;; Text
     #_(-> group
           (.append "text")
@@ -262,13 +271,8 @@
 
 (defn graph-enter! [state]
   (let [margin (:margin @state)
-        node-attrs (get-in @state [:attrs :node])
-        link-attrs (get-in @state [:attrs :link])
-        graph-attrs (get-in @state [:attrs :graph])
-        tooltip-attrs (get-in @state [:attrs :tooltip])
-        width @(r/track get-width state)
-        height @(r/track get-height state)
         attrs (:attrs @state)
+        family-by-name @(r/track get-indexed-families state)
         node-js-data @(r/track get-js-nodes state)
         link-js-data @(r/track get-js-links state)]
     (when (and (seq node-js-data) (seq link-js-data))
@@ -283,9 +287,9 @@
                          (.selectAll ".node")
                          (.data node-js-data)
                          (.enter)
-                         (append-node! state)
+                         (append-node! attrs family-by-name)
                          (install-drag! d3-simulation)
-                         (install-node-events! d3-tooltip tooltip-attrs))]
+                         (install-node-events! d3-tooltip attrs))]
 
         (install-graph-events!)
         (.on d3-simulation "tick" (fn []
@@ -355,11 +359,7 @@
 (defn svg-markers []
   [:defs
    [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 32
-             :markerWidth 3.5 :markerHeight 3.5
-             :orient "auto"}
-    [:path {:d "M0,-5L10,0L0,5"}]]
-   [:marker {:id "mark-end-arrow" :viewBox "0 -5 10 10" :refX 7
-             :markerWidth 3.5 :markerHeight 3.5
+             :markerWidth 6 :markerHeight 6
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
@@ -405,6 +405,9 @@
     [btn-toggle-simulation state]]
    [graph state]
    [console state]])
+
+(when u/debug?
+  (stest/instrument 'rest-resources-viz.core/get-node-color))
 
 (defn on-jsload []
   (.info js/console "Reloading Javacript...")
