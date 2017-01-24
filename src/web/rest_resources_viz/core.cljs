@@ -247,6 +247,19 @@
             (.selectAll "circle")
             (.attr "r" #(o/oget % "radius")))))))
 
+(defn install-simulation!
+  [attrs node-js-data link-js-data]
+  (-> (js/d3.forceSimulation)
+      (.nodes node-js-data)
+      (.force "link" (-> (js/d3.forceLink)
+                         (.links link-js-data)
+                         (.distance (get-in attrs [:link :distance]))
+                         (.id #(o/oget % "id"))))
+      (.force "collide" (js/d3.forceCollide #(o/oget % "radius")))
+      (.force "charge" (-> (js/d3.forceManyBody)
+                           (.strength (get-in attrs [:graph :strength]))))
+      (.force "center" (js/d3.forceCenter))))
+
 (defn graph-enter! [state]
   (let [margin (:margin @state)
         node-attrs (get-in @state [:attrs :node])
@@ -255,24 +268,12 @@
         tooltip-attrs (get-in @state [:attrs :tooltip])
         width @(r/track get-width state)
         height @(r/track get-height state)
+        attrs (:attrs @state)
         node-js-data @(r/track get-js-nodes state)
         link-js-data @(r/track get-js-links state)]
     (when (and (seq node-js-data) (seq link-js-data))
       (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
-            d3-simulation (:simulation (swap! app-state
-                                              assoc :simulation
-                                              (-> (js/d3.forceSimulation)
-                                                  (.nodes node-js-data)
-                                                  (.force "link" (-> (js/d3.forceLink)
-                                                                     (.links link-js-data)
-                                                                     (.distance (:distance link-attrs))
-                                                                     (.id #(o/oget % "id"))))
-                                                  (.force "collide" (js/d3.forceCollide #(o/oget % "radius")))
-                                                  (.force "charge" (-> (js/d3.forceManyBody)
-                                                                       (.strength (:strength graph-attrs))))
-                                                  (.force "x" (js/d3.forceX (/ width 2)))
-                                                  (.force "y" (js/d3.forceY (/ height 2))))))
-
+            d3-simulation (install-simulation! attrs node-js-data link-js-data)
             d3-links (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".link")
                          (.data link-js-data)
@@ -296,6 +297,25 @@
                                     (-> d3-nodes
                                         (.attr "transform" #(translate-str (o/oget % "x") (o/oget % "y"))))))))))
 
+(defn graph-exit! [state]
+  (let [node-js-data @(r/track get-js-nodes state)
+        link-js-data @(r/track get-js-links state)]
+    (-> (js/d3.select "#graph-container svg .graph")
+        (.selectAll ".link")
+        (.data link-js-data)
+        .exit
+        .remove)
+    (-> (js/d3.select "#graph-container svg .graph")
+        (.selectAll ".node")
+        (.data node-js-data)
+        .exit
+        .remove)))
+
+(defn graph! [state]
+  (graph-enter! state)
+  (graph-update! state)
+  (graph-exit! state))
+
 (defn stop-simulation!
   "Helper for stopping the force simulation"
   [state]
@@ -309,18 +329,16 @@
 (defn reset-state! []
   (reset! app-state init-state)
   (fetch-data!)
-  (graph-enter! app-state)
-  (graph-update! app-state))
+  (graph! app-state))
 
 (defn btn-draw [state]
   [:button.btn
-   {:on-click #(do (graph-enter! state)
-                   (graph-update! state))}
+   {:on-click #(do (swap! app-state assoc :graph-data nil)
+                   (fetch-data!))}
    "Force draw"])
 
 (defn btn-reset [state]
-  [:button.btn
-   {:on-click #(reset-state!)}
+  [:button.btn {:on-click #(reset-state!)}
    "Reset state"])
 
 (defn btn-toggle-simulation [state]
@@ -356,7 +374,7 @@
      [:text {:dx (:padding attrs)
              :dy (+ (* (:padding attrs) 2) (/ (:stroke-width attrs) 2))}]]))
 
-(defn viz-render [state]
+(defn graph-render [state]
   [:div {:id "graph-container"}
    (let [margin (:margin @state)
          width @(r/track get-width state)
@@ -366,11 +384,15 @@
       [:g.graph {:transform (str "translate(" (:left margin) "," (:top margin) ")")}]
       [tooltip state]])])
 
-(defn viz [state]
+(defn graph [state]
   (r/create-class
-   {:reagent-render #(viz-render state)
-    :component-did-update #(graph-update! state)
-    :component-did-mount #(graph-enter! state)}))
+   {:display-name "graph-container"
+    :reagent-render #(do (log/debug "graph-render")
+                         (graph-render state))
+    :component-did-update #(do (log/debug "graph-did-update")
+                               (graph! state))
+    :component-did-mount #(do (log/debug "graph-did-mount")
+                              (graph! state))}))
 
 (defn console [state]
   [:div {:id "console-container"}])
@@ -381,7 +403,7 @@
     [btn-reset state]
     [btn-draw state]
     [btn-toggle-simulation state]]
-   [viz state]
+   [graph state]
    [console state]])
 
 (defn on-jsload []
