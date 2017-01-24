@@ -1,10 +1,5 @@
 (ns rest-resources-viz.spec
-  (:require [clojure.spec :as s]
-            [clojure.spec.test :as stest]
-            [clojure.test.check.generators :as gen]))
-
-(defn instrument-all []
-  (run! stest/instrument (stest/instrumentable-syms)))
+  (:require [clojure.spec :as s]))
 
 (def qual-or-unqual-keyword? #(or (keyword? %) (qualified-keyword? %)))
 
