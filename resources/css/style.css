@@ -50,9 +50,14 @@ svg {
 
 marker {
     fill-opacity: 0.5;
+    fill: steelblue;
 }
 
 .link {
     stroke-opacity: 0.5;
+}
+
+.link line {
     stroke-width: 1.5px;
+    stroke: steelblue;
 }

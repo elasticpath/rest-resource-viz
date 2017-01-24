@@ -15,17 +15,15 @@
 (env/def
   RESOURCE_DATA_URL "graph-data.edn")
 
+(def node-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"])
+
 (def init-state {:margin {:top 20 :right 60 :bottom 20 :left 60}
                  :width 960
                  :height 820
-                 :attrs {:graph {:strength -75}
+                 :attrs {:graph {:strength -140}
                          :node {:radius 8
-                                :family->color {}
-                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory20"))
                                 :default-color "steelblue"}
-                         :link {:distance 30
-                                :color-fn (js/d3.scaleOrdinal (o/oget js/d3 "schemeCategory10"))
-                                :default-color "steelblue"}
+                         :link {:distance 30}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -87,6 +85,10 @@
   (let [margin (:margin @state)]
     (- (:height @state) (:top margin) (:bottom margin))))
 
+(defn get-node-color [state family-id]
+  (let [families @(r/track! get-indexed-families state)]
+    (get node-colors (get families family-id))))
+
 (defn event-xy! [d]
   (o/oset! d "x" (o/oget js/d3 "event.x"))
   (o/oset! d "y" (o/oget js/d3 "event.y")))
@@ -146,14 +148,12 @@
                           (event-xy! d))))))
 
 (defn append-node!
-  [d3-selection node-attrs]
-  (let [color-fn (:color-fn node-attrs)
-        group (-> d3-selection
+  [d3-selection state]
+  (let [group (-> d3-selection
                   (.append  "g")
                   (.attr "class" "node")
                   (.append "circle")
-                  (.attr "fill" #(color-fn (or (o/oget % "?family-id")
-                                               (:default-color node-attrs)))))]
+                  (.attr "fill" #(get-node-color state (o/oget % "?family-id"))))]
     ;; Text
     #_(-> group
           (.append "text")
@@ -162,15 +162,12 @@
     group))
 
 (defn append-link!
-  [d3-selection link-attrs]
-  (let [color-fn (:color-fn link-attrs)]
-    (-> d3-selection
-        (.append "g")
-        (.attr "class" "link")
-        (.append "line")
-        (.attr "stroke" #(color-fn (or (o/oget % "?kind")
-                                       (:default-color link-attrs))))
-        (.style "marker-end" "url(#end-arrow)"))))
+  [d3-selection state]
+  (-> d3-selection
+      (.append "g")
+      (.attr "class" "link")
+      (.append "line")
+      (.style "marker-end" "url(#end-arrow)")))
 
 (comment
   (def rels-by-to (group-by :to (first (relationships-with-dups rels))))
@@ -216,12 +213,12 @@
                          (.selectAll ".link")
                          (.data link-js-data)
                          (.enter)
-                         (append-link! link-attrs))
+                         (append-link! state))
             d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node")
                          (.data node-js-data)
                          (.enter)
-                         (append-node! node-attrs)
+                         (append-node! state)
                          (install-drag! d3-simulation)
                          (install-node-events! d3-tooltip tooltip-attrs))]
 
