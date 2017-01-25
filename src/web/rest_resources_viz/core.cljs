@@ -320,16 +320,6 @@
   (graph-update! state)
   (graph-exit! state))
 
-(defn stop-simulation!
-  "Helper for stopping the force simulation"
-  [state]
-  (.stop (:simulation @state)))
-
-(defn start-simulation!
-  "Helper for stopping the force simulation"
-  [state]
-  (.restart (:simulation @state)))
-
 (defn reset-state! []
   (reset! app-state init-state)
   (fetch-data!)
@@ -344,17 +334,6 @@
 (defn btn-reset [state]
   [:button.btn {:on-click #(reset-state!)}
    "Reset state"])
-
-(defn btn-toggle-simulation [state]
-  (let [stopped? (r/atom false)]
-    (fn []
-      [:button.btn
-       {:on-click #(if @stopped?
-                     (do (start-simulation! state) (reset! stopped? false))
-                     (do (stop-simulation! state) (reset! stopped? true)))}
-       (if @stopped?
-         "Stop simulation"
-         "Start simulation")])))
 
 (defn svg-markers []
   [:defs
@@ -399,10 +378,10 @@
 
 (defn landing [state]
   [:div
-   [:div.row
-    [btn-reset state]
-    [btn-draw state]
-    [btn-toggle-simulation state]]
+   (when u/debug?
+     [:div.row
+      [btn-reset state]
+      [btn-draw state]])
    [graph state]
    [console state]])
 
