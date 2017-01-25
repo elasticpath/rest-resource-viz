@@ -18,15 +18,14 @@
 (env/def
   RESOURCE_DATA_URL "graph-data.edn")
 
-
-(def init-state {:margin {:top 20 :right 60 :bottom 20 :left 60}
-                 :width 960
-                 :height 820
-                 :attrs {:graph {:strength -70}
+(def init-state {:attrs {:graph {:margin {:top 20 :right 60 :bottom 20 :left 60}
+                                 :width 960
+                                 :height 820}
                          :node {:colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]
                                 :base-radius 8
-                                :default-color "steelblue"}
-                         :link {:distance 30}
+                                :default-color "steelblue"
+                                :strength -120}
+                         :link {:distance 62}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -145,12 +144,12 @@
   (clj->js @(r/track! get-relationships state)))
 
 (defn get-width [state]
-  (let [margin (:margin @state)]
-    (- (:width @state) (:right margin) (:left margin))))
+  (let [margin (get-in @state [:attrs :graph :margin])]
+    (- (get-in @state [:attrs :graph :width]) (:right margin) (:left margin))))
 
 (defn get-height [state]
-  (let [margin (:margin @state)]
-    (- (:height @state) (:top margin) (:bottom margin))))
+  (let [margin (get-in @state [:graph :margin])]
+    (- (get-in @state [:attrs :graph :height]) (:top margin) (:bottom margin))))
 
 (s/fdef get-node-color
   :args (s/cat :colors :graph/colors
@@ -266,8 +265,9 @@
                          (.id #(o/oget % "id"))))
       (.force "collide" (js/d3.forceCollide #(o/oget % "radius")))
       (.force "charge" (-> (js/d3.forceManyBody)
-                           (.strength (get-in attrs [:graph :strength]))))
-      (.force "center" (js/d3.forceCenter))))
+                           (.strength (get-in attrs [:node :strength]))))
+      (.force "x" (js/d3.forceX (/ (get-in attrs [:graph :width]) 2)))
+      (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
 (defn graph-enter! [state]
   (let [margin (:margin @state)
