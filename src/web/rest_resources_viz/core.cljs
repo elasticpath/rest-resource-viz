@@ -270,8 +270,9 @@
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
 (defn graph-enter! [state]
-  (let [margin (:margin @state)
-        attrs (:attrs @state)
+  (let [attrs (:attrs @state)
+        width @(r/track get-width state)
+        height @(r/track get-height state)
         family-by-name @(r/track get-indexed-families state)
         node-js-data @(r/track get-js-nodes state)
         link-js-data @(r/track get-js-links state)]
@@ -290,7 +291,6 @@
                          (append-node! attrs family-by-name)
                          (install-drag! d3-simulation)
                          (install-node-events! d3-tooltip attrs))]
-
         (install-graph-events!)
         (.on d3-simulation "tick" (fn []
                                     (-> d3-links
@@ -299,7 +299,12 @@
                                         (.attr "x2" #(o/oget % "target.x"))
                                         (.attr "y2" #(o/oget % "target.y")))
                                     (-> d3-nodes
-                                        (.attr "transform" #(translate-str (o/oget % "x") (o/oget % "y"))))))))))
+                                        (.attr "cx" #(let [r (o/oget % "radius")]
+                                                       (max r (min (- width r) (o/oget % "x")))))
+                                        (.attr "cy" #(let [r (o/oget % "radius")]
+                                                       (max r (min (- height r) (o/oget % "y"))))))))))))
+
+
 
 (defn graph-exit! [state]
   (let [node-js-data @(r/track get-js-nodes state)
