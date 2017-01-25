@@ -1,10 +1,5 @@
 (ns rest-resources-viz.spec
-  (:require [clojure.spec :as s]
-            [clojure.spec.test :as stest]
-            [clojure.test.check.generators :as gen]))
-
-(defn instrument-all []
-  (run! stest/instrument (stest/instrumentable-syms)))
+  (:require [clojure.spec :as s]))
 
 (def qual-or-unqual-keyword? #(or (keyword? %) (qualified-keyword? %)))
 
@@ -59,3 +54,8 @@
                                            :graph-data/list-of-relationship
                                            :graph-data/pagination-relationship
                                            :graph-data/alias-relationship]))
+
+;; Spec for the frontend data, is it worth having it here?
+(s/def :graph/family->index (s/map-of string? int? :conform-keys true))
+(s/def :graph/colors (s/coll-of string? :kind vector?))
+(s/def :graph/family-id string?)

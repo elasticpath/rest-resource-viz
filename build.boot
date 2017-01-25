@@ -154,6 +154,7 @@
 
                          ;; App deps
                          [org.clojure/clojurescript "1.9.293"  :scope "test"]
+                         [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                          [adzerk/env "0.4.0"]
                          [binaryage/oops "0.5.2"]
                          [cljsjs/d3 "4.3.0-2"]

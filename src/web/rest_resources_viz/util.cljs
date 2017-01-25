@@ -5,6 +5,8 @@
   (:import [goog object]
            [goog.net XhrIo]))
 
+(defonce debug? ^boolean js/goog.DEBUG)
+
 (defn keyword->str [k]
   (str (if-let [n (namespace k)] (str n "/")) (name k)))
 

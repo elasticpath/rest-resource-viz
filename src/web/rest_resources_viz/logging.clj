@@ -3,7 +3,8 @@
     rest-resources-viz.logging)
 
 (defmacro debug [& args]
-  `(.log js/console ~@args))
+  `(when ^boolean js/goog.DEBUG
+     (.log js/console ~@args)))
 
 (defmacro info [& args]
   `(.info js/console ~@args))

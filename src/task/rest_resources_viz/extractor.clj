@@ -18,6 +18,9 @@
             [com.rpl.specter :as sp]
             [rest-resources-viz.spec :as rspec]))
 
+(defn instrument-all []
+  (run! stest/instrument (stest/instrumentable-syms)))
+
 (defn remove-nils [m]
   (let [f (fn [x]
             (if (map? x)

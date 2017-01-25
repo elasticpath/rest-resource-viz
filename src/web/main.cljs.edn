@@ -1,2 +1,3 @@
 {:require [rest-resources-viz.core]
+ :compiler-options {"goog.DEBUG" true}
  :boot-reload {:on-jsload rest-resources-viz.core/on-jsload}}
