@@ -33,6 +33,9 @@
                  :hlighted-node-id nil})
 
 (defonce app-state (r/atom init-state))
+(defonce graph-data-state (r/cursor app-state [:graph-data]))
+(defonce attrs-state (r/cursor app-state [:attrs]))
+(defonce hlighted-node-id-state (r/cursor app-state [:hlighted-node-id]))
 
 (defn fetch-data! []
   (u/fetch-file! RESOURCE_DATA_URL (fn [gd]
@@ -55,22 +58,22 @@
   (->> (get-in m ks)
        (mapv #(assoc % :kind (last ks)))))
 
-(defn get-relationships [state]
-  (let [rels (->> (concat (get-in-and-assign-kind @state [:graph-data :relationship])
-                          (get-in-and-assign-kind @state [:graph-data :list-of-relationship])
-                          (get-in-and-assign-kind @state [:graph-data :pagination-relationship])
-                          (get-in-and-assign-kind @state [:graph-data :alias-relationship]))
+(defn get-relationships []
+  (let [rels (->> (concat (get-in-and-assign-kind @graph-data-state [:relationship])
+                          (get-in-and-assign-kind @graph-data-state [:list-of-relationship])
+                          (get-in-and-assign-kind @graph-data-state [:pagination-relationship])
+                          (get-in-and-assign-kind @graph-data-state [:alias-relationship]))
                   (xform/unfold-relationships))]
     (log/debug "Relationships" (sort-by :name rels))
     (log/debug "Relationships count" (count rels))
     (log/debug "Relationships sample" (second rels))
     rels))
 
-(defn get-relationships-by-target [state]
-  (group-by :target @(r/track get-relationships state)))
+(defn get-relationships-by-target []
+  (group-by :target @(r/track get-relationships)))
 
-(defn get-relationships-by-source [state]
-  (group-by :source @(r/track get-relationships state)))
+(defn get-relationships-by-source []
+  (group-by :source @(r/track get-relationships)))
 
 (defn node-radius
   "Return the radius for a node"
@@ -107,11 +110,11 @@
     :source-rel-upper-bound 0}
    resources))
 
-(defn get-resources [state]
-  (let [rels-by-target @(r/track get-relationships-by-target state)
-        rels-by-source @(r/track get-relationships-by-source state)
-        base-radius (get-in @state [:attrs :node :base-radius])
-        resources (get-in-and-assign-kind @state [:graph-data :resource])
+(defn get-resources []
+  (let [rels-by-target @(r/track get-relationships-by-target)
+        rels-by-source @(r/track get-relationships-by-source)
+        base-radius (get-in @attrs-state [:node :base-radius])
+        resources (get-in-and-assign-kind @graph-data-state [:resource])
         resources (map #(merge %
                                {:target-rel-count (or (some->> % :id (get rels-by-target) count) 0)
                                 :source-rel-count (or (some->> % :id (get rels-by-source) count) 0)})
@@ -125,23 +128,23 @@
     (log/debug "Resource sample" (first resources))
     resources))
 
-(defn get-families [state]
-  (let [families (get-in-and-assign-kind @state [:graph-data :family])]
+(defn get-families []
+  (let [families (get-in-and-assign-kind @graph-data-state [:family])]
     (log/debug "Families" (sort-by :name families))
     (log/debug "Family count" (count families))
     (log/debug "Family sample" (second families))
     families))
 
-(defn get-indexed-families [state]
-  (let [families @(r/track get-families state)]
+(defn get-indexed-families []
+  (let [families @(r/track get-families)]
     (->> families
          (map-indexed (fn [i v] [(:name v) i]))
          (into {}))))
 
-(defn get-resource-neighbors-by-id [state]
-  (let [resources @(r/track get-resources state)
-        rels-by-target @(r/track get-relationships-by-target state)
-        rels-by-source @(r/track get-relationships-by-source state)]
+(defn get-resource-neighbors-by-id []
+  (let [resources @(r/track get-resources)
+        rels-by-target @(r/track get-relationships-by-target)
+        rels-by-source @(r/track get-relationships-by-source)]
     (transduce (map :id)
                (completing (fn [m res-id]
                              (assoc m res-id
@@ -153,19 +156,11 @@
                {}
                resources)))
 
-(defn get-js-nodes [state]
-  (clj->js @(r/track! get-resources state)))
+(defn get-js-nodes []
+  (clj->js @(r/track! get-resources)))
 
-(defn get-js-links [state]
-  (clj->js @(r/track! get-relationships state)))
-
-(defn get-width [state]
-  (let [margin (get-in @state [:attrs :graph :margin])]
-    (- (get-in @state [:attrs :graph :width]) (:right margin) (:left margin))))
-
-(defn get-height [state]
-  (let [margin (get-in @state [:graph :margin])]
-    (- (get-in @state [:attrs :graph :height]) (:top margin) (:bottom margin))))
+(defn get-js-links []
+  (clj->js @(r/track! get-relationships)))
 
 (s/fdef get-node-color
   :args (s/cat :colors :graph/colors
@@ -290,7 +285,7 @@
                   (.append "g")
                   (.attr "class" "label")
                   (.append "text")
-                  (.text #(o/oget % "id"))
+                  (.text #(o/oget % "name"))
                   (.style "fill-opacity" 1))]
     group))
 
@@ -313,11 +308,11 @@
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
 (defn graph-update! [state]
-  (let [node-attrs (get-in @state [:attrs :node])
-        node-js-data @(r/track get-js-nodes state)
-        link-js-data @(r/track get-js-links state)
-        hlighted-node-id (:hlighted-node-id @state)
-        resource-neighbors-by-id @(r/track get-resource-neighbors-by-id state)]
+  (let [node-attrs (get-in state [:attrs :node])
+        node-js-data (:node-js-data state)
+        link-js-data (:link-js-data state)
+        hlighted-node-id (:hlighted-node-id state)
+        resource-neighbors-by-id (:resource-neighbors-by-id state)]
     (when (seq node-js-data)
       (let [d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node"))
@@ -368,14 +363,14 @@
                                    :else 0.1))))))))
 
 (defn graph-enter! [state]
-  (let [attrs (:attrs @state)
+  (let [attrs (:attrs state)
         margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
-        hlighted-node-id (:hlighted-node-id @state)
-        family-by-name @(r/track get-indexed-families state)
-        node-js-data @(r/track get-js-nodes state)
-        link-js-data @(r/track get-js-links state)]
+        hlighted-node-id (:hlighted-node-id state)
+        family-by-name (:family-by-name state)
+        node-js-data (:node-js-data state)
+        link-js-data (:link-js-data state)]
     (when (and (seq node-js-data) (seq link-js-data))
       (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
             d3-simulation (install-simulation! attrs node-js-data link-js-data)
@@ -403,11 +398,9 @@
                                                               (translate-str (max r (min (- width r) (o/oget % "x")))
                                                                              (max r (min (- height r) (o/oget % "y")))))))))))))
 
-
-
 (defn graph-exit! [state]
-  (let [node-js-data @(r/track get-js-nodes state)
-        link-js-data @(r/track get-js-links state)]
+  (let [node-js-data (:node-js-data state)
+        link-js-data (:link-js-data state)]
     (-> (js/d3.select "#graph-container svg .graph")
         (.selectAll ".link")
         (.data link-js-data)
@@ -426,73 +419,75 @@
 
 (defn reset-state! []
   (reset! app-state init-state)
-  (fetch-data!)
-  (graph! app-state))
+  (fetch-data!))
 
-(defn btn-draw [state]
-  [:button.btn
-   {:on-click #(do (swap! app-state assoc :graph-data nil)
-                   (fetch-data!))}
+(defn btn-draw []
+  [:button.btn {:on-click #(do (swap! app-state assoc :graph-data nil)
+                               (fetch-data!))}
    "Force draw"])
 
-(defn btn-reset [state]
+(defn btn-reset []
   [:button.btn {:on-click #(reset-state!)}
    "Reset state"])
 
 (defn svg-markers []
   [:defs
-   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 18 :refY 0
+   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 15 :refY 0
              :markerWidth 6 :markerHeight 6 :markerUnits "strokeWidth"
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
-(defn tooltip [state]
-  (let [attrs (get-in @state [:attrs :tooltip])]
+(defn tooltip []
+  (let [tooltip-attrs (get-in @attrs-state [:tooltip])]
     [:g {:class "tooltip" :style {:opacity 0}}
-     [:rect {:width (:width attrs)
-             :height (:height attrs)
-             :stroke-width (str (:stroke-width attrs) "px")
-             :rx (:rx attrs)
-             :ry (:ry attrs)}]
-     [:text {:dx (:padding attrs)
-             :dy (+ (* (:padding attrs) 2) (/ (:stroke-width attrs) 2))}]]))
+     [:rect {:width (:width tooltip-attrs)
+             :height (:height tooltip-attrs)
+             :stroke-width (str (:stroke-width tooltip-attrs) "px")
+             :rx (:rx tooltip-attrs)
+             :ry (:ry tooltip-attrs)}]
+     [:text {:dx (:padding tooltip-attrs)
+             :dy (+ (* (:padding tooltip-attrs) 2) (/ (:stroke-width tooltip-attrs) 2))}]]))
 
 (defn graph-render [state]
-  [:div {:id "graph-container"}
-   (let [margin (get-in @state [:attrs :graph :margin])
-         width @(r/track get-width state)
-         height @(r/track get-height state)]
+  (let [width (get-in state [:attrs :graph :width])
+        height (get-in state [:attrs :graph :height])]
+    [:div {:id "graph-container"}
      [:svg {:width width :height height}
       [svg-markers]
-      [:g.graph {:transform (str "translate(" (:left margin) "," (:top margin) ")")}]
-      [tooltip state]])])
+      [:g.graph]
+      [tooltip]]]))
 
 (defn graph [state]
+  (log/warn "component creation" state)
   (r/create-class
    {:display-name "graph-container"
-    :reagent-render #(do (log/debug "graph-render")
-                         (graph-render state))
-    :component-did-update #(do (log/debug "graph-did-update")
-                               (graph! state))
-    :component-did-mount #(do (log/debug "graph-did-mount")
-                              (graph! state))}))
+    :reagent-render graph-render
+    :component-did-update (fn [this]
+                            (let [state (r/props this)]
+                              (do (log/debug "graph-did-update" state)
+                                  (graph! state))))
+    :component-did-mount (fn [this]
+                           (let [state (r/props this)]
+                             (log/debug "graph-did-mount" state)
+                             (graph! state)))}))
 
-(defn console [state]
-  [:div {:id "console-container"}])
-
-(defn landing [state]
+(defn landing []
   [:div
    (when u/debug?
      [:div.row
-      [btn-reset state]
-      [btn-draw state]])
-   [graph state]
-   [console state]])
+      [btn-reset]
+      [btn-draw]])
+   [graph {:attrs @attrs-state
+           :node-js-data @(r/track get-js-nodes)
+           :link-js-data @(r/track get-js-links)
+           :hlighted-node-id @hlighted-node-id-state
+           :resource-neighbors-by-id @(r/track get-resource-neighbors-by-id)
+           :family-by-name @(r/track get-indexed-families)}]])
 
 (when u/debug?
   (stest/instrument 'rest-resources-viz.core/get-node-color))
 
 (defn on-jsload []
   (.info js/console "Reloading Javacript...")
-  (r/render [landing app-state] (.getElementById js/document "app"))
+  (r/render [landing] (.getElementById js/document "app"))
   (fetch-data!))
