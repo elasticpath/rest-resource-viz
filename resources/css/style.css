@@ -46,7 +46,6 @@ svg {
 }
 
 .label text {
-    fill: steelblue;
     font: 12px sans-serif;
     pointer-events: none;
 }

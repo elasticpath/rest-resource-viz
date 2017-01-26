@@ -119,7 +119,7 @@
     group))
 
 (defn labels-enter!
-  [graph-selection node-js-data attrs]
+  [graph-selection node-js-data attrs family-by-name]
   (let [group (-> graph-selection
                   (.selectAll ".label")
                   (.data node-js-data)
@@ -128,7 +128,10 @@
                   (.attr "class" "label")
                   (.append "text")
                   (.text #(o/oget % "name"))
-                  (.style "fill-opacity" 1))]
+                  (.style "fill-opacity" 1)
+                  (.attr "fill" #(model/get-node-color (get-in attrs [:node :colors])
+                                                       family-by-name
+                                                       (o/oget % "?family-id"))))]
     group))
 
 (defn install-simulation!
@@ -217,7 +220,7 @@
             d3-lines (-> d3-links (.selectAll "line"))
             d3-nodes (node-enter! d3-graph node-js-data attrs family-by-name)
             d3-circles (-> d3-nodes (.selectAll "circle"))
-            d3-labels (labels-enter! d3-graph node-js-data attrs)]
+            d3-labels (labels-enter! d3-graph node-js-data attrs family-by-name)]
         (install-graph-events!)
         (install-drag! d3-nodes d3-simulation)
         (install-node-events! d3-nodes d3-tooltip attrs hlighted-node-id)
