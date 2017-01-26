@@ -27,7 +27,7 @@ body {
 }
 
 .tooltip text {
-    font: 14px sans-serif;
+    font: 12px sans-serif;
     fill: steelblue;
     font-weight: bold;
     pointer-events: auto;
@@ -38,26 +38,27 @@ svg {
 }
 
 .node {
+    transition: opacity 0.5s ease-in-out;
     cursor: pointer;
 }
 
 .node circle {
 }
 
-.node text {
-    font: 10px sans-serif;
+.label text {
+    fill: steelblue;
+    font: 12px sans-serif;
+    pointer-events: none;
 }
 
 marker {
-    fill-opacity: 0.5;
-    fill: steelblue;
+    fill: lightsteelblue;
 }
 
 .link {
-    stroke-opacity: 0.5;
 }
 
 .link line {
     stroke-width: 1.5px;
-    stroke: steelblue;
+    stroke: lightsteelblue;
 }
