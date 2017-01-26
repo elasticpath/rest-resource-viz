@@ -37,3 +37,8 @@
       (catch :default e
         (log-error (.-message e))
         (src-cb nil)))))
+
+(defn translate-str
+  "Return the translate string needed for the transform attribute"
+  [x y]
+  (str "translate(" x "," y ")"))
