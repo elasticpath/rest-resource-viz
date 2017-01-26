@@ -29,7 +29,8 @@
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
-                                   :dx 2 :dy 4}}})
+                                   :dx 2 :dy 4}}
+                 :hlighted-node-id nil})
 
 (defonce app-state (r/atom init-state))
 
@@ -137,6 +138,21 @@
          (map-indexed (fn [i v] [(:name v) i]))
          (into {}))))
 
+(defn get-resource-neighbors-by-id [state]
+  (let [resources @(r/track get-resources state)
+        rels-by-target @(r/track get-relationships-by-target state)
+        rels-by-source @(r/track get-relationships-by-source state)]
+    (transduce (map :id)
+               (completing (fn [m res-id]
+                             (assoc m res-id
+                                    (into (or (->> (get rels-by-source res-id)
+                                                   (map :target)
+                                                   (set))
+                                              #{})
+                                          (map :source (get rels-by-target res-id))))))
+               {}
+               resources)))
+
 (defn get-js-nodes [state]
   (clj->js @(r/track! get-resources state)))
 
@@ -192,9 +208,9 @@
     (-> (js/d3.select "svg")
         (.call d3-zoom))))
 
-(defn install-node-events! [d3-selection d3-tooltip attrs]
-  ;; TODO - display the entities
+(defn install-node-events! [d3-selection d3-tooltip attrs hlighted-node-id]
   (-> d3-selection
+      (.selectAll "circle")
       (.on "mouseover" #(let [padding (get-in attrs [:tooltip :padding])
                               d3-text (-> d3-tooltip
                                           (.select "text")
@@ -214,57 +230,73 @@
       (.on "mouseout" #(-> d3-tooltip
                            (.transition)
                            (.duration 500)
-                           (.style "opacity" 0)))))
+                           (.style "opacity" 0)))
+      (.on "click" #(swap! app-state
+                           update :hlighted-node-id
+                           ;; Implement a toggle-like behavior
+                           (fn [old] (let [node-id (o/oget % "id")]
+                                       (cond
+                                         (nil? old) node-id
+                                         (= old node-id) nil
+                                         :else node-id)))))))
 
 (defn install-drag!
   [d3-selection simulation]
-  (.call d3-selection
-         (-> (js/d3.drag)
-             (.on "start" (fn [d]
-                            (-> simulation (.alphaTarget 0.3) (.restart))
-                            (event-xy! d)))
-             (.on "drag" event-xy!)
-             (.on "end" (fn [d]
-                          (-> simulation (.alphaTarget 0))
-                          (event-xy! d))))))
+  (-> d3-selection
+      (.selectAll "circle")
+      (.call (-> (js/d3.drag)
+                 (.on "start" (fn [d]
+                                (-> simulation (.alphaTarget 0.3) (.restart))
+                                (event-xy! d)))
+                 (.on "drag "event-xy!)
+                 (.on "end" (fn [d]
+                              (-> simulation (.alphaTarget 0))
+                              (event-xy! d)))))))
 
-(defn append-node!
-  [d3-selection attrs family-by-name]
-  (let [group (-> d3-selection
+(defn node-enter!
+  [graph-selection node-js-data attrs family-by-name]
+  (let [group (-> graph-selection
+                  (.selectAll ".node")
+                  (.data node-js-data)
+                  (.enter)
                   (.append  "g")
-                  (.attr "class" "node")
-                  (.append "circle")
-                  (.attr "fill" #(get-node-color (get-in attrs [:node :colors])
-                                                 family-by-name
-                                                 (o/oget % "?family-id"))))]
-    ;; Text
-    #_(-> group
-          (.append "text")
-          (.attr "dy" 3)
-          (.text #(o/oget % "id")))
+                  (.attr "class" "node"))
+        circle (-> group
+                   (.append "circle")
+                   (.attr "fill" #(get-node-color (get-in attrs [:node :colors])
+                                                  family-by-name
+                                                  (o/oget % "?family-id"))))]
     group))
 
-(defn append-link!
-  [d3-selection state]
-  (-> d3-selection
-      (.append "g")
-      (.attr "class" "link")
-      (.append "line")
-      (.style "marker-end" "url(#end-arrow)")))
+(defn link-enter!
+  [graph-selection link-js-data attrs]
+  (let [group (-> graph-selection
+                  (.selectAll ".link")
+                  (.data link-js-data)
+                  (.enter)
+                  (.append "g")
+                  (.attr "class" "link"))
+        link (-> group
+                 (.append "line")
+                 (.style "marker-end" "url(#end-arrow)"))]
+    group))
+
+(defn labels-enter!
+  [graph-selection node-js-data attrs]
+  (let [group (-> graph-selection
+                  (.selectAll ".label")
+                  (.data node-js-data)
+                  (.enter)
+                  (.append "g")
+                  (.attr "class" "label")
+                  (.append "text")
+                  (.text #(o/oget % "id"))
+                  (.style "fill-opacity" 1))]
+    group))
 
 (comment
   (def rels-by-to (group-by :to (first (relationships-with-dups rels))))
   (def ress-by-id (group-by :id ress)))
-
-(defn graph-update! [state]
-  (let [node-attrs (get-in @state [:attrs :node])
-        d3-nodes @(r/track get-js-nodes state)]
-    (when (seq d3-nodes)
-      (let [nodes (-> (js/d3.select "#graph-container svg .graph")
-                      (.selectAll ".node"))]
-        (-> nodes
-            (.selectAll "circle")
-            (.attr "r" #(o/oget % "radius")))))))
 
 (defn install-simulation!
   [attrs node-js-data link-js-data]
@@ -280,40 +312,96 @@
       (.force "x" (js/d3.forceX (/ (get-in attrs [:graph :width]) 2)))
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
+(defn graph-update! [state]
+  (let [node-attrs (get-in @state [:attrs :node])
+        node-js-data @(r/track get-js-nodes state)
+        link-js-data @(r/track get-js-links state)
+        hlighted-node-id (:hlighted-node-id @state)
+        resource-neighbors-by-id @(r/track get-resource-neighbors-by-id state)]
+    (when (seq node-js-data)
+      (let [d3-nodes (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll ".node"))
+            d3-texts (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll ".label text"))]
+        (-> d3-nodes
+            (.transition)
+            (.duration 200)
+            (.ease js/d3.easeLinear)
+            (.style "opacity" #(let [node-id (o/oget % "id")]
+                                 (cond
+                                   (nil? hlighted-node-id) 1
+                                   (= node-id hlighted-node-id) 1
+                                   (contains? (resource-neighbors-by-id (keyword hlighted-node-id))
+                                              (keyword node-id)) 1
+                                   :else 0.1))))
+        (-> d3-texts
+            (.attr "dx" #(+ (o/oget % "radius") 4))
+            (.attr "dy" #(+ (o/oget % "radius") 4))
+            (.transition)
+            (.delay 100)
+            (.duration 200)
+            (.ease js/d3.easeLinear)
+            (.style "fill-opacity" #(let [node-id (o/oget % "id")]
+                                      (cond
+                                        (nil? hlighted-node-id) 0
+                                        (= node-id hlighted-node-id) 1
+                                        (contains? (resource-neighbors-by-id (keyword hlighted-node-id))
+                                                   (keyword node-id)) 1
+                                        :else 0))))
+        (-> d3-nodes
+            (.selectAll "circle")
+            (.attr "r" #(o/oget % "radius")))))
+
+    (when (seq link-js-data)
+      (let [d3-links (-> (js/d3.select "#graph-container svg .graph")
+                         (.selectAll ".link"))]
+        (-> d3-links
+            (.transition)
+            (.delay 100)
+            (.duration 200)
+            (.ease js/d3.easeLinear)
+            (.style "opacity" #(let [target-id (o/oget % "?target.id")
+                                     source-id (o/oget % "?source.id")]
+                                 (cond
+                                   (nil? hlighted-node-id) 1
+                                   (or (= target-id hlighted-node-id) (= source-id hlighted-node-id)) 1
+                                   :else 0.1))))))))
+
 (defn graph-enter! [state]
   (let [attrs (:attrs @state)
-        width @(r/track get-width state)
-        height @(r/track get-height state)
+        margin (get-in attrs [:graph :margin])
+        width (get-in attrs [:graph :width])
+        height (get-in attrs [:graph :height])
+        hlighted-node-id (:hlighted-node-id @state)
         family-by-name @(r/track get-indexed-families state)
         node-js-data @(r/track get-js-nodes state)
         link-js-data @(r/track get-js-links state)]
     (when (and (seq node-js-data) (seq link-js-data))
       (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
             d3-simulation (install-simulation! attrs node-js-data link-js-data)
-            d3-links (-> (js/d3.select "#graph-container svg .graph")
-                         (.selectAll ".link")
-                         (.data link-js-data)
-                         (.enter)
-                         (append-link! state))
-            d3-nodes (-> (js/d3.select "#graph-container svg .graph")
-                         (.selectAll ".node")
-                         (.data node-js-data)
-                         (.enter)
-                         (append-node! attrs family-by-name)
-                         (install-drag! d3-simulation)
-                         (install-node-events! d3-tooltip attrs))]
+            d3-graph (js/d3.selectAll "#graph-container svg .graph")
+            d3-links (link-enter! d3-graph link-js-data attrs)
+            d3-lines (-> d3-links (.selectAll "line"))
+            d3-nodes (node-enter! d3-graph node-js-data attrs family-by-name)
+            d3-circles (-> d3-nodes (.selectAll "circle"))
+            d3-labels (labels-enter! d3-graph node-js-data attrs)]
         (install-graph-events!)
+        (install-drag! d3-nodes d3-simulation)
+        (install-node-events! d3-nodes d3-tooltip attrs hlighted-node-id)
         (.on d3-simulation "tick" (fn []
-                                    (-> d3-links
+                                    (-> d3-lines
                                         (.attr "x1" #(o/oget % "source.x"))
                                         (.attr "y1" #(o/oget % "source.y"))
                                         (.attr "x2" #(o/oget % "target.x"))
                                         (.attr "y2" #(o/oget % "target.y")))
-                                    (-> d3-nodes
-                                        (.attr "cx" #(let [r (o/oget % "radius")]
-                                                       (max r (min (- width r) (o/oget % "x")))))
-                                        (.attr "cy" #(let [r (o/oget % "radius")]
-                                                       (max r (min (- height r) (o/oget % "y"))))))))))))
+                                    (-> d3-labels
+                                        (.attr "transform" #(let [r (o/oget % "radius")]
+                                                              (translate-str (max r (min (- width r) (o/oget % "x")))
+                                                                             (max r (min (- height r) (o/oget % "y")))))))
+                                    (-> d3-circles
+                                        (.attr "transform" #(let [r (o/oget % "radius")]
+                                                              (translate-str (max r (min (- width r) (o/oget % "x")))
+                                                                             (max r (min (- height r) (o/oget % "y")))))))))))))
 
 
 

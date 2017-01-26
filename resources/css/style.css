@@ -45,10 +45,10 @@ svg {
 .node circle {
 }
 
-.node text {
-    transition: fill-opacity 0.5s ease-in-out;
+.label text {
     fill: steelblue;
-    font: 14px sans-serif;
+    font: 12px sans-serif;
+    pointer-events: none;
 }
 
 marker {
@@ -56,7 +56,6 @@ marker {
 }
 
 .link {
-    transition: opacity 0.5s ease-in-out;
 }
 
 .link line {
