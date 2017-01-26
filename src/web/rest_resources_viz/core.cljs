@@ -18,14 +18,14 @@
 (env/def
   RESOURCE_DATA_URL "graph-data.edn")
 
-(def init-state {:attrs {:graph {:margin {:top 20 :right 60 :bottom 20 :left 60}
+(def init-state {:attrs {:graph {:margin {:top 20 :right 20 :bottom 20 :left 20}
                                  :width 960
-                                 :height 820}
+                                 :height 840}
                          :node {:colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]
-                                :base-radius 8
+                                :base-radius 6
                                 :default-color "steelblue"
-                                :strength -120}
-                         :link {:distance 62}
+                                :strength -100}
+                         :link {:distance 32}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -168,8 +168,19 @@
   (.attr d3-selection "transform" #(translate-str (o/oget js/d3 "event.pageX")
                                                   (o/oget js/d3 "event.pageY"))))
 
-(defn zoomed
-  []
+(defn remove-all! []
+  (-> (js/d3.select "#graph-container svg .graph")
+      (.selectAll ".node")
+      (.data (clj->js []))
+      (.exit)
+      (.remove))
+  (-> (js/d3.select "#graph-container svg .graph")
+      (.selectAll ".link")
+      (.data (clj->js []))
+      (.exit)
+      (.remove)))
+
+(defn zoomed []
   (let [transform (o/oget js/d3 "?event.?transform")]
     (when transform
       (-> (js/d3.select ".graph")
@@ -342,8 +353,8 @@
 
 (defn svg-markers []
   [:defs
-   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 32
-             :markerWidth 6 :markerHeight 6
+   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 18 :refY 0
+             :markerWidth 6 :markerHeight 6 :markerUnits "strokeWidth"
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
@@ -360,7 +371,7 @@
 
 (defn graph-render [state]
   [:div {:id "graph-container"}
-   (let [margin (:margin @state)
+   (let [margin (get-in @state [:attrs :graph :margin])
          width @(r/track get-width state)
          height @(r/track get-height state)]
      [:svg {:width width :height height}
