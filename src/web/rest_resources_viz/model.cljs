@@ -9,16 +9,16 @@
 (def init-state {:attrs {:graph {:margin {:top 20 :right 20 :bottom 20 :left 20}
                                  :width 960
                                  :height 840}
-                         :node {:colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]
-                                :base-radius 6
+                         :node {:base-radius 6
                                 :default-color "steelblue"
                                 :strength -100}
-                         :link {:distance 32}
+                         :link {:distance 42}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
-                                   :dx 2 :dy 4}}
-                 :hlighted-node-id nil})
+                                   :dx 2 :dy 4}
+                         :family-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]}
+                 })
 
 (defonce app-state (r/atom init-state))
 (defonce graph-data-state (r/cursor app-state [:graph-data]))
@@ -111,6 +111,15 @@
     (log/debug "Resource sample" (first resources))
     resources))
 
+(defn get-resources-by-id []
+  {:post [(every? map? (map second %))]}
+  (let [groups (group-by :id @(r/track get-resources))]
+    (assert (every? #(= 1 (count %)) (map second groups))
+            "There should be only one resource per :id, this might be a bug.")
+    (->> groups
+         (map #(vector (first %) (-> % second first))) ;; at this point I am sure there is only one
+         (into {}))))
+
 (defn get-families []
   (let [families (get-in-and-assign-kind @graph-data-state [:family])]
     (log/debug "Families" (sort-by :name families))
@@ -118,26 +127,42 @@
     (log/debug "Family sample" (second families))
     families))
 
-(defn get-indexed-families []
+(defn get-family-index-by-name []
   (let [families @(r/track get-families)]
     (->> families
          (map-indexed (fn [i v] [(:name v) i]))
          (into {}))))
 
-(defn get-resource-neighbors-by-id []
-  (let [resources @(r/track get-resources)
+;; AR - Make these functions pure so that we can test them
+;; maybe move them to rest-resources-viz/xform
+(defn get-resource-neighbors
+  "Calculate neighbors for the resources
+
+  Return a map:
+    {resource1 #{neighbor-res3 neighbor-res4 ...}
+     resource2 #{neighbor-res1 neighbor-res5 ...}}"[]
+  (let [resources-by-id @(r/track get-resources-by-id)
         rels-by-target @(r/track get-relationships-by-target)
         rels-by-source @(r/track get-relationships-by-source)]
-    (transduce (map :id)
-               (completing (fn [m res-id]
-                             (assoc m res-id
-                                    (into (or (->> (get rels-by-source res-id)
-                                                   (map :target)
-                                                   (set))
-                                              #{})
-                                          (map :source (get rels-by-target res-id))))))
+    (transduce identity
+               (completing (fn [m res]
+                             (assoc m res
+                                    (into (->> (get rels-by-source (:id res))
+                                               (map #(get resources-by-id (:target %)))
+                                               (set))
+                                          (->> (get rels-by-target (:id res))
+                                               (map #(get resources-by-id (:source %))))))))
                {}
-               resources)))
+               (vals resources-by-id))))
+
+(defn get-resource-neighbors-by-id
+  "Same as get-resource-neighbors, but keys are ids and the values are
+  set of ids as well (the neighbors)."
+  []
+  (let [resource-neighbors @(r/track get-resource-neighbors)]
+    (->> resource-neighbors
+         (map #(vector (-> % first :id) (->> % second (map :id) set)))
+         (into {}))))
 
 (defn get-js-nodes []
   (clj->js @(r/track! get-resources)))
@@ -147,9 +172,9 @@
 
 (s/fdef get-node-color
   :args (s/cat :colors :graph/colors
-               :family-by-name :graph/family->index
+               :family-index-by-name :graph/family-index-by-name
                :family-id :graph/family-id)
   :ret string?)
 
-(defn get-node-color [colors family-by-name family-id]
-  (get colors (get family-by-name family-id)))
+(defn get-node-color [colors family-index-by-name family-name]
+  (get colors (get family-index-by-name family-name)))

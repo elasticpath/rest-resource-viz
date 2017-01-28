@@ -91,7 +91,7 @@
                               (event-xy! d)))))))
 
 (defn node-enter!
-  [graph-selection node-js-data attrs family-by-name]
+  [graph-selection node-js-data attrs family-index-by-name]
   (let [group (-> graph-selection
                   (.selectAll ".node")
                   (.data node-js-data)
@@ -100,8 +100,8 @@
                   (.attr "class" "node"))
         circle (-> group
                    (.append "circle")
-                   (.attr "fill" #(model/get-node-color (get-in attrs [:node :colors])
-                                                        family-by-name
+                   (.attr "fill" #(model/get-node-color (:family-colors attrs)
+                                                        family-index-by-name
                                                         (o/oget % "?family-id"))))]
     group))
 
@@ -119,7 +119,7 @@
     group))
 
 (defn labels-enter!
-  [graph-selection node-js-data attrs family-by-name]
+  [graph-selection node-js-data attrs family-index-by-name]
   (let [group (-> graph-selection
                   (.selectAll ".label")
                   (.data node-js-data)
@@ -128,10 +128,10 @@
                   (.attr "class" "label")
                   (.append "text")
                   (.text #(o/oget % "name"))
-                  (.style "fill-opacity" 1)
-                  (.attr "fill" #(model/get-node-color (get-in attrs [:node :colors])
-                                                       family-by-name
-                                                       (o/oget % "?family-id"))))]
+                  (.attr "fill" #(model/get-node-color (:family-colors attrs)
+                                                       family-index-by-name
+                                                       (o/oget % "?family-id")))
+                  (.style "fill-opacity" 1))]
     group))
 
 (defn install-simulation!
@@ -209,21 +209,20 @@
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
         hlighted-node-id (:hlighted-node-id state)
-        family-by-name (:family-by-name state)
+        family-index-by-name (:family-index-by-name state)
         node-js-data (:node-js-data state)
         link-js-data (:link-js-data state)]
     (when (and (seq node-js-data) (seq link-js-data))
-      (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
-            d3-simulation (install-simulation! attrs node-js-data link-js-data)
+      (let [d3-simulation (install-simulation! attrs node-js-data link-js-data)
             d3-graph (js/d3.selectAll "#graph-container svg .graph")
             d3-links (link-enter! d3-graph link-js-data attrs)
             d3-lines (-> d3-links (.selectAll "line"))
-            d3-nodes (node-enter! d3-graph node-js-data attrs family-by-name)
+            d3-nodes (node-enter! d3-graph node-js-data attrs family-index-by-name)
             d3-circles (-> d3-nodes (.selectAll "circle"))
-            d3-labels (labels-enter! d3-graph node-js-data attrs family-by-name)]
+            d3-labels (labels-enter! d3-graph node-js-data attrs family-index-by-name)]
         (install-graph-events!)
         (install-drag! d3-nodes d3-simulation)
-        (install-node-events! d3-nodes d3-tooltip attrs hlighted-node-id)
+        (install-node-events! d3-nodes attrs)
         (.on d3-simulation "tick" (fn []
                                     (-> d3-lines
                                         (.attr "x1" #(o/oget % "source.x"))
@@ -260,7 +259,7 @@
 
 (defn svg-markers []
   [:defs
-   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 15 :refY 0
+   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 17 :refY 0
              :markerWidth 6 :markerHeight 6 :markerUnits "strokeWidth"
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
