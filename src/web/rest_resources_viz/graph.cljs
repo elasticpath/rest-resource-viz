@@ -45,37 +45,21 @@
     (-> (js/d3.select "svg")
         (.call d3-zoom))))
 
-(defn install-node-events! [d3-selection d3-tooltip attrs hlighted-node-id]
+(defn toggle-or-nil
+  "Simple toggle-like schema, return new iff old is nil or not the same
+  as new. Otherwise return nil."
+  [new old]
+  (cond
+    (nil? old) new
+    (= old new) nil
+    :else new))
+
+(defn install-node-events! [d3-selection attrs]
   (-> d3-selection
       (.selectAll "circle")
-      (.on "mouseover" #(let [padding (get-in attrs [:tooltip :padding])
-                              d3-text (-> d3-tooltip
-                                          (.select "text")
-                                          (.text (o/oget % "id")))
-                              text-bbox (-> d3-text
-                                            (.node)
-                                            (.getBoundingClientRect))]
-                          (-> d3-tooltip
-                              (.select "rect")
-                              (.attr "width" (+ (* 2 padding) (o/oget text-bbox "width")))
-                              (.attr "height" (+ (* 2 padding) (o/oget text-bbox "height"))))
-                          (-> d3-tooltip
-                              (.transition)
-                              (.duration 200)
-                              (.style "opacity" 0.9)
-                              (event-translate!))))
-      (.on "mouseout" #(-> d3-tooltip
-                           (.transition)
-                           (.duration 500)
-                           (.style "opacity" 0)))
-      (.on "click" #(swap! model/app-state
-                           update :hlighted-node-id
-                           ;; Implement a toggle-like behavior
-                           (fn [old] (let [node-id (o/oget % "id")]
-                                       (cond
-                                         (nil? old) node-id
-                                         (= old node-id) nil
-                                         :else node-id)))))))
+      (.on "mouseover" #(swap! model/app-state update :hovered-js-node (partial toggle-or-nil %)))
+      (.on "mouseout" #(swap! model/app-state assoc :hovered-js-node nil))
+      (.on "click" #(swap! model/app-state update :clicked-js-node (partial toggle-or-nil %)))))
 
 (defn install-drag!
   [d3-selection simulation]
@@ -91,7 +75,7 @@
                               (event-xy! d)))))))
 
 (defn node-enter!
-  [graph-selection node-js-data attrs family-by-name]
+  [graph-selection node-js-data attrs family-index-by-name]
   (let [group (-> graph-selection
                   (.selectAll ".node")
                   (.data node-js-data)
@@ -100,8 +84,8 @@
                   (.attr "class" "node"))
         circle (-> group
                    (.append "circle")
-                   (.attr "fill" #(model/get-node-color (get-in attrs [:node :colors])
-                                                        family-by-name
+                   (.attr "fill" #(model/get-node-color (:family-colors attrs)
+                                                        family-index-by-name
                                                         (o/oget % "?family-id"))))]
     group))
 
@@ -119,7 +103,7 @@
     group))
 
 (defn labels-enter!
-  [graph-selection node-js-data attrs]
+  [graph-selection node-js-data attrs family-index-by-name]
   (let [group (-> graph-selection
                   (.selectAll ".label")
                   (.data node-js-data)
@@ -128,6 +112,9 @@
                   (.attr "class" "label")
                   (.append "text")
                   (.text #(o/oget % "name"))
+                  (.attr "fill" #(model/get-node-color (:family-colors attrs)
+                                                       family-index-by-name
+                                                       (o/oget % "?family-id")))
                   (.style "fill-opacity" 1))]
     group))
 
@@ -145,12 +132,18 @@
       (.force "x" (js/d3.forceX (/ (get-in attrs [:graph :width]) 2)))
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
+(defn node-neighbors
+  [resource-neighbors-by-id js-node]
+  (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))
+
 (defn graph-update! [state]
   (let [node-attrs (get-in state [:attrs :node])
         node-js-data (:node-js-data state)
         link-js-data (:link-js-data state)
-        hlighted-node-id (:hlighted-node-id state)
-        resource-neighbors-by-id (:resource-neighbors-by-id state)]
+        clicked-js-node (:clicked-js-node state)
+        resource-neighbors-by-id (:resource-neighbors-by-id state)
+        neighbor-ids-of-clicked (some->> clicked-js-node
+                                         (node-neighbors resource-neighbors-by-id))]
     (when (seq node-js-data)
       (let [d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node"))
@@ -162,10 +155,9 @@
             (.ease js/d3.easeLinear)
             (.style "opacity" #(let [node-id (o/oget % "id")]
                                  (cond
-                                   (nil? hlighted-node-id) 1
-                                   (= node-id hlighted-node-id) 1
-                                   (contains? (resource-neighbors-by-id (keyword hlighted-node-id))
-                                              (keyword node-id)) 1
+                                   (nil? clicked-js-node) 1
+                                   (or (= node-id (o/oget clicked-js-node "id"))
+                                       (contains? neighbor-ids-of-clicked (keyword node-id))) 1
                                    :else 0.1))))
         (-> d3-texts
             (.attr "dx" #(+ (o/oget % "radius") 4))
@@ -176,10 +168,9 @@
             (.ease js/d3.easeLinear)
             (.style "fill-opacity" #(let [node-id (o/oget % "id")]
                                       (cond
-                                        (nil? hlighted-node-id) 0
-                                        (= node-id hlighted-node-id) 1
-                                        (contains? (resource-neighbors-by-id (keyword hlighted-node-id))
-                                                   (keyword node-id)) 1
+                                        (nil? clicked-js-node) 0
+                                        (or (= node-id clicked-js-node)
+                                            (contains? neighbor-ids-of-clicked (keyword node-id))) 1
                                         :else 0))))
         (-> d3-nodes
             (.selectAll "circle")
@@ -193,11 +184,11 @@
             (.delay 100)
             (.duration 200)
             (.ease js/d3.easeLinear)
-            (.style "opacity" #(let [target-id (o/oget % "?target.id")
-                                     source-id (o/oget % "?source.id")]
+            (.style "opacity" #(let [target (o/oget % "?target")
+                                     source (o/oget % "?source")]
                                  (cond
-                                   (nil? hlighted-node-id) 1
-                                   (or (= target-id hlighted-node-id) (= source-id hlighted-node-id)) 1
+                                   (nil? clicked-js-node) 1
+                                   (or (= target clicked-js-node) (= source clicked-js-node)) 1
                                    :else 0.1))))))))
 
 (defn graph-enter! [state]
@@ -205,22 +196,22 @@
         margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
-        hlighted-node-id (:hlighted-node-id state)
-        family-by-name (:family-by-name state)
+        clicked-js-node (:clicked-js-node state)
+        family-index-by-name (:family-index-by-name state)
         node-js-data (:node-js-data state)
-        link-js-data (:link-js-data state)]
+        link-js-data (:link-js-data state)
+        resource-neighbors-by-id (:resource-neighbors-by-id state)]
     (when (and (seq node-js-data) (seq link-js-data))
-      (let [d3-tooltip (js/d3.select "#graph-container svg .tooltip")
-            d3-simulation (install-simulation! attrs node-js-data link-js-data)
+      (let [d3-simulation (install-simulation! attrs node-js-data link-js-data)
             d3-graph (js/d3.selectAll "#graph-container svg .graph")
             d3-links (link-enter! d3-graph link-js-data attrs)
             d3-lines (-> d3-links (.selectAll "line"))
-            d3-nodes (node-enter! d3-graph node-js-data attrs family-by-name)
+            d3-nodes (node-enter! d3-graph node-js-data attrs family-index-by-name)
             d3-circles (-> d3-nodes (.selectAll "circle"))
-            d3-labels (labels-enter! d3-graph node-js-data attrs)]
+            d3-labels (labels-enter! d3-graph node-js-data attrs family-index-by-name)]
         (install-graph-events!)
         (install-drag! d3-nodes d3-simulation)
-        (install-node-events! d3-nodes d3-tooltip attrs hlighted-node-id)
+        (install-node-events! d3-nodes attrs)
         (.on d3-simulation "tick" (fn []
                                     (-> d3-lines
                                         (.attr "x1" #(o/oget % "source.x"))
@@ -257,32 +248,78 @@
 
 (defn svg-markers []
   [:defs
-   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 15 :refY 0
+   [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 17 :refY 0
              :markerWidth 6 :markerHeight 6 :markerUnits "strokeWidth"
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
-(defn tooltip [state]
-  (let [tooltip-attrs (get-in state [:attrs :tooltip])]
-    [:g {:class "tooltip" :style {:opacity 0}}
-     [:rect {:width (:width tooltip-attrs)
-             :height (:height tooltip-attrs)
-             :stroke-width (str (:stroke-width tooltip-attrs) "px")
-             :rx (:rx tooltip-attrs)
-             :ry (:ry tooltip-attrs)}]
-     [:text {:dx (:padding tooltip-attrs)
-             :dy (+ (* (:padding tooltip-attrs) 2) (/ (:stroke-width tooltip-attrs) 2))}]]))
+(defn family-panel [state]
+  (let [attrs (:attrs state)
+        margin (get-in attrs [:graph :margin])
+        width (get-in attrs [:graph :width])
+        height (get-in attrs [:graph :height])
+        tooltip-attrs (:family-panel attrs)
+        family-colors (:family-colors attrs)
+        family-index-by-name (:family-index-by-name state)
+        text-spacing (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
+        hovered-js-node (:hovered-js-node state)
+        family-of-hovered (some-> hovered-js-node (o/oget "family-id"))
+        clicked-js-node (:clicked-js-node state)
+        family-of-clicked (some-> clicked-js-node (o/oget "family-id"))
+        resources-by-id (:resources-by-id state)
+        resource-neighbors-by-id (:resource-neighbors-by-id state)
+        neighbor-families-of-clicked (some->> clicked-js-node
+                                              (node-neighbors resource-neighbors-by-id)
+                                              (map #(->> %
+                                                         (get resources-by-id)
+                                                         :family-id
+                                                         clj->js))
+                                              set)]
+    (log/debug "Clicked node" clicked-js-node)
+    (log/debug "Families of clicked node" neighbor-families-of-clicked)
+    [:g {:id "family-panel-container"
+         :style {:opacity 1}}
+     [:text {:id "family-panel-text-container"}
+      (for [[i family-name] (->> family-index-by-name
+                                 keys
+                                 sort
+                                 (map-indexed vector))]
+        ^{:key family-name}
+        [:tspan {:x (:left margin)
+                 :y (+ (:top margin) (:bottom margin) (* i text-spacing))
+                 :fill (model/get-node-color family-colors family-index-by-name family-name)
+                 :fill-opacity (cond
+                                 (and (not hovered-js-node) (not clicked-js-node)) 1
+                                 (and clicked-js-node
+                                      (or (= family-name family-of-clicked)
+                                          (contains? neighbor-families-of-clicked family-name))) 1
+                                 (and (not clicked-js-node)
+                                      hovered-js-node
+                                      (= family-name family-of-hovered)) 1
+                                 :else 0.1)}
+         family-name])]]))
+
+;; (defn tooltip [state]
+;;   (let [tooltip-attrs (get-in state [:attrs :tooltip])]
+;;     [:g {:class "tooltip" :style {:opacity 0}}
+;;      [:rect {:width (:width tooltip-attrs)
+;;              :height (:height tooltip-attrs)
+;;              :stroke-width (str (:stroke-width tooltip-attrs) "px")
+;;              :rx (:rx tooltip-attrs)
+;;              :ry (:ry tooltip-attrs)}]
+;;      [:text {:dx (:padding tooltip-attrs)
+;;              :dy (+ (* (:padding tooltip-attrs) 2) (/ (:stroke-width tooltip-attrs) 2))}]]))
 
 (defn graph-render [state]
   (let [width (get-in state [:attrs :graph :width])
         height (get-in state [:attrs :graph :height])]
-    [:div {:id "graph-container"}
-     [:svg {:width width :height height}
-      [svg-markers]
-      [:g.graph]
-      [tooltip state]]]))
+    [:svg {:width width :height height}
+     [svg-markers]
+     [:g.graph]
+     [family-panel state]
+     #_[tooltip state]]))
 
-(defn container [state]
+(defn graph [state]
   (log/debug "component creation" state)
   (r/create-class
    {:display-name "graph-container"
@@ -295,3 +332,15 @@
                            (let [state (r/props this)]
                              (log/debug "graph-did-mount" state)
                              (graph! state)))}))
+
+(defn container []
+  (let [state {:attrs @model/attrs-state
+               :node-js-data @(r/track model/get-js-nodes)
+               :link-js-data @(r/track model/get-js-links)
+               :clicked-js-node @model/clicked-js-node-state
+               :hovered-js-node @model/hovered-js-node-state
+               :resource-neighbors-by-id @(r/track model/get-resource-neighbors-by-id)
+               :resources-by-id @(r/track model/get-resources-by-id)
+               :family-index-by-name @(r/track model/get-family-index-by-name)}]
+    [:div {:id "graph-container"}
+     [graph state]]))

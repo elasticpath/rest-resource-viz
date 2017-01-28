@@ -33,6 +33,12 @@ body {
     pointer-events: auto;
 }
 
+#family-panel-container text {
+    font: 14px sans-serif;
+    font-weight: bold;
+    pointer-events: none;
+}
+
 svg {
     background-color: #FFFFFF;
 }
@@ -46,7 +52,6 @@ svg {
 }
 
 .label text {
-    fill: steelblue;
     font: 12px sans-serif;
     pointer-events: none;
 }

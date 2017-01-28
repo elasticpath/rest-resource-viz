@@ -153,7 +153,7 @@
                          [crisptrutski/boot-cljs-test "0.2.2" :scope "test"]
 
                          ;; App deps
-                         [org.clojure/clojurescript "1.9.293"  :scope "test"]
+                         [org.clojure/clojurescript "1.9.456"  :scope "test"]
                          [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                          [adzerk/env "0.4.0"]
                          [binaryage/oops "0.5.2"]
