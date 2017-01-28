@@ -13,6 +13,10 @@
                                 :default-color "steelblue"
                                 :strength -100}
                          :link {:distance 42}
+                         :family-tooltip {:width 100 :height 20
+                                          :padding 10 :stroke-width 2
+                                          :rx 5 :ry 5
+                                          :dx 2 :dy 4}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
@@ -23,7 +27,8 @@
 (defonce app-state (r/atom init-state))
 (defonce graph-data-state (r/cursor app-state [:graph-data]))
 (defonce attrs-state (r/cursor app-state [:attrs]))
-(defonce hlighted-node-id-state (r/cursor app-state [:hlighted-node-id]))
+(defonce clicked-js-node-state (r/cursor app-state [:clicked-js-node]))
+(defonce hovered-js-node-state (r/cursor app-state [:hovered-js-node]))
 
 (defn trash-graph-data! []
   (swap! app-state assoc :graph-data nil))

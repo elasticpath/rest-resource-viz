@@ -36,16 +36,11 @@
 
 (defn landing []
   [:div
+   [graph/container]
    (when u/debug?
      [:div.row
       [btn-reset]
-      [btn-draw]])
-   [graph/container {:attrs @model/attrs-state
-                     :node-js-data @(r/track model/get-js-nodes)
-                     :link-js-data @(r/track model/get-js-links)
-                     :hlighted-node-id @model/hlighted-node-id-state
-                     :resource-neighbors-by-id @(r/track model/get-resource-neighbors-by-id)
-                     :family-by-name @(r/track model/get-indexed-families)}]])
+      [btn-draw]])])
 
 (when u/debug?
   (stest/instrument 'rest-resources-viz.core/get-node-color))
