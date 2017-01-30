@@ -136,12 +136,12 @@
   [resource-neighbors-by-id js-node]
   (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))
 
-(defn graph-update! [state]
-  (let [node-attrs (get-in state [:attrs :node])
-        node-js-data (:node-js-data state)
-        link-js-data (:link-js-data state)
-        clicked-js-node (:clicked-js-node state)
-        resource-neighbors-by-id (:resource-neighbors-by-id state)
+(defn graph-update! [clicked-js-node attrs graph-data]
+  (let [text-attrs (:text attrs)
+        node-attrs (:node attrs)
+        node-js-data (:node-js-data graph-data)
+        link-js-data (:link-js-data graph-data)
+        resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
         neighbor-ids-of-clicked (some->> clicked-js-node
                                          (node-neighbors resource-neighbors-by-id))]
     (when (seq node-js-data)
@@ -191,16 +191,14 @@
                                    (or (= target clicked-js-node) (= source clicked-js-node)) 1
                                    :else 0.1))))))))
 
-(defn graph-enter! [state]
-  (let [attrs (:attrs state)
-        margin (get-in attrs [:graph :margin])
+(defn graph-enter! [clicked-js-node attrs graph-data]
+  (let [margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
-        clicked-js-node (:clicked-js-node state)
-        family-index-by-name (:family-index-by-name state)
-        node-js-data (:node-js-data state)
-        link-js-data (:link-js-data state)
-        resource-neighbors-by-id (:resource-neighbors-by-id state)]
+        family-index-by-name (:family-index-by-name graph-data)
+        node-js-data (:node-js-data graph-data)
+        link-js-data (:link-js-data graph-data)
+        resource-neighbors-by-id (:resource-neighbors-by-id graph-data)]
     (when (and (seq node-js-data) (seq link-js-data))
       (let [d3-simulation (install-simulation! attrs node-js-data link-js-data)
             d3-graph (js/d3.selectAll "#graph-container svg .graph")
@@ -227,9 +225,9 @@
                                                               (util/translate-str (max r (min (- width r) (o/oget % "x")))
                                                                                   (max r (min (- height r) (o/oget % "y")))))))))))))
 
-(defn graph-exit! [state]
-  (let [node-js-data (:node-js-data state)
-        link-js-data (:link-js-data state)]
+(defn graph-exit! [clicked-js-node attrs graph-data]
+  (let [node-js-data (:node-js-data graph-data)
+        link-js-data (:link-js-data graph-data)]
     (-> (js/d3.select "#graph-container svg .graph")
         (.selectAll ".link")
         (.data link-js-data)
@@ -241,10 +239,10 @@
         .exit
         .remove)))
 
-(defn graph! [state]
-  (graph-enter! state)
-  (graph-update! state)
-  (graph-exit! state))
+(defn graph! [clicked attrs graph-data]
+  (graph-enter! clicked attrs graph-data)
+  (graph-update! clicked attrs graph-data)
+  (graph-exit! clicked attrs graph-data))
 
 (defn svg-markers []
   [:defs
@@ -253,21 +251,20 @@
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
-(defn family-panel [state]
-  (let [attrs (:attrs state)
-        margin (get-in attrs [:graph :margin])
+(defn family-panel [attrs graph-data]
+  (let [margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
         tooltip-attrs (:family-panel attrs)
         family-colors (:family-colors attrs)
-        family-index-by-name (:family-index-by-name state)
+        family-index-by-name (:family-index-by-name graph-data)
         text-spacing (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
-        hovered-js-node (:hovered-js-node state)
+        clicked-js-node @model/clicked-js-node-state
+        hovered-js-node @model/hovered-js-node-state
         family-of-hovered (some-> hovered-js-node (o/oget "family-id"))
-        clicked-js-node (:clicked-js-node state)
         family-of-clicked (some-> clicked-js-node (o/oget "family-id"))
-        resources-by-id (:resources-by-id state)
-        resource-neighbors-by-id (:resource-neighbors-by-id state)
+        resources-by-id (:resources-by-id graph-data)
+        resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
         neighbor-families-of-clicked (some->> clicked-js-node
                                               (node-neighbors resource-neighbors-by-id)
                                               (map #(->> %
@@ -310,37 +307,42 @@
 ;;      [:text {:dx (:padding tooltip-attrs)
 ;;              :dy (+ (* (:padding tooltip-attrs) 2) (/ (:stroke-width tooltip-attrs) 2))}]]))
 
-(defn graph-render [state]
-  (let [width (get-in state [:attrs :graph :width])
-        height (get-in state [:attrs :graph :height])]
+(defn graph-render [clicked attrs graph-data]
+  (log/debug "Graph-render: attrs" attrs)
+  (log/debug "Graph-render: graph-data" graph-data)
+  (let [width (get-in attrs [:graph :width])
+        height (get-in attrs [:graph :height])]
     [:svg {:width width :height height}
      [svg-markers]
      [:g.graph]
-     [family-panel state]
-     #_[tooltip state]]))
+     [family-panel attrs graph-data]]))
 
-(defn graph [state]
-  (log/debug "component creation" state)
+(defn graph [clicked attrs graph-data]
+  (log/debug "Init: attrs" attrs)
+  (log/debug "Init: graph-data" graph-data)
   (r/create-class
-   {:display-name "graph-container"
+   {:display-name "graph"
     :reagent-render graph-render
     :component-did-update (fn [this]
-                            (let [state (r/props this)]
-                              (do (log/debug "graph-did-update" state)
-                                  (graph! state))))
+                            (let [[_ clicked attrs graph-data] (r/argv this)]
+                              (log/debug "Did-update: clicked" clicked)
+                              (log/debug "Did-update: attrs" attrs)
+                              (log/debug "Did-update: graph-data" graph-data)
+                              (graph! clicked attrs graph-data)))
     :component-did-mount (fn [this]
-                           (let [state (r/props this)]
-                             (log/debug "graph-did-mount" state)
-                             (graph! state)))}))
+                           (let [[_ clicked attrs graph-data] (r/argv this)]
+                             (log/debug "Did-mount: clicked" clicked)
+                             (log/debug "Did-mount: attrs" attrs)
+                             (log/debug "Did-mount: graph-data" graph-data)
+                             (graph! clicked attrs graph-data)))}))
 
 (defn container []
-  (let [state {:attrs @model/attrs-state
-               :node-js-data @(r/track model/get-js-nodes)
-               :link-js-data @(r/track model/get-js-links)
-               :clicked-js-node @model/clicked-js-node-state
-               :hovered-js-node @model/hovered-js-node-state
-               :resource-neighbors-by-id @(r/track model/get-resource-neighbors-by-id)
-               :resources-by-id @(r/track model/get-resources-by-id)
-               :family-index-by-name @(r/track model/get-family-index-by-name)}]
-    [:div {:id "graph-container"}
-     [graph state]]))
+  [:div {:id "graph-container"}
+   [graph
+    @model/clicked-js-node-state
+    @model/attrs-state
+    {:node-js-data @(r/track model/get-js-nodes)
+     :link-js-data @(r/track model/get-js-links)
+     :resource-neighbors-by-id @(r/track model/get-resource-neighbors-by-id)
+     :resources-by-id @(r/track model/get-resources-by-id)
+     :family-index-by-name @(r/track model/get-family-index-by-name)}]])
