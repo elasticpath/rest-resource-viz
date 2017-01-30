@@ -160,8 +160,8 @@
                                        (contains? neighbor-ids-of-clicked (keyword node-id))) 1
                                    :else 0.1))))
         (-> d3-texts
-            (.attr "dx" #(+ (o/oget % "radius") 4))
-            (.attr "dy" #(+ (o/oget % "radius") 4))
+            (.attr "dx" #(+ (o/oget % "radius") (:dx text-attrs)))
+            (.attr "dy" #(+ (o/oget % "radius") (:dy text-attrs)))
             (.transition)
             (.delay 100)
             (.duration 200)
