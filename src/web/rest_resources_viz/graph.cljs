@@ -169,7 +169,7 @@
             (.style "fill-opacity" #(let [node-id (o/oget % "id")]
                                       (cond
                                         (nil? clicked-js-node) 0
-                                        (or (= node-id clicked-js-node)
+                                        (or (= node-id (o/oget clicked-js-node "id"))
                                             (contains? neighbor-ids-of-clicked (keyword node-id))) 1
                                         :else 0))))
         (-> d3-nodes
@@ -273,6 +273,7 @@
                                                          clj->js))
                                               set)]
     (log/debug "Clicked node" clicked-js-node)
+    (log/debug "Hovered node" clicked-js-node)
     (log/debug "Families of clicked node" neighbor-families-of-clicked)
     [:g {:id "family-panel-container"
          :style {:opacity 1}}
