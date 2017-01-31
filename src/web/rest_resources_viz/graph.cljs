@@ -251,18 +251,35 @@
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
+(defn family-panel-font
+  [attrs line-height]
+  (max (:font-size-min attrs) (/ line-height 1.618)))
+
+(defn family-highligthed?
+  [neighbor-families-of-clicked hovered clicked family-name]
+  (let [family-of-hovered (some-> hovered (o/oget "family-id"))
+        family-of-clicked (some-> clicked (o/oget "family-id"))]
+    (cond
+
+      (and clicked
+           (or (= family-name family-of-clicked)
+               (contains? neighbor-families-of-clicked family-name))) true
+      (and (not clicked)
+           hovered
+           (= family-name family-of-hovered)) true
+      :else false)))
+
 (defn family-panel [attrs graph-data]
   (let [margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
-        tooltip-attrs (:family-panel attrs)
+        panel-attrs (:family-panel attrs)
         family-colors (:family-colors attrs)
         family-index-by-name (:family-index-by-name graph-data)
-        text-spacing (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
+        line-height (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
         clicked-js-node @model/clicked-js-node-state
         hovered-js-node @model/hovered-js-node-state
-        family-of-hovered (some-> hovered-js-node (o/oget "family-id"))
-        family-of-clicked (some-> clicked-js-node (o/oget "family-id"))
+
         resources-by-id (:resources-by-id graph-data)
         resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
         neighbor-families-of-clicked (some->> clicked-js-node
@@ -273,7 +290,7 @@
                                                          clj->js))
                                               set)]
     (log/debug "Clicked node" clicked-js-node)
-    (log/debug "Hovered node" clicked-js-node)
+    (log/debug "Hovered node" hovered-js-node)
     (log/debug "Families of clicked node" neighbor-families-of-clicked)
     [:g {:id "family-panel-container"
          :style {:opacity 1}}
@@ -281,32 +298,25 @@
       (for [[i family-name] (->> family-index-by-name
                                  keys
                                  sort
-                                 (map-indexed vector))]
+                                 (map-indexed vector))
+            :let [highlighted? (family-highligthed? neighbor-families-of-clicked
+                                                    hovered-js-node
+                                                    clicked-js-node
+                                                    family-name)]]
         ^{:key family-name}
         [:tspan {:x (:left margin)
-                 :y (+ (:top margin) (:bottom margin) (* i text-spacing))
+                 :y (+ (:top margin) (:bottom margin) (* i line-height))
                  :fill (model/get-node-color family-colors family-index-by-name family-name)
+                 :font-size (* (cond
+                                 (and (not hovered-js-node) (not clicked-js-node)) 1
+                                 highlighted? 1.1
+                                 :else 1)
+                               (family-panel-font panel-attrs line-height))
                  :fill-opacity (cond
                                  (and (not hovered-js-node) (not clicked-js-node)) 1
-                                 (and clicked-js-node
-                                      (or (= family-name family-of-clicked)
-                                          (contains? neighbor-families-of-clicked family-name))) 1
-                                 (and (not clicked-js-node)
-                                      hovered-js-node
-                                      (= family-name family-of-hovered)) 1
+                                 highlighted? 1
                                  :else 0.1)}
          family-name])]]))
-
-;; (defn tooltip [state]
-;;   (let [tooltip-attrs (get-in state [:attrs :tooltip])]
-;;     [:g {:class "tooltip" :style {:opacity 0}}
-;;      [:rect {:width (:width tooltip-attrs)
-;;              :height (:height tooltip-attrs)
-;;              :stroke-width (str (:stroke-width tooltip-attrs) "px")
-;;              :rx (:rx tooltip-attrs)
-;;              :ry (:ry tooltip-attrs)}]
-;;      [:text {:dx (:padding tooltip-attrs)
-;;              :dy (+ (* (:padding tooltip-attrs) 2) (/ (:stroke-width tooltip-attrs) 2))}]]))
 
 (defn graph-render [clicked attrs graph-data]
   (log/debug "Graph-render: attrs" attrs)

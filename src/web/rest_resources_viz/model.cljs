@@ -14,15 +14,12 @@
                                 :strength -100}
                          :link {:distance 42}
                          :text {:dx 8}
-                         :family-tooltip {:width 100 :height 20
-                                          :padding 10 :stroke-width 2
-                                          :rx 5 :ry 5
-                                          :dx 2 :dy 4}
+                         :family-panel {:font-size-min "9"}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
                                    :dx 2 :dy 4}
-                         :family-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#03c262" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]}
+                         :family-colors ["#000000" "#0cc402" "#fc0a18" "#aea7a5" "#5dafbd" "#d99f07" "#11a5fe" "#037e43" "#ba4455" "#d10aff" "#9354a6" "#7b6d2b" "#08bbbb" "#95b42d" "#b54e04" "#ee74ff" "#2d7593" "#e19772" "#fa7fbe" "#62bd33" "#aea0db" "#905e76" "#92b27a" "#bbd766" "#878aff" "#4a7662" "#ff6757" "#fe8504" "#9340e1" "#2a8602" "#07b6e5" "#d21170" "#526ab3" "#015eff" "#bb2ea7" "#09bf91" "#90624c" "#bba94a" "#a26c05"]}
                  })
 
 (defonce app-state (r/atom init-state))
