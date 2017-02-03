@@ -45,7 +45,7 @@
 (when u/debug?
   (stest/instrument 'rest-resources-viz.core/get-node-color))
 
-(defn on-jsload []
+(defn ^:export on-jsload []
   (.info js/console "Reloading Javascript...")
   (r/render [landing] (.getElementById js/document "app"))
   (fetch-data!))

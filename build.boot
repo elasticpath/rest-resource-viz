@@ -1,6 +1,8 @@
 (def project 'rest-resources-viz)
 (def version "0.1.0-SNAPSHOT")
 
+(set-env! :source-paths #{"dev"})
+
 (task-options!
  pom {:project     project
       :version     version
@@ -9,40 +11,9 @@
       :scm         {}
       :license     {}})
 
-(require '[clojure.edn :as edn]
-         '[boot.util :as util]
+(require '[boot.util :as util]
          '[boot.pod :as pod]
-         '[clojure.java.io :as io])
-
-;; A couple of helper functions
-
-(defn set-system-properties!
-  "Set a system property for each entry in the map m."
-  [m]
-  (doseq [kv m]
-    (System/setProperty (key kv) (val kv))))
-
-(defn apply-conf!
-  "Calls boot.core/set-env! with the content of the :env key and
-  System/setProperty for all the key/value pairs in the :props map."
-  [conf]
-  (let [env (:env conf)
-        props (:props conf)]
-    (apply set-env! (reduce #(into %2 %1) [] env))
-    (assert (or (nil? props) (map? props)) "Option :props should be a map.")
-    (set-system-properties! props)))
-
-(defn calculate-resource-deps
-  [{:keys [module-edn-path resources-group-id
-           resources-format resources-version]
-    :as res-conf}]
-  (->> module-edn-path
-       io/file
-       slurp
-       edn/read-string
-       (map #(vector (-> (format resources-format resources-group-id %)
-                         symbol)
-                     resources-version))))
+         '[boot])
 
 (defn add-resources-deps!
   "Returns a vector containing the rest-resources coordinates given for
@@ -52,7 +23,7 @@
   (let [res-conf (:resources conf)
         coords (-> #{}
                    (into (:additional-deps res-conf))
-                   (into (calculate-resource-deps res-conf))
+                   (into (boot/calculate-resource-deps res-conf))
                    vec)]
     (update-in conf [:env :dependencies] #(-> % (concat coords) distinct vec))))
 
@@ -98,7 +69,6 @@
 (deftask build-extractor
   "Build and install the project locally."
   []
-
   (comp (pom) (jar) (install)))
 
 (deftask init-extractor
@@ -107,7 +77,7 @@
   (with-pass-thru fs
     (let [new-conf (add-resources-deps! conf-extractor)]
       (util/dbug "Current conf:\n%s\n" (util/pp-str new-conf))
-      (apply-conf! new-conf))))
+      (boot/apply-conf! new-conf))))
 
 (deftask dev-extractor
   "Start the dev interactive environment."
@@ -135,36 +105,40 @@
 ;; WEB ;;
 ;;;;;;;;;
 
+(def prod-deps '[[org.clojure/clojure "1.9.0-alpha14"]
+                 [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
+                 [org.clojure/clojurescript "1.9.456"  :scope "test"]
+                 [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
+                 [adzerk/env "0.4.0"]
+                 [binaryage/oops "0.5.2"]
+                 [cljsjs/d3 "4.3.0-3"]
+                 [cljsjs/intersections "1.0.0-0"]
+                 [reagent "0.6.0"]])
+
+(def dev-deps (vec (into prod-deps
+                         '[[powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]
+                           [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
+                           [com.cemerick/piggieback "0.2.1"  :scope "test"]
+                           [weasel "0.7.0"  :scope "test"]
+                           [org.clojure/tools.nrepl "0.2.12" :scope "test"]
+                           [binaryage/devtools "0.8.3" :scope "test"]
+                           [powerlaces/boot-cljs-devtools "0.1.3-SNAPSHOT" :scope "test"]
+                           [pandeiro/boot-http "0.7.6" :scope "test"]
+                           [crisptrutski/boot-cljs-test "0.2.2" :scope "test"]])))
+
 (def conf-web
   {:env {:resource-paths #{"resources"}
-         :source-paths #{"src/web" "src/shared"}
-         :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
-                         [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
-                         [powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]
+         :source-paths #{"src/web" "src/shared"}}})
 
-                         [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
-                         [com.cemerick/piggieback "0.2.1"  :scope "test"]
-                         [weasel "0.7.0"  :scope "test"]
-                         [org.clojure/tools.nrepl "0.2.12" :scope "test"]
+(deftask init-prod-web []
+  (boot/apply-conf! (-> conf-web
+                        (assoc-in [:env :dependencies] prod-deps)))
+  (require '[adzerk.boot-cljs])
+  (def cljs (resolve 'adzerk.boot-cljs/cljs)))
 
-                         [binaryage/devtools "0.8.3" :scope "test"]
-                         [powerlaces/boot-cljs-devtools "0.1.3-SNAPSHOT" :scope "test"]
-                         [pandeiro/boot-http "0.7.6" :scope "test"]
-                         [crisptrutski/boot-cljs-test "0.2.2" :scope "test"]
-
-                         ;; App deps
-                         [org.clojure/clojurescript "1.9.456"  :scope "test"]
-                         [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
-                         [adzerk/env "0.4.0"]
-                         [binaryage/oops "0.5.2"]
-                         [cljsjs/d3 "4.3.0-2"]
-                         [reagent "0.6.0"]]}})
-
-(deftask init-web
-  "Start the dev interactive environment."
-  []
-  (util/dbug "Current conf:\n%s\n" (util/pp-str conf-web))
-  (apply-conf! conf-web)
+(deftask init-dev-web []
+  (boot/apply-conf! (-> conf-web
+                        (assoc-in [:env :dependencies] dev-deps)))
   (require '[adzerk.boot-cljs]
            '[adzerk.boot-cljs-repl]
            '[powerlaces.boot-figreload]
@@ -179,7 +153,7 @@
   (def cljs-devtools (resolve 'powerlaces.boot-cljs-devtools/cljs-devtools)))
 
 (deftask dev-web []
-  (init-web)
+  (init-dev-web)
   (comp (serve)
         (watch)
         (cljs-devtools)
@@ -192,6 +166,19 @@
                                                     :fn-symbol "λ"
                                                     :print-config-overrides true}}})))
 
+(deftask build-web []
+  (init-prod-web)
+  (cljs :source-map true
+        :optimizations :advanced
+        :compiler-options {:closure-defines {"goog.DEBUG" false}
+                           ;; :elide-asserts true
+                           :pseudo-names true ;; TODO set to false for prod
+                           :pretty-print false
+                           :source-map-timestamp true
+                           :parallel-build true
+                           :verbose true
+                           :compiler-stats true}) )
+
 (def conf-tests
   {:env {:resource-paths #{"resources"}
          :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
@@ -203,7 +190,7 @@
   "Start the dev interactive environment."
   []
   (util/dbug "Current conf:\n%s\n" (util/pp-str conf-tests))
-  (apply-conf! conf-tests)
+  (boot/apply-conf! conf-tests)
   (require '[metosin.boot-alt-test])
   (def alt-test (resolve 'metosin.boot-alt-test/alt-test)))
 
