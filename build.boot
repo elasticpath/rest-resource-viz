@@ -7,9 +7,10 @@
  pom {:project     project
       :version     version
       :description "Transformations and visualizations for Cortex Rest resources"
-      :url         "https://github.elasticpath.net/arichiardi/rest-resources-viz"
-      :scm         {}
-      :license     {}})
+      :url         "https://github.com/elasticpath/rest-resource-viz"
+      :scm         {:url "https://github.com/elasticpath/rest-resource-viz.git"}
+      :license     {"Apache License, Version 2.0"
+                    "http://www.apache.org/licenses/LICENSE-2.0"}})
 
 (require '[boot.util :as util]
          '[boot.pod :as pod]
