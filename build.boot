@@ -150,8 +150,9 @@
 ;;;;;;;;;;;;;;;;;;
 
 (def conf-plugin
-  {:env {:source-paths #{"src/plugin" "src-web" "src-task"}
-         :dependencies '[[org.cloudhoist.plugin/zi "0.5.5"]]}})
+  {:env {:source-paths #{"src/plugin" "src/web" "src/task"}
+         :dependencies '[[org.cloudhoist.plugin/zi "0.5.5"]]}
+   :pom {:parent {org.sonatype.oss/oss-parent "5"}}})
 
 (deftask build-plugin []
   )
