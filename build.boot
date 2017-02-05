@@ -1,20 +1,7 @@
-(def project 'rest-resources-viz)
-(def version "0.1.0-SNAPSHOT")
-
 (set-env! :source-paths #{"dev"})
 
-(task-options!
- pom {:project     project
-      :version     version
-      :description "Transformations and visualizations for Cortex Rest resources"
-      :url         "https://github.com/elasticpath/rest-resource-viz"
-      :scm         {:url "https://github.com/elasticpath/rest-resource-viz.git"}
-      :license     {"Apache License, Version 2.0"
-                    "http://www.apache.org/licenses/LICENSE-2.0"}})
-
 (require '[boot.util :as util]
-         '[boot.pod :as pod]
-         '[clojure.walk :as walk]
+         '[clojure.java.io :as io]
          '[boot])
 
 (defn add-resources-deps!
@@ -28,9 +15,20 @@
                    vec)]
     (update-in conf [:env :dependencies] #(-> % (concat coords) distinct vec))))
 
+(comment
+  (def deps (boot/calculate-resource-deps conf-ep-resources))
+  (run! #(let [g (-> % first namespace)
+               a (-> % first name)
+               v (-> % second)]
+           (println (str "<dependency>\n  <groupId>" g "</groupId>\n  <artifactId>" a "</artifactId>\n  <version>" v "</version>\n</dependency>")))
+        deps))
+
 ;;;;;;;;;;;;;;;
 ;; Extractor ;;
 ;;;;;;;;;;;;;;;
+
+(def extractor-project 'com.elasticpath.tools/rest-resources-viz)
+(def extractor-version "0.1.0")
 
 (def conf-ep-resources
   {:module-edn-path "resources/modules.edn"
@@ -42,8 +40,8 @@
                       [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]})
 
 (def env-extractor
-  {:resource-paths #{"resources"}
-   :source-paths #{"src/task" "src/shared"}
+  {:source-paths #{"src/task" "src/shared"}
+   :resource-paths #{"src/task" "src/shared"}
    :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                    [org.clojure/tools.cli "0.3.5"]
                    [org.clojure/data.xml "0.2.0-alpha1"]
@@ -51,7 +49,8 @@
                    [org.clojure/test.check "0.9.0"]
                    [cheshire "5.6.3"]
                    [org.clojure/java.classpath "0.2.3"]
-                   [com.rpl/specter "0.13.3-SNAPSHOT"]]})
+                   [com.rpl/specter "0.13.3-SNAPSHOT"]
+                   [fipp "0.6.8"]]})
 
 (def conf-dev-extractor
   {:env env-extractor
@@ -60,10 +59,37 @@
    :repl {:server true
           :port 5055}})
 
+(def conf-uber-extractor
+  {:env env-extractor
+   :pipeline '(comp (pom)
+                    (uber)
+                    (jar))
+   :pom {:project     extractor-project
+         :version     extractor-version
+         :description "Transformations and visualizations for Cortex Rest resources"
+         :url         "https://github.com/elasticpath/rest-resource-viz"
+         :scm         {:url "https://github.com/elasticpath/rest-resource-viz.git"}
+         :license     {"Apache License, Version 2.0"
+                       "http://www.apache.org/licenses/LICENSE-2.0"}}
+   :jar {:project extractor-project}})
+
 (boot/defedntask dev-extractor
   "Start the extractor interactive environment"
   []
   (add-resources-deps! conf-dev-extractor conf-ep-resources))
+
+(boot/defedntask build-extractor
+  "Build and package the extractor code"
+  []
+  conf-uber-extractor)
+
+(boot/defedntask install-extractor
+  "Build, package  and install the extractor code"
+  []
+  (-> conf-uber-extractor
+      (assoc :pipeline '(comp (build-extractor)
+                              (install))
+             :install {:pom (str extractor-project)})))
 
 (deftask extract
   "Run the extractor"
@@ -83,8 +109,8 @@
 (def env-web-prod {:resource-paths #{"resources"}
                    :source-paths #{"src/web" "src/shared"}
                    :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+                                   [org.clojure/clojurescript "1.9.473"  :scope "test"]
                                    [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
-                                   [org.clojure/clojurescript "1.9.456"  :scope "test"]
                                    [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                                    [adzerk/env "0.4.0"]
                                    [binaryage/oops "0.5.2"]
@@ -149,12 +175,45 @@
 ;; MAVEN PLUGIN ;;
 ;;;;;;;;;;;;;;;;;;
 
-(def conf-plugin
-  {:env {:source-paths #{"src/plugin" "src-web" "src-task"}
-         :dependencies '[[org.cloudhoist.plugin/zi "0.5.5"]]}})
+(def conf-dev-plugin {:env {:source-paths #{"src/plugin" "src/web" "src/task" "src/shared"}
+                            :dependencies '[[org.cloudhoist/clojure-maven-mojo "0.3.3"]
+                                            [org.cloudhoist/clojure-maven-mojo-annotations "0.3.3"]
+                                            [org.flatland/classlojure "0.7.1"]
+                                            [org.apache.maven.shared/maven-invoker "3.0.0"]
+                                            [resauce "0.1.0"]
+                                            [org.slf4j/slf4j-simple "1.7.22"]
+                                            [com.elasticpath.tools/rest-viz-maven-plugin "0.1.0"]]
+                            :repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
+                                                             :snapshots false
+                                                             :checksum :fail}]
+                                           ["clojars" {:url "http://clojars.org/repo"
+                                                       :snapshots true
+                                                       :checksum :fail}]]}
+                      :props {"maven.home" (java.lang.System/getenv "M2_HOME")
+                              "maven.local-repo" (str (java.lang.System/getenv "HOME") "/.m2")}
+                      :pipeline '(comp (repl)
+                                       (wait))
+                      :repl {:server true
+                             :port 5099}})
 
-(deftask build-plugin []
-  )
+(boot/defedntask dev-plugin
+  "Start the extractor interactive environment"
+  []
+  (add-resources-deps! conf-dev-plugin conf-ep-resources))
+
+;; (def conf-prod-plugin
+;;   {:env {:dependencies '[[big-solutions/boot-mvn "0.1.6"]]}
+;;    :pipeline '(comp (build-web)
+;;                     (target)
+;;                     (boot-mvn.core/mvn))
+;;    :target {:dir #{"web-target"}}
+;;    :mvn {:working-dir (.. (io/file ".") getCanonicalPath)
+;;          :args "-Pboot-clj clean install"}})
+
+;; (boot/defedntask install-plugin []
+;;   "Build the plugin artifact"
+;;   []
+;;   conf-prod-plugin)
 
 ;;;;;;;;;;
 ;; TEST ;;

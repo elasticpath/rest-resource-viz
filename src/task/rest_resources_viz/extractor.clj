@@ -3,7 +3,7 @@
             [clojure.set :as set]
             [clojure.spec :as s]
             [clojure.spec.test :as stest]
-            [clojure.pprint :as pp :refer [pprint]]
+            [fipp.clojure :as fipp]
             [clojure.xml :as xml]
             [clojure.string :as str]
             [clojure.data.xml :as dx]
@@ -355,8 +355,7 @@
     (s/assert* :graph-data/entity graph-data)
     (apply spit f (if-not (:pretty opts)
                     (pr-str graph-data)
-                    ;; AR - use fipp
-                    (with-out-str (pprint graph-data))) (flatten opts))))
+                    (with-out-str (fipp/pprint graph-data))) (flatten opts))))
 
 (defn spit-graph-data-json!
   "Write to file the resource graph data in json"
