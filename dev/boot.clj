@@ -19,7 +19,10 @@
   (let [env (:env conf)
         props (:props conf)]
     (apply set-env! (reduce #(into %2 %1) [] env))
-    (assert (or (nil? props) (map? props)) "Option :props should be a map.")
+    (assert (or (nil? props) (map? props))
+            (format "Option :props should be a map, was %s." (pr-str props)))
+    (assert (every? #(and (string? (key %)) (string? (val %))) props)
+            (format "Option :props does not contain only strings, was %s" (pr-str props)))
     (set-system-properties! props)))
 
 (defn calculate-resource-deps
