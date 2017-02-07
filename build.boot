@@ -149,13 +149,46 @@
 ;; MAVEN PLUGIN ;;
 ;;;;;;;;;;;;;;;;;;
 
-(def conf-plugin
-  {:env {:source-paths #{"src/plugin" "src/web" "src/task"}
-         :dependencies '[[org.cloudhoist.plugin/zi "0.5.5"]]}
-   :pom {:parent {org.sonatype.oss/oss-parent "5"}}})
+(def conf-plugin {:env {:source-paths #{"src/plugin" "src/web" "src/task" "src/shared"}
+                        :dependencies '[[org.cloudhoist/clojure-maven-mojo "0.3.3"]
+                                        [org.cloudhoist/clojure-maven-mojo-annotations "0.3.3"]
+                                        [com.cemerick/pomegranate "0.4.0-SNAPSHOT"]
+                                        [org.flatland/classlojure "0.7.1"]
+                                        ]
+                        :repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
+                                                         :snapshots false
+                                                         :checksum :fail}]
+                                       ["clojars" {:url "http://clojars.org/repo"
+                                                   :snapshots true
+                                                   :checksum :fail}]]}
+                  :pipeline '(comp (show)
+                                   (pom)
+                                   (uberjar))
+                  :show {:fileset true}})
 
-(deftask build-plugin []
-  )
+(def conf-dev-plugin
+  (merge (-> conf-plugin
+             (update-in [:env :dependencies]
+                        into
+                        '[[org.apache.maven.shared/maven-invoker "3.0.0"]
+                          [org.slf4j/slf4j-simple "1.7.22"]])
+             (update-in [:props] assoc
+                        "maven.home" (java.lang.System/getenv "M2_HOME")
+                        "maven.local-repo" (str (java.lang.System/getenv "HOME") "/.m2")))
+         {:pipeline '(comp (repl)
+                           (wait))
+          :repl {:server true
+                 :port 5055}}))
+
+(boot/defedntask dev-plugin
+  "Start the extractor interactive environment"
+  []
+  (add-resources-deps! conf-dev-plugin conf-ep-resources))
+
+(boot/defedntask build-plugin []
+  "Build the plugin artifact"
+  []
+  conf-plugin)
 
 ;;;;;;;;;;
 ;; TEST ;;

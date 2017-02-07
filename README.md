@@ -15,6 +15,16 @@ In order to dump data, there is an `extract` task:
 
 The above command dumps the graph data to `data/graph-data2.edn` with pretty print enabled. The brackets are necessary in order to send positional arguments to the task.
 
+## Build
+
+Boot is very friendly when it comes to help developers. You either have `boot -h` or `boot task-name -h` at your disposal.
+
+In order to compile the plugin you can either use Maven directly in the project root or launch it through boot with:
+
+    boot -B --source-paths "." watch -e "^mvn-target" sift -i "src" -i "pom.xml" mvn -W `pwd` -A "-Pboot-clj clean install"
+
+This will generate a `mvn-target` folder containing the artifact (which will also be installed in your `.m2` folder.
+
 ## License
 
 Copyright 2017 Elastic Path
