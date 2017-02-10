@@ -73,7 +73,8 @@
 
 (comment
   ;; The following was presenting the issue
-  (s/explain :graph-data/entity (->> (classpath-resource-xmls!)
+  (s/explain :graph-data/entity (->> (cp/classpath-jarfiles)
+                                     classpath-resource-xmls!
                                      (filter (partial re-find #"shipments-shipping-address"))
                                      (into [] (comp (map parse-resource-xml)
                                                     (map descend-to-family)
@@ -106,9 +107,9 @@
 
 (s/fdef resource->relationship
   :args (s/cat :from-fn (s/fspec :args (s/cat :resource :resource/entity)
-                                 :ret string?)
+                                 :ret qualified-keyword?)
                :to-fn (s/fspec :args (s/cat :resource :resource/entity)
-                               :ret string?)
+                               :ret qualified-keyword?)
                :resource :resource/entity)
   :ret :relationship/entity)
 
@@ -342,11 +343,14 @@
   (re-find #"META-INF\/rest-definitions\/.*\.xml$" file-path))
 
 (defn classpath-resource-xmls!
+  "Return the classpath resource files or throws if none can be found."
   []
-  (into [] (comp (map cp/filenames-in-jar)
-                 (mapcat identity)
-                 (filter resource-xml?))
-        (cp/classpath-jarfiles)))
+  (if-let [res-xmls (seq (into [] (comp (map cp/filenames-in-jar)
+                                        (mapcat identity)
+                                        (filter resource-xml?))
+                               (cp/classpath-jarfiles)))]
+    res-xmls
+    (throw (ex-info "Cannot find rest resources xml files on the classpath" {}))))
 
 (defn spit-graph-data-edn!
   "Write to file the resource graph data in json"
@@ -378,7 +382,7 @@
 
   If the opts contains :pretty true, the output will be pretty printed."
   [f & [opts]]
-  (spit-xml f (xml-files->definitions (classpath-resource-xmls!)) opts))
+  (spit-xml f (xml-files->graph-data (classpath-resource-xmls!)) opts))
 
 (defn usage [options-summary]
   (->> [""
@@ -421,12 +425,10 @@
   (def xml-root (-> r parse-resource-xml! zip/xml-zip))
   (def root {:tag :root :attrs {} :content (list (->> file-path parse-resource-xml!))})
   (def json-defs (-> root element->map second json/encode))
-  (def fs (into [] (comp (map parse-resource-xml)
-                         (map descend-to-family)
-                         (map node->clj)) (classpath-resource-xmls!)))
   (spit-graph-data-json! "data/graph-data.json" {:pretty true})
   (spit-graph-data-edn! "data/graph-data.edn" {:pretty true})
-  (def issue-xml (->> (classpath-resource-xmls!)
+  (def issue-xml (->> (cp/classpath-jarfiles)
+                      classpath-resource-xmls!
                       (filter (partial re-find #"shipments-shipping-address"))
                       (into [] (comp (map parse-resource-xml)
                                      (map descend-to-family)
