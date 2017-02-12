@@ -30,7 +30,14 @@
           </execution>
         </executions>
         <configuration>
-          <pretty>true</pretty>
+          <!-- Output Directory - defaults to ${project.build.directory}/rest-viz-assets -->
+          <!-- <restVizExtractTargetDirectory>${project.build.directory}/my-assets</restVizExtractTargetDirectory> -->
+
+          <!-- Custom name for the extracted data output file - defaults to graph-data.edn -->
+          <!-- <restVizExtractTargetName>my-name.edn</restVizExtractTargetName> -->
+
+          <!-- Pretty print the extracted data - defaults to false -->
+          <!-- <restVizExtractDataPrettyPrint>true</restVizExtractDataPrettyPrint> -->
         </configuration>
 
         <!-- note that the dependencies are positioned in here -->
@@ -186,8 +193,6 @@
   </build>
 
   <dependencies>
-
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

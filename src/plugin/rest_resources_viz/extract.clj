@@ -110,15 +110,15 @@
 
    target-directory {:required true
                      :defaultValue "${project.build.directory}/rest-viz-assets"
-                     :alias "extractDataTargetDirectory"
+                     :alias "restVizExtractTargetDirectory"
                      :description "Output Directory"}
 
    target-name {:defaultValue "graph-data.edn"
-                :alias "extractDataTargetName"
-                :description "Custom name for the output file"}
+                :alias "restVizExtractTargetName"
+                :description "Custom name for the extracted data output file"}
 
    pretty {:defaultValue "false"
-           :alias "extractDataPrettyPrint"
+           :alias "restVizExtractDataPrettyPrint"
            :description "Pretty print the extracted data"}]
 
   (run-extractor maven-session
