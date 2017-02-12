@@ -106,7 +106,7 @@
 ;; WEB ;;
 ;;;;;;;;;
 
-(def env-web-prod {:resource-paths #{"resources"}
+(def env-web-prod {:resource-paths #{"web-assets"}
                    :source-paths #{"src/web" "src/shared"}
                    :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                                    [org.clojure/clojurescript "1.9.473"  :scope "test"]
@@ -115,16 +115,17 @@
                                    [adzerk/env "0.4.0"]
                                    [binaryage/oops "0.5.2"]
                                    [cljsjs/d3 "4.3.0-3"]
-                                   [cljsjs/intersections "1.0.0-0"]
                                    [reagent "0.6.0"]]})
 
 (def conf-web-prod {:env env-web-prod
-                    :pipeline '(adzerk.boot-cljs/cljs)
+                    :pipeline '(comp (adzerk.boot-cljs/cljs)
+                                     (sift))
+                    :sift {:include #{#"^\w+\.out"}
+                           :invert true}
                     :cljs {:source-map true
                            :optimizations :advanced
                            :compiler-options {:closure-defines {"goog.DEBUG" false}
-                                              ;; :elide-asserts true
-                                              :pseudo-names true ;; TODO set to false for prod
+                                              :pseudo-names false
                                               :pretty-print false
                                               :source-map-timestamp true
                                               :parallel-build true
