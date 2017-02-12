@@ -21,7 +21,7 @@ Boot is very friendly when it comes to help developers. You either have `boot -h
 
 In order to compile the plugin you can either use Maven directly in the project root or launch it through boot with:
 
-    boot -B --source-paths "." watch -e "^mvn-target" sift -i "src" -i "pom.xml" mvn -W `pwd` -A "-Pboot-clj clean install"
+    boot build-web target mvn -W `pwd` -A "-Pboot-clj clean install"
 
 This will generate a `mvn-target` folder containing the artifact (which will also be installed in your `.m2` folder.
 
