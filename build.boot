@@ -31,7 +31,7 @@
 (def extractor-version "0.1.0")
 
 (def conf-ep-resources
-  {:module-edn-path "resources/modules.edn"
+  {:module-edn-path "dev/modules.edn"
    :resources-group-id "com.elasticpath.rest.definitions"
    :resources-format "%s/ep-resource-%s-api"
    :resources-version "0-SNAPSHOT"
