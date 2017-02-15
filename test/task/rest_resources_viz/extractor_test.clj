@@ -28,11 +28,6 @@
   (is (= :family/line-item (ext/keywordize "family" ".line-item")) "Convert single string with no one preceding . to qualified keyword with family")
   (is (= :carts/line-item (ext/keywordize "family" "carts.line-item")) "Convert string with something preceding and following full stop (.) to qualified keyword ignoring family"))
 
-(deftest graph-data
-  (testing "Spec conformance test"
-    (let [graph-data (ext/xml-files->graph-data (ext/classpath-resource-xmls!))]
-      (is (s/valid? :graph-data/entity graph-data) (s/explain-str :graph-data/entity graph-data)))))
-
 (deftest resource->relationship
   (let [resource {:name "item-definition-components", :description "The list of item definition components.", :uri "{item-definition}/components", :list-of "item-definition-component", :family-id :itemdefinitions, :id :itemdefinitions/item-definition-components}
         relationship (ext/resource->relationship :name :list-of resource)]
