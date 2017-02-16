@@ -7,7 +7,7 @@
     <version>5</version>
   </parent>
 
-  <groupId>com.elasticpath.tools</groupId>
+  <groupId>com.elasticpath</groupId>
   <artifactId>rest-viz-maven-plugin</artifactId>
   <version>0.1.0</version>
   <packaging>maven-plugin</packaging>
@@ -166,7 +166,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.elasticpath.tools</groupId>
+      <groupId>com.elasticpath</groupId>
       <artifactId>rest-resources-viz</artifactId>
       <version>0.1.0</version>
     </dependency>

@@ -17,7 +17,7 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.elasticpath.tools</groupId>
+        <groupId>com.elasticpath</groupId>
         <artifactId>rest-viz-maven-plugin</artifactId>
         <version>0.1.0</version>
         <executions>

@@ -27,7 +27,7 @@
 ;; Extractor ;;
 ;;;;;;;;;;;;;;;
 
-(def extractor-project 'com.elasticpath.tools/rest-resources-viz)
+(def extractor-project 'com.elasticpath/rest-resources-viz)
 (def extractor-version "0.1.0")
 
 (def conf-ep-resources
@@ -183,7 +183,7 @@
                                             [org.apache.maven.shared/maven-invoker "3.0.0"]
                                             [resauce "0.1.0"]
                                             [org.slf4j/slf4j-simple "1.7.22"]
-                                            [com.elasticpath.tools/rest-viz-maven-plugin "0.1.0"]]
+                                            [com.elasticpath/rest-viz-maven-plugin "0.1.0"]]
                             :repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
                                                              :snapshots false
                                                              :checksum :fail}]
