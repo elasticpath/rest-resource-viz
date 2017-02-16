@@ -50,7 +50,7 @@
      (update m1 k2 (fn [v1]
                      ;; AR - this was tough
                      (if (and (nil? v1) (string? v2))
-                       v2
+                       (str/replace (str/trim v2) "\n" " ")
                        (conj
                         (cond
                           (nil? v1) []
