@@ -32,21 +32,30 @@
         (recur (mapcat res/url-dir rs) (into acc rs))
         acc))))
 
+;; Java resources are the best, how to know if the resource path is a dir?
+;; http://stackoverflow.com/questions/20105554/is-there-a-way-to-tell-if-a-classpath-resource-is-a-file-or-a-directory
+(defn directory-resource?
+  "Check if a resource is a directory"
+  [cl path]
+  (let [normalized-path (str path (when-not (= \/ (last path)) "/"))]
+    (when-let [r (.findResource cl normalized-path)]
+      (res/directory? r))))
+
 (defn copy-web-assets!
   "Copy the web-assets from within our plugin to the output-dir"
-  [^File output-dir]
-  (let [output-nio-path (some-> output-dir io/file .toURI Paths/get)
+  [logger ^File output-dir]
+  (let [cl (.getContextClassLoader (Thread/currentThread))
+        output-nio-path (some-> output-dir io/file .toURI Paths/get)
         parent-path (-> web-assets-dir res/resources first .toExternalForm)]
     (if-let [web-assets-paths (seq (web-assets-resources))]
       (doseq [path web-assets-paths]
         (let [relative-path (relativize path parent-path)
               relative-resource-path (str web-assets-dir relative-path)
-              output-path ^Path (.resolve output-nio-path relative-path)
-              output-file ^File (.toFile output-path)]
-          (when-not (.isDirectory output-file)
-            (io/make-parents output-file)
-            (log/debugf "Creating %s..." output-path)
-            (with-open [is ^InputStream (.getResourceAsStream (.getContextClassLoader (Thread/currentThread)) relative-resource-path)]
+              output-path ^Path (.resolve output-nio-path relative-path)]
+          (when-not (directory-resource? cl relative-resource-path)
+            (io/make-parents (.toFile output-path))
+            (.debug logger (format "Creating %s..." output-path))
+            (with-open [is ^InputStream (.getResourceAsStream cl relative-resource-path)]
               (Files/copy is output-path (into-array StandardCopyOption [StandardCopyOption/REPLACE_EXISTING])))))))))
 
 (def ^:private java-url->str
