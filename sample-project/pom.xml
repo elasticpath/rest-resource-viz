@@ -31,13 +31,13 @@
         </executions>
         <configuration>
           <!-- Output Directory - defaults to ${project.build.directory}/rest-viz-assets -->
-          <!-- <restVizExtractTargetDirectory>${project.build.directory}/my-assets</restVizExtractTargetDirectory> -->
+          <!-- <targetDirectory>${project.build.directory}/my-assets</targetDirectory> -->
 
           <!-- Custom name for the extracted data output file - defaults to graph-data.edn -->
-          <!-- <restVizExtractTargetName>my-name.edn</restVizExtractTargetName> -->
+          <!-- <dataTargetName>my-name.edn</dataTargetName> -->
 
           <!-- Pretty print the extracted data - defaults to false -->
-          <!-- <restVizExtractDataPrettyPrint>true</restVizExtractDataPrettyPrint> -->
+          <!-- <prettyPrint>true</prettyPrint> -->
         </configuration>
 
         <!-- note that the dependencies are positioned in here -->
