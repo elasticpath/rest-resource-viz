@@ -23,6 +23,13 @@
            (println (str "<dependency>\n  <groupId>" g "</groupId>\n  <artifactId>" a "</artifactId>\n  <version>" v "</version>\n</dependency>")))
         deps))
 
+(def repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
+                                     :snapshots false
+                                     :checksum :fail}]
+                   ["clojars" {:url "http://clojars.org/repo"
+                               :snapshots true
+                               :checksum :fail}]])
+
 ;;;;;;;;;;;;;;;
 ;; Extractor ;;
 ;;;;;;;;;;;;;;;
@@ -40,7 +47,8 @@
                       [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]})
 
 (def env-extractor
-  {:source-paths #{"src/task" "src/shared"}
+  {:repositories repositories
+   :source-paths #{"src/task" "src/shared"}
    :resource-paths #{"src/task" "src/shared"}
    :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
                    [org.clojure/tools.cli "0.3.5"]
@@ -84,12 +92,35 @@
   conf-uber-extractor)
 
 (boot/defedntask install-extractor
-  "Build, package  and install the extractor code"
+  "Build, package and install the extractor code"
   []
   (-> conf-uber-extractor
       (assoc :pipeline '(comp (build-extractor)
                               (install))
              :install {:pom (str extractor-project)})))
+
+(def snapshot? #(.endsWith extractor-version "-SNAPSHOT"))
+
+(boot/defedntask deploy-extractor
+  "Build, package and deploy the extractor"
+  [u username STR str "The repository username"
+   p password STR str "The repository password"]
+  (-> conf-uber-extractor
+      (assoc :pipeline '(comp (build-extractor)
+                              (push)))
+      (merge (if (snapshot?)
+               {:push {:pom (str extractor-project)
+                       :ensure-snapshot true
+                       :repo-map {:url "https://oss.sonatype.org/content/repositories/snapshots"
+                                  :username username
+                                  :password password}}}
+               {:push {:pom (str extractor-project)
+                       :gpg-sign true
+                       :ensure-release true
+                       :ensure-version extractor-version
+                       :repo-map {:url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                                  :username username
+                                  :password password}}}))))
 
 (deftask extract
   "Run the extractor"
@@ -177,19 +208,12 @@
 ;;;;;;;;;;;;;;;;;;
 
 (def conf-dev-plugin {:env {:source-paths #{"src/plugin" "src/web" "src/task" "src/shared"}
-                            :dependencies '[[org.cloudhoist/clojure-maven-mojo "0.3.3"]
-                                            [org.cloudhoist/clojure-maven-mojo-annotations "0.3.3"]
-                                            [org.flatland/classlojure "0.7.1"]
+                            :dependencies '[[org.flatland/classlojure "0.7.1"]
                                             [org.apache.maven.shared/maven-invoker "3.0.0"]
                                             [resauce "0.1.0"]
                                             [org.slf4j/slf4j-simple "1.7.22"]
-                                            [com.elasticpath/rest-viz-maven-plugin "0.1.0"]]
-                            :repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
-                                                             :snapshots false
-                                                             :checksum :fail}]
-                                           ["clojars" {:url "http://clojars.org/repo"
-                                                       :snapshots true
-                                                       :checksum :fail}]]}
+                                            [com.elasticpath/rest-viz-maven-plugin "0.1.0-SNAPSHOT"]]
+                            :repositories repositories}
                       :props {"maven.home" (java.lang.System/getenv "M2_HOME")
                               "maven.local-repo" (str (java.lang.System/getenv "HOME") "/.m2")}
                       :pipeline '(comp (repl)
