@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>5</version>
-  </parent>
 
-  <groupId>com.elasticpath.tools</groupId>
+  <groupId>com.elasticpath</groupId>
   <artifactId>rest-viz-maven-plugin</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rest-viz-maven-plugin</name>
@@ -29,6 +24,12 @@
     <developer>
       <name>Andrea Richiardi</name>
       <email>a.richiardi.work@gmail.com</email>
+      <organization>Elastic Path</organization>
+      <organizationUrl>http://www.elasticpath.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Matt Bishop</name>
+      <email>matt.bishop@elasticpath.com</email>
       <organization>Elastic Path</organization>
       <organizationUrl>http://www.elasticpath.com</organizationUrl>
     </developer>
@@ -65,6 +66,7 @@
         </excludes>
       </resource>
     </resources>
+
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -88,26 +90,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.5</version>
-        <executions>
-          <execution>
-            <id>default-descriptor</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>descriptor</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.cloudhoist</groupId>
-            <artifactId>clojure-maven-mojo-descriptor-extractor</artifactId>
-            <version>${clojure-maven.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
+
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.3</version>
@@ -117,6 +100,7 @@
           <pushChanges>false</pushChanges>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.ops4j</groupId>
         <artifactId>maven-inherit-plugin</artifactId>
@@ -130,9 +114,17 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>1.4.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.0-beta-6</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -140,6 +132,8 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
+              <fail>true</fail>
+              <failFast>true</failFast>
               <rules>
                 <requireMavenVersion>
                   <version>[3.1.0,)</version>
@@ -149,9 +143,11 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -161,14 +157,71 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <executions>
+        <execution>
+          <id>attach-javadocs</id>
+          <goals>
+            <goal>jar</goal>
+          </goals>
+        </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.5</version>
+        <executions>
+          <execution>
+            <id>generated-helpmojo</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-descriptor</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
   <dependencies>
     <dependency>
-      <groupId>com.elasticpath.tools</groupId>
+      <groupId>com.elasticpath</groupId>
       <artifactId>rest-resources-viz</artifactId>
-      <version>0.1.0</version>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.flatland</groupId>
@@ -198,34 +251,11 @@
       <version>3.6.1</version>
       <type>maven-plugin</type>
     </dependency>
-
-    <!-- Clojure-maven deps -->
     <dependency>
-      <groupId>org.cloudhoist</groupId>
-      <artifactId>clojure-maven-mojo</artifactId>
-      <version>${clojure-maven.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cloudhoist</groupId>
-      <artifactId>clojure-maven-mojo-annotations</artifactId>
-      <version>${clojure-maven.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cloudhoist</groupId>
-      <artifactId>clojure-maven-plexus-component-factory</artifactId>
-      <version>${clojure-maven.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.cloudhoist</groupId>
-      <artifactId>clojure-maven-plexus-compiler</artifactId>
-      <version>${clojure-maven.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>classlojure</groupId>
-          <artifactId>classlojure</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.5</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -239,6 +269,11 @@
       <id>central</id>
       <name>Maven Central</name>
       <url>http://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>snapshots</id>
+      <name>Maven Shapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
 
@@ -257,7 +292,7 @@
 
   <profiles>
     <profile>
-      <id>sonatype-release-profile-extension</id>
+      <id>sonatype-release</id>
       <activation>
         <property>
           <name>performRelease</name>
@@ -267,7 +302,9 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
             <configuration>
               <keyName>${gpg.keyname}</keyName>
               <passphrase>${gpg.passphrase}</passphrase>
@@ -286,16 +323,6 @@
       </build>
     </profile>
     <profile>
-      <id>sonatype-repo-deploy</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <snapshotRepository.url>https://oss.sonatype.org/content/repositories/snapshots</snapshotRepository.url>
-        <snapshotRepository.id>sonatype-nexus-snapshots</snapshotRepository.id>
-      </properties>
-    </profile>
-    <profile>
       <id>boot-clj</id>
       <build>
         <directory>${boot-interop.output-path}</directory>
@@ -311,13 +338,13 @@
 
   <distributionManagement>
     <repository>
-      <id>sonatype-nexus-staging</id>
+      <id>ossrh</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
       <uniqueVersion>false</uniqueVersion>
     </repository>
     <snapshotRepository>
-      <id>${snapshotRepository.id}</id>
-      <url>${snapshotRepository.url}</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -326,7 +353,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.5.1</version>
       </plugin>
     </plugins>
   </reporting>
