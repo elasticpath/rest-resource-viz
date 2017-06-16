@@ -263,7 +263,7 @@
     <repository>
       <id>clojars</id>
       <name>Clojars</name>
-      <url>http://clojars.org/repo</url>
+      <url>https://clojars.org/repo</url>
     </repository>
     <repository>
       <id>central</id>
@@ -281,7 +281,7 @@
     <pluginRepository>
       <id>clojars</id>
       <name>Clojars</name>
-      <url>http://clojars.org/repo</url>
+      <url>https://clojars.org/repo</url>
     </pluginRepository>
     <pluginRepository>
       <id>central</id>
