@@ -1,8 +1,0 @@
-symbol  type           unicode
-📦      Entity         U+1F4E6
-🔗      Link Point     U+1F517
-👉      Alias          U+1F449
-📃      List Of        U+1F4C3
-📄      Paginated List U+1F4C4
-️✅︎      Form           U+2705
-🔘      Selector       U+1F518
