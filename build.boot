@@ -4,29 +4,10 @@
          '[clojure.java.io :as io]
          '[boot])
 
-(defn add-resources-deps!
-  "Returns a vector containing the rest-resources coordinates given for
-  the modules. It reads the modules collection names from a file called
-  modules.edn."
-  [conf ep-res-conf]
-  (let [coords (-> #{}
-                   (into (:additional-deps ep-res-conf))
-                   (into (boot/calculate-resource-deps ep-res-conf))
-                   vec)]
-    (update-in conf [:env :dependencies] #(-> % (concat coords) distinct vec))))
-
-(comment
-  (def deps (boot/calculate-resource-deps conf-ep-resources))
-  (run! #(let [g (-> % first namespace)
-               a (-> % first name)
-               v (-> % second)]
-           (println (str "<dependency>\n  <groupId>" g "</groupId>\n  <artifactId>" a "</artifactId>\n  <version>" v "</version>\n</dependency>")))
-        deps))
-
 (def repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
                                      :snapshots false
                                      :checksum :fail}]
-                   ["clojars" {:url "http://clojars.org/repo"
+                   ["clojars" {:url "https://clojars.org/repo"
                                :snapshots true
                                :checksum :fail}]])
 
@@ -36,15 +17,6 @@
 
 (def extractor-project 'com.elasticpath/rest-resources-viz)
 (def extractor-version "0.1.0")
-
-(def conf-ep-resources
-  {:module-edn-path "dev/modules.edn"
-   :resources-group-id "com.elasticpath.rest.definitions"
-   :resources-format "%s/ep-resource-%s-api"
-   :resources-version "0-SNAPSHOT"
-   :additional-deps '[[com.elasticpath.rest.definitions/ep-resource-collections-api "0-SNAPSHOT"]
-                      [com.elasticpath.rest.definitions/ep-resource-base-api "0-SNAPSHOT"]
-                      [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]})
 
 (def env-extractor
   {:repositories repositories
@@ -83,8 +55,9 @@
 
 (boot/defedntask dev-extractor
   "Start the extractor interactive environment"
-  []
-  (add-resources-deps! conf-dev-extractor conf-ep-resources))
+  [c conf STR str "Path to conf.edn, default is dev/conf.edn"]
+  (assert conf "No required conf.edn passed in, see conf-sample.edn for an example.")
+  (boot/add-file-conf! conf-dev-extractor conf))
 
 (boot/defedntask build-extractor
   "Build and package the extractor code"
@@ -124,13 +97,19 @@
 
 (deftask extract
   "Run the extractor"
-  []
-  (boot/apply-conf! (add-resources-deps! conf-dev-extractor conf-ep-resources))
+  [c conf       STR str  "Path to conf.edn, default is dev/conf.edn"
+   f family-xml STR str  "Dumps an xml with all the families defined."
+   g graph-edn  STR str  "Dumps an edn containing the graph data."
+   p pretty         bool "Enable pretty printing of the data."]
+  (assert conf "No required conf.edn passed in, see conf-sample.edn for an example.")
+  (boot/apply-conf! (boot/add-file-conf! conf-dev-extractor conf))
   (with-pass-thru _
     (let [main-ns 'rest-resources-viz.extractor]
       (require main-ns)
       (if-let [f (ns-resolve main-ns '-main)]
-        (f *args*)
+        (f (concat (when family-xml ["--family-xml" family-xml])
+                   (when graph-edn ["--graph-edn" graph-edn])
+                   (when pretty ["--pretty"])))
         (throw (ex-info "No -main method found" {:main-ns main-ns}))))))
 
 ;;;;;;;;;
@@ -222,9 +201,10 @@
                              :port 5099}})
 
 (boot/defedntask dev-plugin
-  "Start the extractor interactive environment"
-  []
-  (add-resources-deps! conf-dev-plugin conf-ep-resources))
+  "Start the plugin interactive environment"
+  [c conf STR str  "Path to conf.edn, default is dev/conf.edn"]
+  (assert conf "No required conf.edn passed in, see conf-sample.edn for an example.")
+  (boot/add-file-conf! conf-dev-plugin conf))
 
 ;; (def conf-prod-plugin
 ;;   {:env {:dependencies '[[big-solutions/boot-mvn "0.1.6"]]}

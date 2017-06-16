@@ -388,7 +388,7 @@
   (->> [""
         "Dump resource data to disk."
         ""
-        "Usage: boot [ extract -- options ]"
+        "Usage: boot extract ...options..."
         ""
         "Options:"
         options-summary]
@@ -406,9 +406,9 @@
   (System/exit status))
 
 (def cli-options
-  [["-f" "--family-xml FILE-PATH" "Dumps an xml with all the families defined"]
-   ["-g" "--graph-edn FILE-PATH" "Dumps an edn containing the graph data"]
-   ["-p" "--pretty" "Pretty prints the output"]
+  [["-f" "--family-xml FILE-PATH" "Dumps an xml with all the families defined."]
+   ["-g" "--graph-edn FILE-PATH" "Dumps an edn containing the graph data."]
+   ["-p" "--pretty" "Enable pretty printing of the data."]
    ["-h" "--help" "Prints out the help"]])
 
 (defn -main [args]

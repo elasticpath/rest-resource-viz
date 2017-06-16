@@ -1,0 +1,53 @@
+;;
+;; Sample conf.edn file for the extractor
+;;
+{:repositories [["repo-name" {:url "http://path-to-nexus"
+                              ;; allows snapshot artifacts
+                              :snapshots true}]]
+ :additional-deps [[com.elasticpath.rest.definitions/ep-resource-collections-api "0-SNAPSHOT"]
+                   [com.elasticpath.rest.definitions/ep-resource-base-api "0-SNAPSHOT"]
+                   [com.elasticpath.rest.definitions/ep-resource-controls-api "0-SNAPSHOT"]]
+ ;; The Maven dependencies for the resources will be generated using the
+ ;; following options, using the format string.
+ ;;
+ ;; For instance for the below example:
+ ;;   (clojure.core/format "%s/ep-resource-%s-api" "com.elasticpath.rest.definitions" shipments)
+ ;;   ;;=> "com.elasticpath.rest.definitions/ep-resource-shipments-api"
+ ;;
+ :resources {:group-id "com.elasticpath.rest.definitions"
+             :format "%s/ep-resource-%s-api"
+             :version "0-SNAPSHOT"
+             :modules #{addresses
+                        assets
+                        availabilities
+                        carts
+                        coupons
+                        discounts
+                        emails
+                        geographies
+                        itemdefinitions
+                        itemselections
+                        items
+                        lookups
+                        navigations
+                        orders
+                        payment-methods
+                        payment-tokens
+                        prices
+                        profiles
+                        promotions
+                        purchases
+                        ;; rates
+                        recommendations
+                        registrations
+                        ;; schema-reference-doc
+                        searches
+                        shipment-details
+                        shipments
+                        slots
+                        ;; stocks
+                        ;; subscriptions
+                        taxes
+                        totals
+                        ;; unreleased-plans
+                        wishlists}}}

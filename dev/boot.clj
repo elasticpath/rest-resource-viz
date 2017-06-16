@@ -25,33 +25,73 @@
             (format "Option :props does not contain only strings, was %s" (pr-str props)))
     (set-system-properties! props)))
 
+(s/def :resources/group-id string?)
+(s/def :resources/format string?)
+(s/def :resources/version string?)
+(s/def :resources/module (s/or :string string? :symbol symbol?))
+(s/def :resources/modules (s/coll-of :resources/module))
+
+(s/def :repository/url string?)
+(s/def :repository/snapshots boolean?)
+
+(s/def :conf/repo-definition (s/keys :req-un [:repository/url :repository/snapshots]))
+(s/def :conf/repositories (s/coll-of (s/cat :name string? :repo-definition :conf/repo-definition)))
+
+
+(s/def :conf/resources (s/keys :req-un [:resources/group-id :resources/version
+                                        :resources/format :resources/modules]))
+
+(s/def :conf/clojars-dep (s/cat :group-slash-artifact symbol? :version string?))
+(s/def :conf/additional-deps (s/coll-of :conf/clojars-dep))
+
+(s/def :extractor/conf (s/keys :req-un [:conf/resources :conf/additional-deps :conf/repositories]))
+
 (defn calculate-resource-deps
   "Calculate the dependency vector for artifacts that share group-id and
   names
 
-  Accepts the following map:
-
-    {:module-edn-path \"resources/modules.edn\"
-     :resources-group-id \"com.elasticpath.rest.definitions\"
-     :resources-format \"%s/ep-resource-%s-api\"
-     :resources-version \"0-SNAPSHOT\"
-     :additional-deps '[[com.elasticpath.rest.definitions/ep-resource-collections-api \"0-SNAPSHOT\"]]}
+  See the spec on the input for accepted keys and their meaning.
 
   The vector will be calculated by using:
 
     [(format resources-format resources-group-id module-name) resources-version]
 
-  For each entry in :module-edn-path."
-  [{:keys [module-edn-path resources-group-id
-           resources-format resources-version]
-    :as res-conf}]
-  (->> module-edn-path
-       io/file
-       slurp
-       edn/read-string
-       (map #(vector (-> (format resources-format resources-group-id %)
-                         symbol)
-                     resources-version))))
+  For each entry in :resources-modules."
+  [{:keys [group-id format version modules] :as resources}]
+  (s/assert* :conf/resources resources)
+  (mapv #(vector (-> format (clojure.core/format group-id %) symbol) version)
+        modules))
+
+(defn conj-new-coords
+  [res-conf old-coords]
+  (-> old-coords
+      (concat (-> #{}
+                  (into (:additional-deps res-conf))
+                  (into (calculate-resource-deps (:resources res-conf)))
+                  vec))
+      distinct
+      vec))
+
+(defn conj-new-repositories
+  [res-conf old-repositories]
+  (-> old-repositories
+      (concat (:repositories res-conf))
+      distinct
+      vec))
+
+(defn add-file-conf!
+  "Returns a vector containing the rest-resources coordinates given for
+  the modules. It reads the modules collection names from a file called
+  modules.edn."
+  [current-conf res-conf-path]
+  (let [file-conf (->> res-conf-path
+                       io/file
+                       slurp
+                       edn/read-string)]
+    (s/assert* :extractor/conf file-conf)
+    (-> current-conf
+        (update-in [:env :dependencies] (partial conj-new-coords file-conf))
+        (update-in [:env :repositories] (partial conj-new-repositories file-conf)))))
 
 ;; Spec for our little DSL
 
