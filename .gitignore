@@ -10,3 +10,4 @@
 .nrepl-port
 /out/
 .dir-locals.el
+.nrepl-history
