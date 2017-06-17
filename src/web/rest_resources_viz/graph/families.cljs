@@ -8,7 +8,9 @@
 
 (defn family-widget-font
   [attrs line-height]
-  (max (:font-size-min attrs) (/ line-height 1.618)))
+  (->> (/ line-height 1.618)
+       (max (:font-size-min attrs))
+       (min (:font-size-max attrs))))
 
 (defn family-highligthed?
   [neighbor-families-of-clicked hovered clicked family-name]

@@ -15,7 +15,7 @@
                                 :strength -100}
                          :link {:distance 42}
                          :text {:dx 8}
-                         :family-panel {:font-size-min "9"}
+                         :family-widget {:font-size-min "8" :font-size-max "20"}
                          :tooltip {:width 100 :height 20
                                    :padding 10 :stroke-width 2
                                    :rx 5 :ry 5
