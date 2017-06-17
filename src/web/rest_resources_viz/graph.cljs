@@ -1,4 +1,4 @@
-(ns ^{:doc "Namespace including graph-related component and functions"
+(ns ^{:doc "Namespace including graph-related component and functions."
       :author "Andrea Richiardi"}
     rest-resources-viz.graph
   (:require [clojure.spec :as s]

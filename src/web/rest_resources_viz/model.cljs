@@ -1,4 +1,4 @@
-(ns ^{:doc "The namespace containing state and model-related functions"
+(ns ^{:doc "The namespace containing state and model-related functions."
       :author "Andrea Richiardi"}
     rest-resources-viz.model
   (:require [clojure.spec :as s]
