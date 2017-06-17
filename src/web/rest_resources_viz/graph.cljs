@@ -6,7 +6,8 @@
             [cljsjs.d3]
             [reagent.core :as r]
             [rest-resources-viz.model :as model]
-            [rest-resources-viz.util :as util])
+            [rest-resources-viz.util :as util]
+            [rest-resources-viz.graph.families :as families])
   (:require-macros [rest-resources-viz.logging :as log]))
 
 (defn event-xy!
@@ -45,21 +46,12 @@
     (-> (js/d3.select "svg")
         (.call d3-zoom))))
 
-(defn toggle-or-nil
-  "Simple toggle-like schema, return new iff old is nil or not the same
-  as new. Otherwise return nil."
-  [new old]
-  (cond
-    (nil? old) new
-    (= old new) nil
-    :else new))
-
 (defn install-node-events! [d3-selection attrs]
   (-> d3-selection
       (.selectAll "circle")
-      (.on "mouseover" #(swap! model/app-state update :hovered-js-node (partial toggle-or-nil %)))
+      (.on "mouseover" #(swap! model/app-state update :hovered-js-node (partial util/toggle-or-nil %)))
       (.on "mouseout" #(swap! model/app-state assoc :hovered-js-node nil))
-      (.on "click" #(swap! model/app-state update :clicked-js-node (partial toggle-or-nil %)))))
+      (.on "click" #(swap! model/app-state update :clicked-js-node (partial util/toggle-or-nil %)))))
 
 (defn install-drag!
   [d3-selection simulation]
@@ -132,18 +124,15 @@
       (.force "x" (js/d3.forceX (/ (get-in attrs [:graph :width]) 2)))
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
-(defn node-neighbors
-  [resource-neighbors-by-id js-node]
-  (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))
-
-(defn graph-update! [clicked-js-node attrs graph-data]
+(defn graph-update!
+  [clicked-js-node attrs graph-data]
   (let [text-attrs (:text attrs)
         node-attrs (:node attrs)
         node-js-data (:node-js-data graph-data)
         link-js-data (:link-js-data graph-data)
         resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
         neighbor-ids-of-clicked (some->> clicked-js-node
-                                         (node-neighbors resource-neighbors-by-id))]
+                                         (model/node-neighbors resource-neighbors-by-id))]
     (when (seq node-js-data)
       (let [d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node"))
@@ -239,11 +228,6 @@
         .exit
         .remove)))
 
-(defn graph! [clicked attrs graph-data]
-  (graph-enter! clicked attrs graph-data)
-  (graph-update! clicked attrs graph-data)
-  (graph-exit! clicked attrs graph-data))
-
 (defn svg-markers []
   [:defs
    [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 17 :refY 0
@@ -251,72 +235,10 @@
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
-(defn family-panel-font
-  [attrs line-height]
-  (max (:font-size-min attrs) (/ line-height 1.618)))
-
-(defn family-highligthed?
-  [neighbor-families-of-clicked hovered clicked family-name]
-  (let [family-of-hovered (some-> hovered (o/oget "family-id"))
-        family-of-clicked (some-> clicked (o/oget "family-id"))]
-    (cond
-
-      (and clicked
-           (or (= family-name family-of-clicked)
-               (contains? neighbor-families-of-clicked family-name))) true
-      (and (not clicked)
-           hovered
-           (= family-name family-of-hovered)) true
-      :else false)))
-
-(defn family-panel [attrs graph-data]
-  (let [margin (get-in attrs [:graph :margin])
-        width (get-in attrs [:graph :width])
-        height (get-in attrs [:graph :height])
-        panel-attrs (:family-panel attrs)
-        family-colors (:family-colors attrs)
-        family-index-by-name (:family-index-by-name graph-data)
-        line-height (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
-        clicked-js-node @model/clicked-js-node-state
-        hovered-js-node @model/hovered-js-node-state
-
-        resources-by-id (:resources-by-id graph-data)
-        resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
-        neighbor-families-of-clicked (some->> clicked-js-node
-                                              (node-neighbors resource-neighbors-by-id)
-                                              (map #(->> %
-                                                         (get resources-by-id)
-                                                         :family-id
-                                                         clj->js))
-                                              set)]
-    (log/debug "Clicked node" clicked-js-node)
-    (log/debug "Hovered node" hovered-js-node)
-    (log/debug "Families of clicked node" neighbor-families-of-clicked)
-    [:g {:id "family-panel-container"
-         :style {:opacity 1}}
-     [:text {:id "family-panel-text-container"}
-      (for [[i family-name] (->> family-index-by-name
-                                 keys
-                                 sort
-                                 (map-indexed vector))
-            :let [highlighted? (family-highligthed? neighbor-families-of-clicked
-                                                    hovered-js-node
-                                                    clicked-js-node
-                                                    family-name)]]
-        ^{:key family-name}
-        [:tspan {:x (:left margin)
-                 :y (+ (:top margin) (:bottom margin) (* i line-height))
-                 :fill (model/get-node-color family-colors family-index-by-name family-name)
-                 :font-size (* (cond
-                                 (and (not hovered-js-node) (not clicked-js-node)) 1
-                                 highlighted? 1.1
-                                 :else 1)
-                               (family-panel-font panel-attrs line-height))
-                 :fill-opacity (cond
-                                 (and (not hovered-js-node) (not clicked-js-node)) 1
-                                 highlighted? 1
-                                 :else 0.1)}
-         family-name])]]))
+(defn graph! [clicked attrs graph-data]
+  (graph-enter! clicked attrs graph-data)
+  (graph-update! clicked attrs graph-data)
+  (graph-exit! clicked attrs graph-data))
 
 (defn graph-render [clicked attrs graph-data]
   (log/debug "Graph-render: attrs" attrs)
@@ -326,7 +248,7 @@
     [:svg {:width width :height height}
      [svg-markers]
      [:g.graph]
-     [family-panel attrs graph-data]]))
+     [families/family-widget attrs graph-data]]))
 
 (defn graph [clicked attrs graph-data]
   (log/debug "Init: attrs" attrs)

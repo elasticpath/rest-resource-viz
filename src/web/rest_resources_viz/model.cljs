@@ -1,7 +1,8 @@
 (ns ^{:doc "The namespace containing state and model-related functions."
       :author "Andrea Richiardi"}
     rest-resources-viz.model
-  (:require [clojure.spec :as s]
+  (:require [oops.core :as o]
+            [clojure.spec :as s]
             [reagent.core :as r]
             [rest-resources-viz.xform :as xform])
   (:require-macros [rest-resources-viz.logging :as log]))
@@ -181,3 +182,7 @@
 
 (defn get-node-color [colors family-index-by-name family-name]
   (get colors (get family-index-by-name family-name)))
+
+(defn node-neighbors
+  [resource-neighbors-by-id js-node]
+  (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))

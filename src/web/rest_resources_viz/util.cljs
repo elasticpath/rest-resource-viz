@@ -42,3 +42,12 @@
   "Return the translate string needed for the transform attribute"
   [x y]
   (str "translate(" x "," y ")"))
+
+(defn toggle-or-nil
+  "Simple toggle-like schema, return new iff old is nil or not the same
+  as new. Otherwise return nil."
+  [new old]
+  (cond
+    (nil? old) new
+    (= old new) nil
+    :else new))
