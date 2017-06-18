@@ -49,9 +49,9 @@
 (defn install-node-events! [d3-selection attrs]
   (-> d3-selection
       (.selectAll "circle")
-      (.on "mouseover" #(swap! model/app-state update :hovered-node (partial util/toggle-or-nil %)))
+      (.on "mouseover" #(swap! model/app-state update :hovered-node util/toggle-or-nil %))
       (.on "mouseout" #(swap! model/app-state assoc :hovered-node nil))
-      (.on "click" #(swap! model/app-state update :clicked-node (partial util/toggle-or-nil %)))))
+      (.on "click" #(swap! model/app-state update :clicked-node util/toggle-or-nil %))))
 
 (defn install-drag!
   [d3-selection simulation]

@@ -46,7 +46,7 @@
 (defn toggle-or-nil
   "Simple toggle-like schema, return new iff old is nil or not the same
   as new. Otherwise return nil."
-  [new old]
+  [old new]
   (cond
     (nil? old) new
     (= old new) nil
