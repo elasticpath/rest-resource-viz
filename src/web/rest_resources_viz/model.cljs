@@ -26,8 +26,7 @@
 (defonce app-state (r/atom init-state))
 (defonce graph-data-state (r/cursor app-state [:graph-data]))
 (defonce attrs-state (r/cursor app-state [:attrs]))
-(defonce clicked-js-node-state (r/cursor app-state [:clicked-js-node]))
-(defonce hovered-js-node-state (r/cursor app-state [:hovered-js-node]))
+(defonce hovered-node-state (r/cursor app-state [:hovered-node]))
 
 (defn trash-graph-data! []
   (swap! app-state assoc :graph-data nil))
@@ -159,6 +158,9 @@
                {}
                (vals resources-by-id))))
 
+(s/def ::resource-neighbors-by-id
+  (s/map-of keyword? (s/coll-of keyword? :kind set?)))
+
 (defn get-resource-neighbors-by-id
   "Same as get-resource-neighbors, but keys are ids and the values are
   set of ids as well (the neighbors)."
@@ -183,6 +185,39 @@
 (defn get-node-color [colors family-index-by-name family-name]
   (get colors (get family-index-by-name family-name)))
 
-(defn node-neighbors
-  [resource-neighbors-by-id js-node]
-  (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))
+(s/fdef node-id
+  :args (s/cat :js-node (s/or :clj-map map? :js-object object?))
+  :ret keyword?)
+
+(defn node-id
+  [node]
+  (cond
+    (map? node) (-> node :id keyword)
+    (object? node) (-> node (o/oget "id") keyword)
+    :else (throw (js/Error. "Oh noes! This should never happen!"))))
+
+(defn same-family?
+  [js-nodes]
+  (= 1 (->> js-nodes
+            (map #(o/oget % "family-id"))
+            (into #{})
+            count)))
+
+(s/def ::clicked-node (s/or :nil nil? :object object?))
+(s/def ::highlighted-nodes-or-nil (s/or :nil nil?
+                                        :js-nodes-of-same-family (s/and (s/coll-of object? :kind set?)
+                                                                        same-family?)))
+
+(s/fdef highlighted-nodes
+  :args (s/cat :clicked-node ::clicked-node)
+  :ret ::highlighted-nodes-or-nil)
+
+(defn highlighted-nodes
+  "Return the highlighted nodes"
+  [clicked-node]
+  (when clicked-node
+    (conj #{} clicked-node)))
+
+(defn track-highlighted-nodes []
+  (let [clicked-node @(r/cursor app-state [:clicked-node])]
+    (r/track highlighted-nodes clicked-node)))
