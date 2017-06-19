@@ -43,6 +43,8 @@ body {
 
 svg {
     background-color: #FFFFFF;
+    height: 100vh;
+    width: 100vw;
 }
 
 .node {
