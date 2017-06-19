@@ -50,25 +50,22 @@ If you want to try it at the command line, you can also call the goal explicitly
 
 ### Simple(r) Visualization
 
-There is another way to visualize the resource graph. It requires cloning this repository and familiarizing yourself with the Clojure world.
-
-The graph data can be generated with the `extract` task (see `boot extract -h` as well) and needs to be saved in `web-assets/graph-data.edn`, then the visualization can be built:
+There is another way to visualize the resource graph. It requires cloning this repository and familiarizing yourself with the Clojure world. First of all the JavaScript app and assets needs to be materialized in `target`:
 
 ```
-boot extract --conf my-conf.edn --graph-edn web-assets/graph-data.edn --pretty
 boot build-web target
 ```
 
-The conf file passed in is necessary in order to configure the Maven repository and build the resource coordinates (assuming they have a similar name). For a sample configuration see `conf-sample.edn` in the repository root.
-In case of missing keys a `clojure.spec` error will tell what is expected. The error message is a bit cryptic and will be improved.
+The conf file passed in is necessary in order to configure the Maven repository and coordinates (assuming they have a similar name) for the resource artifacts. For a sample configuration see `conf-sample.edn` in the repository root.
+In case of missing keys a `clojure.spec` error will tell you what was expected. The error message is a bit cryptic and will be improved, bear with us.
 
-Once the command finishes, you can serve the `target` folder:
+Once the command finishes, you can serve the `target` folder. We use `python` because available in any major Linux/OSX distribution:
 
 ```
 cd target && python -m SimpleHTTPServer; cd..
 ```
 
-This is necessary only the first time, because once the app is served, you can simply call:
+Now you can open your browser and connect to `localhost:8000`. You will see an empty frame. This is because the graph data is missing. That can be easily generated with the `extract` task (see `boot extract -h` as well) and needs to be saved in `target/graph-data.edn`:
 
 ```
 boot extract --conf my-conf.edn --graph-edn target/graph-data.edn --pretty
