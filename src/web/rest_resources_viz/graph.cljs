@@ -1,4 +1,4 @@
-(ns ^{:doc "Namespace including graph-related component and functions"
+(ns ^{:doc "Namespace including graph-related component and functions."
       :author "Andrea Richiardi"}
     rest-resources-viz.graph
   (:require [clojure.spec :as s]
@@ -6,7 +6,8 @@
             [cljsjs.d3]
             [reagent.core :as r]
             [rest-resources-viz.model :as model]
-            [rest-resources-viz.util :as util])
+            [rest-resources-viz.util :as util]
+            [rest-resources-viz.graph.families :as families])
   (:require-macros [rest-resources-viz.logging :as log]))
 
 (defn event-xy!
@@ -45,21 +46,12 @@
     (-> (js/d3.select "svg")
         (.call d3-zoom))))
 
-(defn toggle-or-nil
-  "Simple toggle-like schema, return new iff old is nil or not the same
-  as new. Otherwise return nil."
-  [new old]
-  (cond
-    (nil? old) new
-    (= old new) nil
-    :else new))
-
 (defn install-node-events! [d3-selection attrs]
   (-> d3-selection
       (.selectAll "circle")
-      (.on "mouseover" #(swap! model/app-state update :hovered-js-node (partial toggle-or-nil %)))
-      (.on "mouseout" #(swap! model/app-state assoc :hovered-js-node nil))
-      (.on "click" #(swap! model/app-state update :clicked-js-node (partial toggle-or-nil %)))))
+      (.on "mouseover" #(swap! model/app-state update :hovered-node util/toggle-or-nil %))
+      (.on "mouseout" #(swap! model/app-state assoc :hovered-node nil))
+      (.on "click" #(swap! model/app-state model/clicked-node %))))
 
 (defn install-drag!
   [d3-selection simulation]
@@ -132,18 +124,19 @@
       (.force "x" (js/d3.forceX (/ (get-in attrs [:graph :width]) 2)))
       (.force "y" (js/d3.forceY (/ (get-in attrs [:graph :height]) 2)))))
 
-(defn node-neighbors
-  [resource-neighbors-by-id js-node]
-  (get resource-neighbors-by-id (-> js-node (o/oget "id") keyword)))
-
-(defn graph-update! [clicked-js-node attrs graph-data]
+(defn graph-update!
+  [highlighted-nodes attrs graph-data]
   (let [text-attrs (:text attrs)
         node-attrs (:node attrs)
         node-js-data (:node-js-data graph-data)
         link-js-data (:link-js-data graph-data)
         resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
-        neighbor-ids-of-clicked (some->> clicked-js-node
-                                         (node-neighbors resource-neighbors-by-id))]
+        higlighted-node-ids (->> highlighted-nodes
+                                 (map #(model/node-id %))
+                                 (into #{}))
+        neighbors-node-ids (->> higlighted-node-ids
+                                (mapcat #(get resource-neighbors-by-id %))
+                                (into #{}))]
     (when (seq node-js-data)
       (let [d3-nodes (-> (js/d3.select "#graph-container svg .graph")
                          (.selectAll ".node"))
@@ -153,12 +146,13 @@
             (.transition)
             (.duration 200)
             (.ease js/d3.easeLinear)
-            (.style "opacity" #(let [node-id (o/oget % "id")]
-                                 (cond
-                                   (nil? clicked-js-node) 1
-                                   (or (= node-id (o/oget clicked-js-node "id"))
-                                       (contains? neighbor-ids-of-clicked (keyword node-id))) 1
-                                   :else 0.1))))
+            (.style "opacity" (fn [js-node]
+                                (let [node-id (model/node-id js-node)]
+                                  (cond
+                                    (empty? higlighted-node-ids) 1
+                                    (or (contains? higlighted-node-ids node-id)
+                                        (contains? neighbors-node-ids node-id)) 1
+                                    :else 0.1)))))
         (-> d3-texts
             (.attr "dx" #(+ (o/oget % "radius") (:dx text-attrs)))
             (.attr "dy" #(+ (o/oget % "radius") (:dy text-attrs)))
@@ -166,32 +160,34 @@
             (.delay 100)
             (.duration 200)
             (.ease js/d3.easeLinear)
-            (.style "fill-opacity" #(let [node-id (o/oget % "id")]
-                                      (cond
-                                        (nil? clicked-js-node) 0
-                                        (or (= node-id (o/oget clicked-js-node "id"))
-                                            (contains? neighbor-ids-of-clicked (keyword node-id))) 1
-                                        :else 0))))
+            (.style "fill-opacity" (fn [js-node]
+                                     (let [node-id (model/node-id js-node)]
+                                       (cond
+                                         (empty? higlighted-node-ids) 0
+                                         (or (contains? higlighted-node-ids node-id)
+                                             (contains? neighbors-node-ids node-id)) 1
+                                         :else 0)))))
         (-> d3-nodes
             (.selectAll "circle")
-            (.attr "r" #(o/oget % "radius")))))
+            (.attr "r" #(o/oget % "radius"))))
 
-    (when (seq link-js-data)
-      (let [d3-links (-> (js/d3.select "#graph-container svg .graph")
-                         (.selectAll ".link"))]
-        (-> d3-links
-            (.transition)
-            (.delay 100)
-            (.duration 200)
-            (.ease js/d3.easeLinear)
-            (.style "opacity" #(let [target (o/oget % "?target")
-                                     source (o/oget % "?source")]
-                                 (cond
-                                   (nil? clicked-js-node) 1
-                                   (or (= target clicked-js-node) (= source clicked-js-node)) 1
-                                   :else 0.1))))))))
+      (when (seq link-js-data)
+        (let [d3-links (-> (js/d3.select "#graph-container svg .graph")
+                           (.selectAll ".link"))]
+          (-> d3-links
+              (.transition)
+              (.delay 100)
+              (.duration 200)
+              (.ease js/d3.easeLinear)
+              (.style "opacity" #(let [target-id (-> % (o/oget "?target") model/node-id)
+                                       source-id (-> % (o/oget "?source") model/node-id)]
+                                   (cond
+                                     (empty? higlighted-node-ids) 1
+                                     (or (contains? higlighted-node-ids target-id)
+                                         (contains? higlighted-node-ids source-id)) 1
+                                     :else 0.1)))))))))
 
-(defn graph-enter! [clicked-js-node attrs graph-data]
+(defn graph-enter! [_ attrs graph-data]
   (let [margin (get-in attrs [:graph :margin])
         width (get-in attrs [:graph :width])
         height (get-in attrs [:graph :height])
@@ -225,7 +221,7 @@
                                                               (util/translate-str (max r (min (- width r) (o/oget % "x")))
                                                                                   (max r (min (- height r) (o/oget % "y")))))))))))))
 
-(defn graph-exit! [clicked-js-node attrs graph-data]
+(defn graph-exit! [_ attrs graph-data]
   (let [node-js-data (:node-js-data graph-data)
         link-js-data (:link-js-data graph-data)]
     (-> (js/d3.select "#graph-container svg .graph")
@@ -239,11 +235,6 @@
         .exit
         .remove)))
 
-(defn graph! [clicked attrs graph-data]
-  (graph-enter! clicked attrs graph-data)
-  (graph-update! clicked attrs graph-data)
-  (graph-exit! clicked attrs graph-data))
-
 (defn svg-markers []
   [:defs
    [:marker {:id "end-arrow" :viewBox "0 -5 10 10" :refX 17 :refY 0
@@ -251,74 +242,12 @@
              :orient "auto"}
     [:path {:d "M0,-5L10,0L0,5"}]]])
 
-(defn family-panel-font
-  [attrs line-height]
-  (max (:font-size-min attrs) (/ line-height 1.618)))
+(defn graph! [highlighted-nodes attrs graph-data]
+  (graph-enter! highlighted-nodes attrs graph-data)
+  (graph-update! highlighted-nodes attrs graph-data)
+  (graph-exit! highlighted-nodes attrs graph-data))
 
-(defn family-highligthed?
-  [neighbor-families-of-clicked hovered clicked family-name]
-  (let [family-of-hovered (some-> hovered (o/oget "family-id"))
-        family-of-clicked (some-> clicked (o/oget "family-id"))]
-    (cond
-
-      (and clicked
-           (or (= family-name family-of-clicked)
-               (contains? neighbor-families-of-clicked family-name))) true
-      (and (not clicked)
-           hovered
-           (= family-name family-of-hovered)) true
-      :else false)))
-
-(defn family-panel [attrs graph-data]
-  (let [margin (get-in attrs [:graph :margin])
-        width (get-in attrs [:graph :width])
-        height (get-in attrs [:graph :height])
-        panel-attrs (:family-panel attrs)
-        family-colors (:family-colors attrs)
-        family-index-by-name (:family-index-by-name graph-data)
-        line-height (/ (- height (:top margin) (:bottom margin)) (count family-index-by-name))
-        clicked-js-node @model/clicked-js-node-state
-        hovered-js-node @model/hovered-js-node-state
-
-        resources-by-id (:resources-by-id graph-data)
-        resource-neighbors-by-id (:resource-neighbors-by-id graph-data)
-        neighbor-families-of-clicked (some->> clicked-js-node
-                                              (node-neighbors resource-neighbors-by-id)
-                                              (map #(->> %
-                                                         (get resources-by-id)
-                                                         :family-id
-                                                         clj->js))
-                                              set)]
-    (log/debug "Clicked node" clicked-js-node)
-    (log/debug "Hovered node" hovered-js-node)
-    (log/debug "Families of clicked node" neighbor-families-of-clicked)
-    [:g {:id "family-panel-container"
-         :style {:opacity 1}}
-     [:text {:id "family-panel-text-container"}
-      (for [[i family-name] (->> family-index-by-name
-                                 keys
-                                 sort
-                                 (map-indexed vector))
-            :let [highlighted? (family-highligthed? neighbor-families-of-clicked
-                                                    hovered-js-node
-                                                    clicked-js-node
-                                                    family-name)]]
-        ^{:key family-name}
-        [:tspan {:x (:left margin)
-                 :y (+ (:top margin) (:bottom margin) (* i line-height))
-                 :fill (model/get-node-color family-colors family-index-by-name family-name)
-                 :font-size (* (cond
-                                 (and (not hovered-js-node) (not clicked-js-node)) 1
-                                 highlighted? 1.1
-                                 :else 1)
-                               (family-panel-font panel-attrs line-height))
-                 :fill-opacity (cond
-                                 (and (not hovered-js-node) (not clicked-js-node)) 1
-                                 highlighted? 1
-                                 :else 0.1)}
-         family-name])]]))
-
-(defn graph-render [clicked attrs graph-data]
+(defn graph-render [highlighted-nodes attrs graph-data]
   (log/debug "Graph-render: attrs" attrs)
   (log/debug "Graph-render: graph-data" graph-data)
   (let [width (get-in attrs [:graph :width])
@@ -326,31 +255,31 @@
     [:svg {:width width :height height}
      [svg-markers]
      [:g.graph]
-     [family-panel attrs graph-data]]))
+     [families/family-widget attrs graph-data]]))
 
-(defn graph [clicked attrs graph-data]
+(defn graph [highlighted-nodes attrs graph-data]
   (log/debug "Init: attrs" attrs)
   (log/debug "Init: graph-data" graph-data)
   (r/create-class
    {:display-name "graph"
     :reagent-render graph-render
     :component-did-update (fn [this]
-                            (let [[_ clicked attrs graph-data] (r/argv this)]
-                              (log/debug "Did-update: clicked" clicked)
+                            (let [[_ highlighted-nodes attrs graph-data] (r/argv this)]
+                              (log/debug "Did-update: highlighted-nodes" highlighted-nodes)
                               (log/debug "Did-update: attrs" attrs)
                               (log/debug "Did-update: graph-data" graph-data)
-                              (graph! clicked attrs graph-data)))
+                              (graph! highlighted-nodes attrs graph-data)))
     :component-did-mount (fn [this]
-                           (let [[_ clicked attrs graph-data] (r/argv this)]
-                             (log/debug "Did-mount: clicked" clicked)
+                           (let [[_ highlighted-nodes attrs graph-data] (r/argv this)]
+                             (log/debug "Did-mount: highlighted-nodes" highlighted-nodes)
                              (log/debug "Did-mount: attrs" attrs)
                              (log/debug "Did-mount: graph-data" graph-data)
-                             (graph! clicked attrs graph-data)))}))
+                             (graph! highlighted-nodes attrs graph-data)))}))
 
 (defn container []
   [:div {:id "graph-container"}
    [graph
-    @model/clicked-js-node-state
+    @(model/track-highlighted-nodes)
     @model/attrs-state
     {:node-js-data @(r/track model/get-js-nodes)
      :link-js-data @(r/track model/get-js-links)

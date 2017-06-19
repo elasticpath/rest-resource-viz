@@ -125,7 +125,7 @@
                                    [adzerk/env "0.4.0"]
                                    [binaryage/oops "0.5.2"]
                                    [cljsjs/d3 "4.3.0-3"]
-                                   [reagent "0.6.0"]]})
+                                   [reagent "0.6.2"]]})
 
 (def conf-web-prod {:env env-web-prod
                     :pipeline '(comp (adzerk.boot-cljs/cljs)
@@ -149,8 +149,8 @@
                            [com.cemerick/piggieback "0.2.1"  :scope "test"]
                            [weasel "0.7.0"  :scope "test"]
                            [org.clojure/tools.nrepl "0.2.12" :scope "test"]
-                           [binaryage/devtools "0.8.3" :scope "test"]
-                           [powerlaces/boot-cljs-devtools "0.1.3-SNAPSHOT" :scope "test"]
+                           [binaryage/devtools "0.9.4" :scope "test"]
+                           [powerlaces/boot-cljs-devtools "0.2.0" :scope "test"]
                            [pandeiro/boot-http "0.7.6" :scope "test"]
                            [crisptrutski/boot-cljs-test "0.2.2" :scope "test"]]))
 

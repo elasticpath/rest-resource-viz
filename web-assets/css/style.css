@@ -33,13 +33,10 @@ body {
     pointer-events: auto;
 }
 
-#family-panel-container text {
+#family-widget-container text {
     font-family: sans-serif;
     font-weight: bold;
-    pointer-events: none;
-}
-
-#family-panel-container text tspan {
+    pointer-events: all;
     -webkit-transition: all 0.4s ease-in-out;
     transition: all 0.4s ease-in-out;
 }
