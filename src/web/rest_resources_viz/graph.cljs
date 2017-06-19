@@ -51,7 +51,7 @@
       (.selectAll "circle")
       (.on "mouseover" #(swap! model/app-state update :hovered-node util/toggle-or-nil %))
       (.on "mouseout" #(swap! model/app-state assoc :hovered-node nil))
-      (.on "click" #(swap! model/app-state update :clicked-node util/toggle-or-nil %))))
+      (.on "click" #(swap! model/app-state model/clicked-node %))))
 
 (defn install-drag!
   [d3-selection simulation]

@@ -4,7 +4,8 @@
   (:require [oops.core :as o]
             [clojure.spec :as s]
             [reagent.core :as r]
-            [rest-resources-viz.xform :as xform])
+            [rest-resources-viz.xform :as xform]
+            [rest-resources-viz.util :as util])
   (:require-macros [rest-resources-viz.logging :as log]))
 
 (def init-state {:attrs {:graph {:margin {:top 20 :right 20 :bottom 20 :left 20}
@@ -203,21 +204,60 @@
             (into #{})
             count)))
 
+(s/def ::clicked-family (s/or :nil nil? :object keyword?))
 (s/def ::clicked-node (s/or :nil nil? :object object?))
 (s/def ::highlighted-nodes-or-nil (s/or :nil nil?
                                         :js-nodes-of-same-family (s/and (s/coll-of object? :kind set?)
                                                                         same-family?)))
 
 (s/fdef highlighted-nodes
-  :args (s/cat :clicked-node ::clicked-node)
+  :args (s/cat :resources any?
+               :clicked-node ::clicked-node
+               :clicked-family ::clicked-family)
   :ret ::highlighted-nodes-or-nil)
 
 (defn highlighted-nodes
   "Return the highlighted nodes"
-  [clicked-node]
-  (when clicked-node
-    (conj #{} clicked-node)))
+  [resources clicked-node clicked-family]
+  (cond
+    (and clicked-node (not clicked-family))
+    (conj #{} clicked-node)
+
+    (and clicked-family (not clicked-node))
+    (let [resources-ky-family-id (group-by :family-id resources)]
+      (some->> clicked-family
+               (get resources-ky-family-id)
+               (map clj->js)
+               (into #{})))
+
+    (not (or clicked-node clicked-family)) nil
+
+    :else (throw (js/Error. "Oh noes! There should never be both a clicked node and a clicked family!"))))
 
 (defn track-highlighted-nodes []
-  (let [clicked-node @(r/cursor app-state [:clicked-node])]
-    (r/track highlighted-nodes clicked-node)))
+  (let [resources @(r/track get-resources)
+        clicked-node @(r/cursor app-state [:clicked-node])
+        clicked-family @(r/cursor app-state [:clicked-family])]
+    (log/debug "Clicked node" clicked-node)
+    (log/debug "Clicked family" clicked-family)
+    (r/track highlighted-nodes resources clicked-node clicked-family)))
+
+(s/fdef clicked-family
+  :args (s/cat :state any?
+               :node ::clicked-family))
+
+(defn clicked-family
+  [state family]
+  (-> state
+      (dissoc :clicked-node)
+      (update :clicked-family util/toggle-or-nil family)))
+
+(s/fdef clicked-node
+  :args (s/cat :state any?
+               :node ::clicked-node))
+
+(defn clicked-node
+  [state node]
+  (-> state
+      (dissoc :clicked-family)
+      (update :clicked-node util/toggle-or-nil node)))

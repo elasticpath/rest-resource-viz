@@ -46,6 +46,8 @@
   (stest/instrument 'rest-resources-viz.model/get-node-color)
   (stest/instrument 'rest-resources-viz.model/node-id)
   (stest/instrument 'rest-resources-viz.model/highligthed-nodes)
+  (stest/instrument 'rest-resources-viz.model/clicked-node)
+  (stest/instrument 'rest-resources-viz.model/clicked-family)
   (stest/instrument 'rest-resources-viz.graph.families/highlighted-family?))
 
 (defn ^:export on-jsload []

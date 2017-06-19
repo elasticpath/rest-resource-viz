@@ -72,5 +72,6 @@
                :fill-opacity (cond
                                (and (not hovered-node) (not highlighted-nodes)) 1
                                highlighted? 1
-                               :else 0.1)}
+                               :else 0.1)
+               :onClick #(swap! model/app-state model/clicked-family (keyword family-name))}
         family-name])]))
