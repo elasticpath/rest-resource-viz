@@ -2,6 +2,7 @@
 
 (require '[boot.util :as util]
          '[clojure.java.io :as io]
+         '[clojure.string :as str]
          '[boot])
 
 (def repositories [["maven-central" {:url  "https://repo1.maven.org/maven2/"
@@ -15,8 +16,10 @@
 ;; Extractor ;;
 ;;;;;;;;;;;;;;;
 
-(def extractor-project 'com.elasticpath/rest-resources-viz)
 (def extractor-version "0.1.0")
+(def extractor-group "com.elasticpath")
+(def extractor-artifact "rest-resources-viz")
+(def extractor-project (symbol (str extractor-group "/" extractor-artifact)))
 
 (def env-extractor
   {:repositories repositories
@@ -31,6 +34,10 @@
                    [org.clojure/java.classpath "0.2.3"]
                    [com.rpl/specter "0.13.3-SNAPSHOT"]
                    [fipp "0.6.8"]]})
+
+(def env-extractor-sources-only
+  {:repositories repositories
+   :resource-paths #{"src/task" "src/shared"}})
 
 (def conf-dev-extractor
   {:env env-extractor
@@ -48,9 +55,13 @@
          :version     extractor-version
          :description "Transformations and visualizations for Cortex Rest resources"
          :url         "https://github.com/elasticpath/rest-resource-viz"
-         :scm         {:url "https://github.com/elasticpath/rest-resource-viz.git"}
+         :scm         {:url "https://github.com/elasticpath/rest-resource-viz.git"
+                       :connection "scm:git:git://github.com/elasticpath/rest-resource-viz.git"
+                       :developerConnection "scm:git:ssh://github.com/elasticpath/rest-resource-viz.git"}
          :license     {"Apache License, Version 2.0"
-                       "http://www.apache.org/licenses/LICENSE-2.0"}}
+                       "http://www.apache.org/licenses/LICENSE-2.0"}
+         :developers {"Andrea Richiardi" "andrea.richiardi@elasticpath.com"
+                      "Matt Bishop" "matt.bishop@elasticpath.com"}}
    :jar {:project extractor-project}})
 
 (boot/defedntask dev-extractor
@@ -64,11 +75,34 @@
   []
   conf-uber-extractor)
 
+;;
+;; Building up javadoc and sources to please Sonatype/Maven Central
+;;
+(boot/defedntask sources-extractor
+  "Build and package the extractor code"
+  []
+  (-> conf-uber-extractor
+      (assoc-in [:pom :classifier] "sources")
+      (assoc :env env-extractor-sources-only
+             :jar {:project extractor-project
+                   :file (str/join "-" [extractor-artifact extractor-version "sources.jar"])})))
+
+(boot/defedntask javadoc-extractor
+  "Build and package a fake javadoc jar"
+  []
+  (-> conf-uber-extractor
+      (assoc-in [:pom :classifier] "javadoc")
+      (assoc :env env-extractor-sources-only
+             :jar {:project extractor-project
+                   :file (str/join "-" [extractor-artifact extractor-version "javadoc.jar"])})))
+
 (boot/defedntask install-extractor
   "Build, package and install the extractor code"
   []
   (-> conf-uber-extractor
-      (assoc :pipeline '(comp (build-extractor)
+      (assoc :pipeline '(comp (javadoc-extractor)
+                              (sources-extractor)
+                              (build-extractor)
                               (install))
              :install {:pom (str extractor-project)})))
 
@@ -76,10 +110,13 @@
 
 (boot/defedntask deploy-extractor
   "Build, package and deploy the extractor"
-  [u username STR str "The repository username"
-   p password STR str "The repository password"]
+  [u username    STR str "The repository username"
+   p password    STR str "The repository password"]
+  (assert (and username password) "You need to provide your Sonatype credentials in order to deploy.")
   (-> conf-uber-extractor
-      (assoc :pipeline '(comp (build-extractor)
+      (assoc :pipeline '(comp (javadoc-extractor)
+                              (sources-extractor)
+                              (build-extractor)
                               (push)))
       (merge (if (snapshot?)
                {:push {:pom (str extractor-project)
