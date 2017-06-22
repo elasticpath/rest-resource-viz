@@ -262,7 +262,7 @@
 ;;;;;;;;;;
 
 (def conf-tests
-  {:env {:resource-paths #{"resources"}
+  {:env {:resource-paths #{"web-assets"}
          :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
          :dependencies (into (get-in conf-dev-extractor [:env :dependencies])
                              '[[org.clojure/tools.namespace "0.3.0-alpha3"]
