@@ -113,6 +113,30 @@ None of the Maven plugin classes will be available at the repl. Another useful t
 
     boot -B --source-paths "." watch  ".*\.clj?"  -i "pom.xml" -e "^mvn-target" sift -i "src" -i "pom.xml" mvn -W `pwd` -A "-Pboot-clj clean install"
 
+## Deploying to Sonatype
+
+In order to deploy a staging/release artifact, the steps are almost the same as above:
+
+    boot -P deploy-extractor -u ... -p ...          # Sonatype credentials here
+    boot -P build-web target --dir web-target
+    mvn -Pboot-clj -Psonatype-release clean deploy  # Credentials come from settings.xml
+
+The `-P` avoids pulling in packages from you global `profile.boot`.
+
+In order to use Maven gpg signing, add the following to `settings.xml`:
+
+    <profile>
+      <id>default-profile</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <gpg.executable>/usr/bin/gpg2</gpg.executable>
+        <gpg.useagent>true</gpg.useagent>
+        <gpg.keyname>...</gpg.keyname>
+        <gpg.passphrase>...</gpg.passphrase>
+      </properties>
+    </profile>
 
 ## Boot
 

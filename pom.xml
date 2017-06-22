@@ -4,7 +4,7 @@
 
   <groupId>com.elasticpath</groupId>
   <artifactId>rest-viz-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>rest-viz-maven-plugin</name>
@@ -305,6 +305,19 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>1.6</version>
+            <!-- in order to hook gpg signing, add the following to settings.xml -->
+            <!-- <profile> -->
+            <!--   <id>default-profile</id> -->
+            <!--   <activation> -->
+            <!--     <activeByDefault>true</activeByDefault> -->
+            <!--   </activation> -->
+            <!--   <properties> -->
+            <!--     <gpg.executable>/usr/bin/gpg2</gpg.executable> -->
+            <!--     <gpg.useagent>true</gpg.useagent> -->
+            <!--     <gpg.keyname>...</gpg.keyname> -->
+            <!--     <gpg.passphrase>...</gpg.passphrase> -->
+            <!--   </properties> -->
+            <!-- </profile> -->
             <configuration>
               <keyName>${gpg.keyname}</keyName>
               <passphrase>${gpg.passphrase}</passphrase>
