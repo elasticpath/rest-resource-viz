@@ -16,7 +16,7 @@
 ;; Extractor ;;
 ;;;;;;;;;;;;;;;
 
-(def extractor-version "0.1.0")
+(def extractor-version "0.1.1-SNAPSHOT")
 (def extractor-group "com.elasticpath")
 (def extractor-artifact "rest-resources-viz")
 (def extractor-project (symbol (str extractor-group "/" extractor-artifact)))
@@ -228,7 +228,7 @@
                                             [org.apache.maven.shared/maven-invoker "3.0.0"]
                                             [resauce "0.1.0"]
                                             [org.slf4j/slf4j-simple "1.7.22"]
-                                            [com.elasticpath/rest-viz-maven-plugin "0.1.0-SNAPSHOT"]]
+                                            [com.elasticpath/rest-viz-maven-plugin "0.1.1-SNAPSHOT"]]
                             :repositories repositories}
                       :props {"maven.home" (java.lang.System/getenv "M2_HOME")
                               "maven.local-repo" (str (java.lang.System/getenv "HOME") "/.m2")}
