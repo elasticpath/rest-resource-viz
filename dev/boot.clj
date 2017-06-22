@@ -1,7 +1,7 @@
 (ns boot
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [boot.core :refer :all]
             [boot.util :as util]))
 
@@ -136,8 +136,8 @@
   "Produce boot middleware from configuration data"
   [conf]
   (do (boot/apply-conf! conf)
-      (boot.util/dbug* "Spec Validation: %s\n" (boot.util/pp-str (or (clojure.spec/explain-data :boot/conf conf) ::success)))
-      (clojure.spec/assert* :boot/conf conf)
+      (boot.util/dbug* "Spec Validation: %s\n" (boot.util/pp-str (or (clojure.spec.alpha/explain-data :boot/conf conf) ::success)))
+      (clojure.spec.alpha/assert* :boot/conf conf)
       (let [normalized-tasks# (->> conf
                                    :pipeline
                                    flatten

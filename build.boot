@@ -25,7 +25,8 @@
   {:repositories repositories
    :source-paths #{"src/task" "src/shared"}
    :resource-paths #{"src/task" "src/shared"}
-   :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
+   :dependencies '[[org.clojure/clojure "1.9.0-alpha17"]
+                   [org.clojure/spec.alpha "0.1.123"]
                    [org.clojure/tools.cli "0.3.5"]
                    [org.clojure/data.xml "0.2.0-alpha1"]
                    [org.clojure/data.zip "0.1.2"]
@@ -155,12 +156,13 @@
 
 (def env-web-prod {:resource-paths #{"web-assets"}
                    :source-paths #{"src/web" "src/shared"}
-                   :dependencies '[[org.clojure/clojure "1.9.0-alpha14"]
-                                   [org.clojure/clojurescript "1.9.473"  :scope "test"]
-                                   [adzerk/boot-cljs "2.0.0-SNAPSHOT" :scope "test"]
+                   :dependencies '[[org.clojure/clojure "1.9.0-alpha17"]
+                                   [org.clojure/spec.alpha "0.1.123"]
+                                   [org.clojure/clojurescript "1.9.562"  :scope "test"]
+                                   [adzerk/boot-cljs "2.1.0-SNAPSHOT" :scope "test"]
                                    [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                                    [adzerk/env "0.4.0"]
-                                   [binaryage/oops "0.5.2"]
+                                   [binaryage/oops "0.5.5"]
                                    [cljsjs/d3 "4.3.0-3"]
                                    [reagent "0.6.2"]]})
 
@@ -242,20 +244,6 @@
   [c conf STR str  "Path to conf.edn, default is dev/conf.edn"]
   (assert conf "No required conf.edn passed in, see conf-sample.edn for an example.")
   (boot/add-file-conf! conf-dev-plugin conf))
-
-;; (def conf-prod-plugin
-;;   {:env {:dependencies '[[big-solutions/boot-mvn "0.1.6"]]}
-;;    :pipeline '(comp (build-web)
-;;                     (target)
-;;                     (boot-mvn.core/mvn))
-;;    :target {:dir #{"web-target"}}
-;;    :mvn {:working-dir (.. (io/file ".") getCanonicalPath)
-;;          :args "-Pboot-clj clean install"}})
-
-;; (boot/defedntask install-plugin []
-;;   "Build the plugin artifact"
-;;   []
-;;   conf-prod-plugin)
 
 ;;;;;;;;;;
 ;; TEST ;;

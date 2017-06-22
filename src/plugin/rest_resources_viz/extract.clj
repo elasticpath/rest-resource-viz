@@ -4,7 +4,7 @@
   (:require [classlojure.core :as classlojure]
             [clojure.java.io :as io]
             [clojure.pprint :as pp]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [resauce.core :as res])
   (:import [java.io File InputStream]

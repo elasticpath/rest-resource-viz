@@ -1,7 +1,7 @@
 (ns ^{:doc "The graph that deals with families resides here."
       :author "Andrea Richiardi"}
     rest-resources-viz.graph.families
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [oops.core :as o]
             [rest-resources-viz.model :as model]
             [rest-resources-viz.util :as util])
