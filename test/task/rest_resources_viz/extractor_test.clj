@@ -1,5 +1,5 @@
 (ns rest-resources-viz.extractor-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.test :as test :refer [deftest testing is are use-fixtures]]

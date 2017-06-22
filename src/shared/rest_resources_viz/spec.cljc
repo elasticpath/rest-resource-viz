@@ -1,5 +1,5 @@
 (ns rest-resources-viz.spec
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec.alpha :as s]))
 
 (def qual-or-unqual-keyword? #(or (keyword? %) (qualified-keyword? %)))
 

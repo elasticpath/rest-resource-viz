@@ -3,8 +3,8 @@
       :figwheel-load true}
     rest-resources-viz.core
   (:require [cljs.reader :as edn]
-            [clojure.spec :as s]
-            [clojure.spec.test :as stest :include-macros true]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest :include-macros true]
             [clojure.string :as str]
             [clojure.set :as set]
             [adzerk.env :as env]

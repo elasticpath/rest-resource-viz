@@ -1,8 +1,8 @@
 (ns rest-resources-viz.extractor
   (:require [clojure.tools.cli :as cli]
             [clojure.set :as set]
-            [clojure.spec :as s]
-            [clojure.spec.test :as stest]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
             [fipp.clojure :as fipp]
             [clojure.xml :as xml]
             [clojure.string :as str]

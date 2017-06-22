@@ -2,7 +2,7 @@
       :author "Andrea Richiardi"}
     rest-resources-viz.model
   (:require [oops.core :as o]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [reagent.core :as r]
             [rest-resources-viz.xform :as xform]
             [rest-resources-viz.util :as util])
