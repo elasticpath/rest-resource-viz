@@ -187,11 +187,14 @@
                            [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
                            [com.cemerick/piggieback "0.2.1"  :scope "test"]
                            [weasel "0.7.0"  :scope "test"]
-                           [org.clojure/tools.nrepl "0.2.12" :scope "test"]
-                           [binaryage/devtools "0.9.4" :scope "test"]
+                           [org.clojure/tools.nrepl "0.2.13" :scope "test"]
+                           [binaryage/dirac "RELEASE" :scope "test"]
+                           [binaryage/devtools "RELEASE" :scope "test"]
                            [powerlaces/boot-cljs-devtools "0.2.0" :scope "test"]
                            [pandeiro/boot-http "0.7.6" :scope "test"]
                            [crisptrutski/boot-cljs-test "0.2.2" :scope "test"]]))
+
+(def nrepl-port 5088)
 
 (def conf-web-dev
   {:env env-web-dev
@@ -202,13 +205,23 @@
                     (adzerk.boot-cljs-repl/cljs-repl)
                     (adzerk.boot-cljs/cljs))
    :reload {:client-opts {:debug true}}
-   :cljs-repl {:nrepl-opts {:port 5088}}
+   :cljs-repl {:nrepl-opts {:port nrepl-port}}
    :cljs {:source-map true
           :optimizations :none
           :compiler-options {:external-config
                              {:devtools/config {:features-to-install [:formatters :hints]
                                                 :fn-symbol "λ"
                                                 :print-config-overrides true}}}}})
+
+(def conf-web-dev-dirac
+  (-> conf-web-dev
+      (assoc :pipeline '(comp (pandeiro.boot-http/serve)
+                              (watch)
+                              (powerlaces.boot-cljs-devtools/cljs-devtools)
+                              (powerlaces.boot-figreload/reload)
+                              (powerlaces.boot-cljs-devtools/dirac)
+                              (adzerk.boot-cljs/cljs))
+             :dirac {:nrepl-opts {:port nrepl-port}})))
 
 
 (boot/defedntask build-web
@@ -218,8 +231,10 @@
 
 (boot/defedntask dev-web
   "Start the web interactive environment"
-  []
-  conf-web-dev)
+  [d dirac bool "Enable Dirac Devtools"]
+  (if-not dirac
+    conf-web-dev
+    conf-web-dev-dirac))
 
 ;;;;;;;;;;;;;;;;;;
 ;; MAVEN PLUGIN ;;
