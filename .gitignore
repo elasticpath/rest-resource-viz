@@ -1,7 +1,8 @@
 *jar
 /lib/
 /classes/
-**/*target/**
+*target/
+**/*target
 /checkouts/
 .lein-deps-sum
 .lein-repl-history

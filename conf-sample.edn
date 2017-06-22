@@ -40,7 +40,6 @@
                         ;; rates
                         recommendations
                         registrations
-                        ;; schema-reference-doc
                         searches
                         shipment-details
                         shipments
@@ -49,5 +48,4 @@
                         ;; subscriptions
                         taxes
                         totals
-                        ;; unreleased-plans
                         wishlists}}}
