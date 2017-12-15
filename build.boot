@@ -25,15 +25,15 @@
   {:repositories repositories
    :source-paths #{"src/task" "src/shared"}
    :resource-paths #{"src/task" "src/shared"}
-   :dependencies '[[org.clojure/clojure "1.9.0-alpha17"]
-                   [org.clojure/spec.alpha "0.1.123"]
+   :dependencies '[[org.clojure/clojure "1.9.0"]
+                   [org.clojure/spec.alpha "0.1.143"]
                    [org.clojure/tools.cli "0.3.5"]
                    [org.clojure/data.xml "0.2.0-alpha1"]
                    [org.clojure/data.zip "0.1.2"]
                    [org.clojure/test.check "0.9.0"]
                    [cheshire "5.6.3"]
                    [org.clojure/java.classpath "0.2.3"]
-                   [com.rpl/specter "0.13.3-SNAPSHOT"]
+                   [com.rpl/specter "1.0.5"]
                    [fipp "0.6.8"]]})
 
 (def env-extractor-sources-only
@@ -156,10 +156,10 @@
 
 (def env-web-prod {:resource-paths #{"web-assets"}
                    :source-paths #{"src/web" "src/shared"}
-                   :dependencies '[[org.clojure/clojure "1.9.0-alpha17"]
-                                   [org.clojure/spec.alpha "0.1.123"]
-                                   [org.clojure/clojurescript "1.9.562"  :scope "test"]
-                                   [adzerk/boot-cljs "2.1.0-SNAPSHOT" :scope "test"]
+                   :dependencies '[[org.clojure/clojure "1.9.0"]
+                                   [org.clojure/spec.alpha "0.1.143"]
+                                   [org.clojure/clojurescript "1.9.946"  :scope "test"]
+                                   [adzerk/boot-cljs "2.1.4" :scope "test"]
                                    [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                                    [adzerk/env "0.4.0"]
                                    [binaryage/oops "0.5.5"]
@@ -183,7 +183,7 @@
 
 (def env-web-dev (update env-web-prod :dependencies
                          into
-                         '[[powerlaces/boot-figreload "0.1.0-SNAPSHOT" :scope "test"]
+                         '[[powerlaces/boot-figreload "0.5.13" :scope "test"]
                            [adzerk/boot-cljs-repl "0.3.3" :scope "test"]
                            [com.cemerick/piggieback "0.2.1"  :scope "test"]
                            [weasel "0.7.0"  :scope "test"]
