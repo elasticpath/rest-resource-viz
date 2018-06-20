@@ -268,13 +268,15 @@
   {:env {:resource-paths #{"web-assets"}
          :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
          :dependencies (into (get-in conf-dev-extractor [:env :dependencies])
-                             '[[org.clojure/tools.namespace "0.3.0-alpha3"]
-                               [metosin/boot-alt-test "0.3.0"]])}
-   :pipeline '(metosin.boot-alt-test/alt-test)})
+                             '[[org.clojure/tools.namespace "0.3.0-alpha4"]
+                               [metosin/bat-test "0.4.0"]])}})
 
 (ns-unmap *ns* 'test)
 
 (boot/defedntask test
   "Testing once (dev profile)"
-  []
-  conf-tests)
+  [w watch bool "Enable watching folders and test behavior."]
+  (if watch
+    (assoc conf-tests :pipeline '(comp (watch)
+                                       (metosin.bat-test/bat-test)) )
+    (assoc conf-tests :pipeline '(metosin.bat-test/bat-test))))
