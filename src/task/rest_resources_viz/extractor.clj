@@ -88,7 +88,7 @@
   Like in cheshire, if the opts contains :pretty true, the output will
   be pretty printed."
   [f node & [opts]]
-  (with-open [w (io/writer f)]
+  (with-open [w (apply io/writer f (mapcat identity opts))]
     (if-not (:pretty opts)
       (dx/emit node w)
       (dx/indent node w))))
@@ -139,6 +139,11 @@
       io/resource
       slurp
       (dx/parse-str :namespace-aware false :skip-whitespace true)))
+
+(comment
+  (def file-path "META-INF/rest-definitions/profiles.xml")
+  (def xml-root (-> r parse-resource-xml! zip/xml-zip))
+  (def root {:tag :root :attrs {} :content (list (->> file-path parse-resource-xml!))}))
 
 ;;;;;;;;;;;;;;;;;;;
 ;; add-family-id ;;
@@ -415,25 +420,19 @@
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
       (:help options) (exit 0 (usage summary))
-      (:family-xml options) (apply spit-family-xml! (:family-xml options) :pretty (:pretty options))
-      (:graph-edn options) (spit-graph-data-edn! (:graph-edn options) {:pretty (:pretty options)})
+      (:family-xml options) (spit-family-xml! (:family-xml options) (select-keys options [:pretty]))
+      (:graph-edn options) (spit-graph-data-edn! (:graph-edn options) (select-keys options [:pretty]))
       errors (exit 1 (error-msg errors))
       :else (exit 1 (usage summary)))))
 
 (comment
-  (def file-path "META-INF/rest-definitions/profiles.xml")
-  (def xml-root (-> r parse-resource-xml! zip/xml-zip))
-  (def root {:tag :root :attrs {} :content (list (->> file-path parse-resource-xml!))})
   (def json-defs (-> root element->map second json/encode))
   (spit-graph-data-json! "data/graph-data.json" {:pretty true})
   (spit-graph-data-edn! "data/graph-data.edn" {:pretty true})
-  (def issue-xml (->> (cp/classpath-jarfiles)
-                      classpath-resource-xmls!
+  (def issue-xml (->> classpath-resource-xmls!
                       (filter (partial re-find #"shipments-shipping-address"))
                       (into [] (comp (map parse-resource-xml)
                                      (map descend-to-family)
                                      #_(map node->clj)))
                       first))
-  (def relationship #clojure.data.xml.node.Element{:tag :relationship, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("default-wishlist-from-root")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("Link from root resource to default wishlist.")} #clojure.data.xml.node.Element{:tag :rel, :attrs {}, :content ("defaultwishlist")} #clojure.data.xml.node.Element{:tag :from, :attrs {}, :content ("base.root")} #clojure.data.xml.node.Element{:tag :to, :attrs {}, :content ("default-wishlist")})})
-  (def entity #clojure.data.xml.node.Element{:tag :entity, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("line-item")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("A line item in a cart.")} #clojure.data.xml.node.Element{:tag :property, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("quantity")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("The total number of items in the line item.")} #clojure.data.xml.node.Element{:tag :integer, :attrs {}, :content ()})} #clojure.data.xml.node.Element{:tag :property, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("line-item-id")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("The internal line item identifier.")} #clojure.data.xml.node.Element{:tag :internal, :attrs {}, :content ()} #clojure.data.xml.node.Element{:tag :string, :attrs {}, :content ()})} #clojure.data.xml.node.Element{:tag :property, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("item-id")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("The internal item identifier.")} #clojure.data.xml.node.Element{:tag :internal, :attrs {}, :content ()} #clojure.data.xml.node.Element{:tag :string, :attrs {}, :content ()})} #clojure.data.xml.node.Element{:tag :property, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("cart-id")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("The internal cart identifier.")} #clojure.data.xml.node.Element{:tag :internal, :attrs {}, :content ()} #clojure.data.xml.node.Element{:tag :string, :attrs {}, :content ()})} #clojure.data.xml.node.Element{:tag :property, :attrs {}, :content (#clojure.data.xml.node.Element{:tag :name, :attrs {}, :content ("configuration")} #clojure.data.xml.node.Element{:tag :description, :attrs {}, :content ("The details of the line item configuration.")} #clojure.data.xml.node.Element{:tag :is-a, :attrs {}, :content ("line-item-configuration")})})})
   )
