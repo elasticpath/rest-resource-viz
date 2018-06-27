@@ -18,10 +18,10 @@
              :format "%s/ep-resource-%s-api"
              :version "0-SNAPSHOT"
              :modules #{addresses
-                        assets
                         availabilities
                         carts
                         coupons
+                        data-policies
                         discounts
                         emails
                         geographies
@@ -37,15 +37,11 @@
                         profiles
                         promotions
                         purchases
-                        ;; rates
                         recommendations
                         registrations
                         searches
                         shipment-details
                         shipments
-                        slots
-                        ;; stocks
-                        ;; subscriptions
                         taxes
                         totals
                         wishlists}}}
