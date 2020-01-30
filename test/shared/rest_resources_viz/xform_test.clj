@@ -1,8 +1,12 @@
 (ns rest-resources-viz.xform-test
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.spec.test.alpha :as stest]
             [clojure.test :as test :refer [deftest testing is are use-fixtures]]
+            [rest-resources-viz.test-util :as tutil]
             [rest-resources-viz.xform :as xform]))
+
+(run! stest/instrument (stest/instrumentable-syms))
 
 (def test-state (atom nil))
 

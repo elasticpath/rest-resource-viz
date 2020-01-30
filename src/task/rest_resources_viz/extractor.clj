@@ -2,7 +2,6 @@
   (:require [clojure.tools.cli :as cli]
             [clojure.set :as set]
             [clojure.spec.alpha :as s]
-            [clojure.spec.test.alpha :as stest]
             [fipp.clojure :as fipp]
             [clojure.xml :as xml]
             [clojure.string :as str]
@@ -17,9 +16,6 @@
             [cheshire.core :as json]
             [com.rpl.specter :as sp]
             [rest-resources-viz.spec :as rspec]))
-
-(defn instrument-all []
-  (run! stest/instrument (stest/instrumentable-syms)))
 
 (defn remove-nils [m]
   (let [f (fn [x]
@@ -106,19 +102,17 @@
           (keyword family (first ss)))))))
 
 (s/fdef resource->relationship
-  :args (s/cat :from-fn (s/fspec :args (s/cat :resource :resource/entity)
-                                 :ret qualified-keyword?)
-               :to-fn (s/fspec :args (s/cat :resource :resource/entity)
-                               :ret qualified-keyword?)
+  :args (s/cat :from-keyword keyword?
+               :to-keyword keyword?
                :resource :resource/entity)
   :ret :relationship/entity)
 
 (defn resource->relationship
-  "Produce a relationship from a resource
+  "Produce a relationship from a resource.
 
   The return value of (to-fn resource) will be assigned to the :to
-  field, prepended with the family (required), so it should return a
-  string. See spec."
+  field, prepended with the family (required), so this function should
+  return a string. Same for :from. The third parameter is a resource."
   [from-fn to-fn resource]
   (let [f-id (:family-id resource)
         id (:id resource)]
@@ -358,7 +352,7 @@
     (throw (ex-info "Cannot find rest resources xml files on the classpath" {}))))
 
 (defn spit-graph-data-edn!
-  "Write to file the resource graph data in json"
+  "Write to file the resource graph data in edn format."
   [f & [opts]]
   (let [graph-data (xml-files->graph-data (classpath-resource-xmls!))]
     (s/assert* :graph-data/entity graph-data)

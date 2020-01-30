@@ -23,10 +23,10 @@
 
 (def env-extractor
   {:repositories repositories
-   :source-paths #{"src/task" "src/shared"}
+   :source-paths #{"src/task" "src/shared" "test/shared" "test/task"}
    :resource-paths #{"src/task" "src/shared"}
    :dependencies '[[org.clojure/clojure "1.9.0"]
-                   [org.clojure/spec.alpha "0.1.143"]
+                   [org.clojure/spec.alpha "0.2.176"]
                    [org.clojure/tools.cli "0.3.5"]
                    [org.clojure/data.xml "0.2.0-alpha1"]
                    [org.clojure/data.zip "0.1.2"]
@@ -34,7 +34,9 @@
                    [cheshire "5.6.3"]
                    [org.clojure/java.classpath "0.2.3"]
                    [com.rpl/specter "1.0.5"]
-                   [fipp "0.6.8"]]})
+                   [fipp "0.6.8"]
+                   [pjstadig/humane-test-output "0.10.0" :scope "test"]
+                   [expound "0.8.4" :scope "test"]]})
 
 (def env-extractor-sources-only
   {:repositories repositories
@@ -157,8 +159,8 @@
 (def env-web-prod {:resource-paths #{"web-assets"}
                    :source-paths #{"src/web" "src/shared"}
                    :dependencies '[[org.clojure/clojure "1.9.0"]
-                                   [org.clojure/spec.alpha "0.1.143"]
-                                   [org.clojure/clojurescript "1.9.946"  :scope "test"]
+                                   [org.clojure/spec.alpha "0.2.176"]
+                                   [org.clojure/clojurescript "1.10.597"  :scope "test"]
                                    [adzerk/boot-cljs "2.1.4" :scope "test"]
                                    [org.clojure/test.check "0.9.0"] ;; AR - at the moment we need it, see http://dev.clojure.org/jira/browse/CLJS-1792
                                    [adzerk/env "0.4.0"]
@@ -269,7 +271,9 @@
          :source-paths #{"src/task" "test/task" "src/shared" "test/shared"}
          :dependencies (into (get-in conf-dev-extractor [:env :dependencies])
                              '[[org.clojure/tools.namespace "0.3.0-alpha4"]
-                               [metosin/bat-test "0.4.0"]])}})
+                               [adzerk/boot-test "1.2.0"]
+                               [pjstadig/humane-test-output "0.10.0"]
+                               [expound "0.8.4"]])}})
 
 (ns-unmap *ns* 'test)
 
@@ -278,5 +282,5 @@
   [w watch bool "Enable watching folders and test behavior."]
   (if watch
     (assoc conf-tests :pipeline '(comp (watch)
-                                       (metosin.bat-test/bat-test)) )
-    (assoc conf-tests :pipeline '(metosin.bat-test/bat-test))))
+                                       (adzerk.boot-test/test)))
+    (assoc conf-tests :pipeline '(adzerk.boot-test/test))))

@@ -138,6 +138,12 @@ In order to use Maven gpg signing, add the following to `settings.xml`:
       </properties>
     </profile>
 
+## Test
+
+    boot test
+
+The simple command above would do.
+
 ## Boot
 
 The build tool of choice for this project is [boot](http://boot-clj.com/)<img width="24px" height="24px" src="https://github.com/boot-clj/boot-clj.github.io/blob/master/assets/images/logos/boot-logo-3.png" alt="Boot Logo"/>.
