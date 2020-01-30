@@ -2,6 +2,8 @@
 
 Manipulate and visualize Cortex rest resources and relationships.
 
+![Resource Graph Showcase][doc/img/resource-graph-showcase.png]
+
 ## Usage
 
 Rest-resources-viz extracts the graph data from Elastic Path's resource definitions in your `.m2` and therefore needs access to the Maven artifacts that contain them.
@@ -59,11 +61,20 @@ boot build-web target
 The conf file passed in is necessary in order to configure the Maven repository and coordinates (assuming they have a similar name) for the resource artifacts. For a sample configuration see `conf-sample.edn` in the repository root.
 In case of missing keys a `clojure.spec` error will tell you what was expected. The error message is a bit cryptic and will be improved, bear with us.
 
-Once the command finishes, you can serve the `target` folder. We use `python` because available in any major Linux/OSX distribution:
+Once the command finishes, you can serve the `target` folder.
+
+A simple way to serve a folder is by using `python2`, for instance:
 
 ```
-cd target && python -m SimpleHTTPServer; cd..
+cd target && python2 -m SimpleHTTPServer; cd..
 ```
+
+Python 3 has got a slightly different command line:
+
+```
+cd target && python3 -m http.server; cd..
+```
+
 
 Now you can open your browser and connect to `localhost:8000`. You will see an empty frame. This is because the graph data is missing. That can be easily generated with the `extract` task (see `boot extract -h` as well) and needs to be saved in `target/graph-data.edn`:
 
