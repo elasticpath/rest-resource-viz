@@ -6,9 +6,9 @@ Manipulate and visualize Cortex rest resources and relationships.
 
 ## Usage
 
-Rest-resources-viz extracts the graph data from Elastic Path's resource definitions in your `.m2` and therefore needs access to the Maven artifacts that contain them.
+Rest-resources-viz extracts the graph data from Elastic Path's resource definitions (just specify the dependencies) and therefore needs access to the Maven artifacts that contain them.
 
-Usually you would add the `com.elasticpath/rest-viz-maven-plugin` to your `pom.xml` this way:
+In order to do this you would need to add the `com.elasticpath/rest-viz-maven-plugin` to your `pom.xml` this way:
 
 ```xml
 <plugins>
@@ -46,9 +46,11 @@ Usually you would add the `com.elasticpath/rest-viz-maven-plugin` to your `pom.x
 The above generates all the necessary web assets to the specified output directory (or `rest-viz-assets`) and can be served directly.
 The sample project in the repository can help with setting up your project. If artifacts cannot be found, make also sure that the correct repository has been specified in `.m2/settings.xml` and/or the correct profile has been activated.
 
-If you want to try it at the command line, you can also call the goal explicitly (check [Plugin Prefix Resolution](https://maven.apache.org/guides/introduction/introduction-to-plugin-prefix-mapping.html) to type less):
+If you want to just extract the data, at the command line you can call the goal explicitly (check [Plugin Prefix Resolution](https://maven.apache.org/guides/introduction/introduction-to-plugin-prefix-mapping.html) to type less):
 
     mvn com.elasticpath:rest-viz-maven-plugin:extract
+    
+The only supported output at the moment is the [Extensible Data Format](https://github.com/edn-format/edn). [Here](https://github.com/bpsm/edn-java) you can find a Java reader implementation.
 
 ### Simple(r) Visualization
 
