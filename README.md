@@ -2,7 +2,7 @@
 
 Manipulate and visualize Cortex rest resources and relationships.
 
-![Resource Graph Showcase][doc/img/resource-graph-showcase.png]
+![Resource Graph Showcase](doc/img/resource-graph-showcase.png)
 
 ## Usage
 
